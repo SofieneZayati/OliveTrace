@@ -1,3 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../views/**/*.blade.php";
+@plugin "@tailwindcss/forms";
+
+@theme {
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+    --color-olive-50: #f5f7ee;
+    --color-olive-500: #7c8a44;
+    --color-olive-600: #667536;
+    --color-olive-700: #52612c;
+    --color-olive-800: #3e4b23;
+}
+
+@layer base {
+    button, [role="button"] { cursor: pointer; }
+    [x-cloak] { display: none !important; }
+}
