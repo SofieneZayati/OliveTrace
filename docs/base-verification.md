@@ -61,6 +61,7 @@ The development database contains `users`, `password_reset_tokens`, `sessions`,
 There are exactly six development users after cleanup. There are no business
 entities, module migrations/controllers/pages, QR features or AI integrations.
 
-GitHub Actions is configured to repeat core checks with PHP 8.3, Node 24 and
-MySQL 8.4. The checks above were performed locally before pushing; remote run
-status is available in the repository's Actions tab.
+GitHub Actions is enabled and configured to repeat core checks with PHP 8.3,
+Node 24 and MySQL 8.4, including an optional manual run. The checks above were
+performed locally before pushing; remote run status is available in the
+repository's Actions tab.
