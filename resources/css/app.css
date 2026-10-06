@@ -4,15 +4,76 @@
 @plugin "@tailwindcss/forms";
 
 @theme {
-    --font-sans: ui-sans-serif, system-ui, sans-serif;
-    --color-olive-50: #f5f7ee;
-    --color-olive-500: #7c8a44;
-    --color-olive-600: #667536;
-    --color-olive-700: #52612c;
-    --color-olive-800: #3e4b23;
+    --font-sans: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+    --color-olive-50: #eef2e8;
+    --color-olive-100: #dde5d3;
+    --color-olive-500: #738352;
+    --color-olive-600: #586a3d;
+    --color-olive-700: #3b512d;
+    --color-olive-800: #283e29;
+    --color-olive-900: #1e3327;
+    --color-cream: #f8f6ef;
+    --color-gold: #b59459;
 }
-
 @layer base {
+    body { color: #26392b; }
     button, [role="button"] { cursor: pointer; }
     [x-cloak] { display: none !important; }
+    ::selection { background: #dde5d3; color: #1e3327; }
+    :focus-visible { outline: 3px solid #738352; outline-offset: 4px; }
+}
+@layer components {
+    .page-width { width: 100%; max-width: 1400px; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 4rem); }
+    .eyebrow { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.19em; text-transform: uppercase; }
+    .display-title { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.045em; line-height: 1.08; }
+    .brand { display: inline-flex; align-items: center; gap: 0.65rem; font-size: 1.5rem; font-weight: 650; letter-spacing: -0.065em; color: #283e29; white-space: nowrap; }
+    .brand-mark { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border: 1px solid #d6ddc9; border-radius: 50%; }
+    .brand-mark svg { width: 1.25rem; height: 1.25rem; }
+    .brand-trace { font-weight: 400; }
+    .brand-dot { color: #b59459; }
+    .brand-light { color: #f8f6ef; }
+    .brand-light .brand-mark { border-color: #53644a; }
+    .nav-link { padding-block: 0.5rem; color: #59614f; transition: color 150ms; }
+    .nav-link:hover, .nav-link[aria-current="page"] { color: #283e29; }
+    .nav-link[aria-current="page"] { box-shadow: 0 1px #738352; }
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem; border: 1px solid transparent; border-radius: 0.65rem; background: #283e29; padding: 0.8rem 1.25rem; font-size: 0.875rem; font-weight: 600; color: white; transition: background 150ms, transform 150ms; }
+    .btn-primary:hover { background: #3b512d; transform: translateY(-1px); }
+    .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid #d9ddcf; border-radius: 0.65rem; background: white; padding: 0.8rem 1.25rem; font-size: 0.875rem; font-weight: 600; color: #3b512d; transition: background 150ms; }
+    .btn-secondary:hover { background: #eef2e8; }
+    .btn-danger { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #dc2626; border-radius: 0.65rem; background: #dc2626; padding: 0.8rem 1.25rem; font-size: 0.875rem; font-weight: 600; color: white; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-primary:disabled, .btn-secondary:disabled, .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .form-label { display: block; font-size: 0.8rem; font-weight: 600; color: #3b4939; }
+    .surface-card { border: 1px solid #e2e5da; border-radius: 1rem; background: white; padding: clamp(1.25rem, 3vw, 2rem); box-shadow: 0 4px 24px #26392b03; }
+    .text-link { font-size: 0.875rem; font-weight: 600; color: #3b512d; text-underline-offset: 4px; }
+    .text-link:hover { text-decoration: underline; }
+    .hero-image { width: 100%; height: 100%; object-fit: cover; }
+    .sidebar-link { display: flex; align-items: center; gap: 0.8rem; border-radius: 0.65rem; padding: 0.85rem 1rem; font-size: 0.875rem; color: #d6dfcc; transition: background 150ms; }
+    .sidebar-link:hover { background: #ffffff0b; }
+    .sidebar-link[aria-current="page"] { background: #ffffff13; color: white; box-shadow: inset 3px 0 #b9c694; }
+    .role-badge { display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid #d9dfcd; border-radius: 999px; background: #eef2e8; padding: 0.35rem 0.8rem; font-size: 0.75rem; font-weight: 600; color: #3b512d; }
+    .auth-shell { display: grid; overflow: hidden; border: 1px solid #e2e5da; border-radius: 1.5rem; background: white; box-shadow: 0 20px 70px #26392b08; }
+    .auth-art { position: relative; min-height: 100%; background: #283e29; }
+    .auth-heading { font-family: var(--font-display); font-size: 2.35rem; letter-spacing: -0.04em; line-height: 1.15; }
+}
+/* Keep shared field styling above the forms plugin's default selectors. */
+input.form-input, select {
+    border: 1px solid #d9ddcf;
+    border-radius: 0.65rem;
+    background-color: white;
+    padding: 0.8rem 0.9rem;
+    font-size: 0.9rem;
+    box-shadow: none;
+}
+select { padding-right: 2.5rem; }
+input.form-input:focus, select:focus {
+    border-color: #738352;
+    --tw-ring-color: #738352;
+    box-shadow: 0 0 0 3px #73835220;
+}
+input[type="checkbox"] { color: #3b512d; border-color: #c8cfbc; border-radius: 0.25rem; }
+input[type="checkbox"]:focus { --tw-ring-color: #738352; }
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }

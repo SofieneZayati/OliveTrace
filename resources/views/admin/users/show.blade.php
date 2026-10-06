@@ -2,7 +2,7 @@
 @section('title', 'User details')
 @section('content')
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 class="text-3xl font-bold">{{ $user->name }}</h1>
+        <h1 class="display-title text-4xl sm:text-5xl">{{ $user->name }}</h1>
         <x-button-link href="{{ route('admin.users.edit', $user) }}">Edit user</x-button-link>
     </div>
     <x-card class="max-w-2xl">

@@ -1,16 +1,44 @@
 @extends(auth()->user()->role === \App\Enums\Role::Consumer ? 'layouts.front' : 'layouts.admin')
 @section('title', 'Dashboard')
 @section('content')
-    <div class="mb-8">
-        <p class="mb-2 text-sm font-semibold uppercase tracking-wider text-olive-700">OliveTrace</p>
-        <h1 class="text-3xl font-bold">Welcome, {{ auth()->user()->name }}</h1>
-        <p class="mt-3 text-stone-600">Role: {{ auth()->user()->role->label() }}</p>
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-5">
+        <div>
+            <p class="eyebrow mb-4 text-olive-600">OliveTrace / Your dashboard</p>
+            <h1 class="display-title text-4xl sm:text-5xl">Welcome, {{ auth()->user()->name }}.</h1>
+            <p class="mt-4 text-sm text-stone-500">A shared space. A fresh beginning.</p>
+        </div>
+        <span class="role-badge">Role: {{ auth()->user()->role->label() }}</span>
     </div>
-    <x-card>
-        <h2 class="text-xl font-semibold">Your workspace</h2>
-        <p class="mt-3 text-stone-600">The business modules will appear here.</p>
+    <section class="relative mb-7 overflow-hidden rounded-2xl bg-olive-800 p-7 text-cream sm:p-10" aria-labelledby="workspace-heading">
+        <x-icon name="leaf" class="pointer-events-none absolute -right-6 -top-8 h-64 w-64 rotate-12 text-cream/5" />
+        <div class="relative max-w-xl">
+            <p class="eyebrow mb-4 text-olive-100/70">Growing together</p>
+            <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Your workspace is taking root.</h2>
+            <p class="mt-4 text-sm leading-7 text-olive-100/80">The business modules will appear here.</p>
+            <p class="mt-1 text-sm leading-7 text-olive-100/80">For now, your account and shared tools are ready.</p>
+        </div>
+    </section>
+    <div class="grid gap-5 md:grid-cols-2">
+        <x-card>
+            <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="user" /></div>
+            <h2 class="text-lg font-semibold">Make yourself at home</h2>
+            <p class="mb-6 mt-2 text-sm leading-6 text-stone-500">Keep your personal details up to date and manage your account security.</p>
+            <a href="{{ route('profile.edit') }}" class="text-link inline-flex items-center gap-2">Manage profile <x-icon name="arrow" class="h-4 w-4" /></a>
+        </x-card>
         @can('access-admin')
-            <div class="mt-6"><x-button-link href="{{ route('admin.users.index') }}">Manage users</x-button-link></div>
+            <x-card>
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="users" /></div>
+                <h2 class="text-lg font-semibold">Look after the community</h2>
+                <p class="mb-6 mt-2 text-sm leading-6 text-stone-500">Manage shared accounts, assign roles, and control who can access OliveTrace.</p>
+                <a href="{{ route('admin.users.index') }}" class="text-link inline-flex items-center gap-2">Manage users <x-icon name="arrow" class="h-4 w-4" /></a>
+            </x-card>
+        @else
+            <x-card>
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="check" /></div>
+                <h2 class="text-lg font-semibold">Your place in OliveTrace</h2>
+                <p class="mt-2 text-sm leading-6 text-stone-500">You're signed in as a {{ strtolower(auth()->user()->role->label()) }}. Your role helps us bring the right workspace to you.</p>
+                <p class="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-olive-700"><span class="h-1.5 w-1.5 rounded-full bg-olive-500"></span>Account active</p>
+            </x-card>
         @endcan
-    </x-card>
+    </div>
 @endsection

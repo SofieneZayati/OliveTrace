@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', 'Edit user')
 @section('content')
-    <h1 class="mb-6 text-3xl font-bold">Edit {{ $user->name }}</h1>
+    <h1 class="mb-6 display-title text-4xl sm:text-5xl">Edit {{ $user->name }}</h1>
     <x-card class="max-w-2xl">
         <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-6">
             @csrf
@@ -18,7 +18,7 @@
             </div>
             <div>
                 <x-input-label for="role" value="Role" />
-                <select id="role" name="role" required class="mt-1 w-full rounded-md border-stone-300">
+                <select id="role" name="role" required class="mt-2 w-full">
                     @foreach ($roles as $role)
                         <option value="{{ $role->value }}" @selected(old('role', $user->role->value) === $role->value)>{{ $role->label() }}</option>
                     @endforeach

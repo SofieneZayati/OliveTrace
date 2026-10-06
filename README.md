@@ -169,6 +169,10 @@ Add per-record ownership policies/checks in each future module as well.
 - Reuse `<x-card>`, `<x-alerts>`, `<x-validation-errors>`, input/error/button
   components and the shared navigation. Keep user content escaped with `{{ }}`.
 
+The visual foundation uses warm cream and olive green across public, account and
+admin screens. [Design notes](docs/design.md) describe the shared styles,
+components and generated homepage image.
+
 ## Password reset and mail
 
 Reset link generation and token-based password reset work. By default,

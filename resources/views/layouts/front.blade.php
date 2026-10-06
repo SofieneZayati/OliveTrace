@@ -4,15 +4,23 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#283e29">
+    <meta name="description" content="OliveTrace — a shared workspace for the people behind Tunisian olive oil.">
     <title>@yield('title', 'Home') | OliveTrace</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-stone-50 font-sans text-stone-900 antialiased">
+<body class="flex min-h-screen flex-col bg-cream font-sans antialiased">
     @include('layouts.navigation')
-    <main id="main-content" class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <main id="main-content" class="page-width flex-1 py-8 sm:py-12">
         <x-alerts />
         @yield('content')
     </main>
-    <footer class="mx-auto max-w-6xl border-t border-stone-200 px-4 py-6 text-sm text-stone-500 sm:px-6">OliveTrace &middot; Tunisian olive oil, connected.</footer>
+    <footer class="border-t border-olive-800/10">
+        <div class="page-width flex flex-col justify-between gap-5 py-7 sm:flex-row sm:items-center">
+            <a href="{{ route('home') }}" aria-label="OliveTrace home"><x-brand class="text-xl" /></a>
+            <p class="text-sm text-stone-500">Tunisian olive oil. A story worth connecting.</p>
+            <span class="eyebrow text-olive-600">Rooted in Tunisia</span>
+        </div>
+    </footer>
 </body>
 </html>

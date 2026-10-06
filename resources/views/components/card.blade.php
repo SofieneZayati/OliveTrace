@@ -1,1 +1,1 @@
-<section {{ $attributes->merge(['class' => 'rounded-xl border border-stone-200 bg-white p-6 shadow-sm']) }}>{{ $slot }}</section>
+<section {{ $attributes->merge(['class' => 'surface-card min-w-0']) }}>{{ $slot }}</section>
