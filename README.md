@@ -1,66 +1,278 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# OliveTrace
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+OliveTrace is a university web project for tracing Tunisian olive oil from farm
+to consumer. The team is Sofiene, Mariem, Oussema, Hana and Aymen.
 
-## About Laravel
+**This repository contains the SHARED BASE only. No business module is implemented.**
+Authentication, roles, common user management, layouts and infrastructure are
+shared work; they do not count as an individual student's module.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Included in this base
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Laravel 12, MySQL and a configured Doctrine entity manager.
+- Breeze with Blade: register, login, logout, password reset and account profile.
+- Six roles, active/inactive accounts, protected routes and a reusable role middleware.
+- Admin user list, search, role/status filters, details, edit, role change,
+  activation/deactivation and deletion of unlinked accounts.
+- Front Office and Back Office layouts, shared navigation, alerts, validation
+  errors, buttons, cards and a simple dashboard.
+- Development accounts, automated tests and a GitHub Actions check workflow.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+There are no Producer/Farm, Harvest, Mill, Mill Request, Oil Lot, Laboratory,
+Certification, Certificate, Product/Distribution, Shipment, Feedback, Complaint,
+QR traceability or AI tables, controllers or screens. No business statistics or
+links to unimplemented modules are present. Advanced module forms and one AI
+feature per student are future work; API credentials must stay in local `.env`.
 
-## Learning Laravel
+## Software required
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Software | Requirement / tested version |
+| --- | --- |
+| PHP | **8.3+**; PHP 8.4 recommended, tested with 8.4.26 |
+| Laravel | **12.x**; locked to 12.69.3 |
+| Composer | 2.x; tested with 2.10.3 |
+| MySQL | MySQL 8.0+; 8.4 LTS recommended, tested with 8.4.9 |
+| Node.js | Node 22.12+ or Node 24 LTS; tested with 24.20.0 |
+| npm | 10+; tested with 11.6.1 |
+| Git | A working Git installation; tested with 2.46.1 |
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Laravel 12 itself supports PHP 8.2, but the chosen Doctrine integration needs
+PHP 8.3. The project's PHP requirement is therefore **8.3**. The lock file targets
+PHP 8.3 so PHP 8.3 and 8.4 developers install the same dependency versions.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+PHP must enable Ctype, cURL, DOM, Fileinfo, Filter, Hash, Mbstring, OpenSSL, PCRE,
+PDO, Session, Tokenizer, XML and **pdo_mysql**. Enable Zip for Composer archive
+installation and pdo_sqlite for the default in-memory test suite. Intl is also
+available on the prepared Windows runtime. Check with `php -m` and `php --ini`.
 
-## Laravel Sponsors
+## Clone and install
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Use PowerShell on Windows. If npm.ps1 is blocked by your execution policy, use
+`npm.cmd` as shown; no system security-policy change is needed. On macOS/Linux,
+use `npm` and `cp .env.example .env`.
 
-### Premium Partners
+```powershell
+git clone https://github.com/SofieneZayati/OliveTrace.git olivetrace
+cd olivetrace
+composer install
+npm.cmd install
+Copy-Item .env.example .env
+php artisan key:generate
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Start MySQL, sign in with your own local administrative credentials, and create
+the development database:
 
-## Contributing
+```powershell
+mysql -u root -p
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+At the MySQL prompt:
 
-## Code of Conduct
+```sql
+CREATE DATABASE IF NOT EXISTS olivetrace
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+EXIT;
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Edit your **local `.env`** to match your MySQL installation:
 
-## Security Vulnerabilities
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=olivetrace
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+These are placeholders/defaults, not shared credentials. Use your own username
+and password. Then finish setup:
 
-## License
+```powershell
+php artisan migrate --seed
+npm.cmd run build
+php artisan olivetrace:check-doctrine
+php artisan serve
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Open **http://localhost:8000**. The Doctrine check must succeed; this base reports
+zero business entities. Keep the server terminal open while using the app.
+
+For live frontend changes, run `npm.cmd run dev` in a second terminal. Otherwise
+rebuild with `npm.cmd run build`. `composer run dev` starts the Laravel server;
+this deliberately avoids Unix-only process/log tooling on Windows.
+
+For an existing clone after pulling changes: `composer install`, `npm.cmd ci`,
+`php artisan migrate`, and `npm.cmd run build`. Run `php artisan optimize:clear`
+if old cached configuration or views cause confusion. Commit both lock files;
+use `npm ci` in CI or for a reproducible clean install.
+
+### Sofiene's prepared Windows computer
+
+The isolated PHP/Composer/MySQL installation can be activated from the current
+project directory without changing XAMPP or unrelated projects:
+
+```powershell
+. .\scripts\Use-OliveTrace.ps1
+.\scripts\Start-LocalMySql.ps1
+php artisan serve
+```
+
+Activation is needed in every new terminal if the system PHP still points to
+XAMPP 8.2. Full paths, verified extensions and start/stop commands are in
+[Windows environment notes](docs/windows-environment.md). These optional helpers
+are specific to that machine; other developers can use their existing tools.
+
+## Development accounts
+
+**DEVELOPMENT ONLY.** Run `php artisan migrate --seed` in `APP_ENV=local`.
+All six accounts use **`OliveTrace123!`**. This is a public demo password, never a
+production credential. The seeder refuses other environments except testing.
+Rerunning it restores these six demo accounts and their password/status; it does
+not delete other users.
+
+| Email | Role |
+| --- | --- |
+| admin@test.com | admin |
+| producer@test.com | producer |
+| miller@test.com | miller |
+| lab@test.com | laboratory |
+| distributor@test.com | distributor |
+| consumer@test.com | consumer |
+
+Public registration always creates an **active consumer**. Only an administrator
+can assign a different role. A submitted `role` or `is_active` field cannot
+escalate public registration or profile privileges.
+
+## Roles and shared screens
+
+Guests see Home, Login and Register. Consumers use the Front Office with Home,
+Dashboard, Profile and Logout. Admins, producers, millers, laboratories and
+distributors use the Back Office dashboard, Profile and Logout. Admins also see
+Users and can open `/admin/dashboard` and `/admin/users`.
+
+Inactive users cannot log in; existing sessions lose access on the next protected
+request. An administrator cannot delete/deactivate their own account or remove
+their own admin role. At least one active admin must remain. Accounts referenced
+by future module records must be deactivated instead of hard-deleted; module
+foreign keys must restrict deletion.
+
+Future routes can use `['auth', 'active', 'role:producer']`, or a comma-separated
+allow-list such as `role:producer,miller`. `access-admin` is a reusable Gate.
+Add per-record ownership policies/checks in each future module as well.
+
+- `resources/views/layouts/front.blade.php`: public/consumer pages.
+- `resources/views/layouts/admin.blade.php`: admin and actor workspaces.
+- Pages use `@extends`, `@section('title', '...')` and `@section('content')`.
+- Breeze component layouts adapt profile/auth pages to the shared layouts.
+- Reuse `<x-card>`, `<x-alerts>`, `<x-validation-errors>`, input/error/button
+  components and the shared navigation. Keep user content escaped with `{{ }}`.
+
+## Password reset and mail
+
+Reset link generation and token-based password reset work. By default,
+**`MAIL_MAILER=log`** writes the notification and reset URL to
+`storage/logs/laravel.log`; no email is delivered. For local testing, request a
+reset link and open the URL from your own log. Automated tests verify the full
+reset flow, including password replacement with a valid token.
+
+For actual email delivery, configure your own SMTP transport in the local `.env`
+using the options in `config/mail.php`, then run `php artisan config:clear`.
+Do not commit SMTP passwords or reset URLs. The base does not require SMTP setup
+or verified emails to access the dashboard.
+
+## Doctrine architecture
+
+`laravel-doctrine/orm` **3.3.3** is installed and supports Laravel 12 / PHP 8.3.
+Doctrine ORM **3.7.4** and DBAL **4.5.0** connect to the same MySQL database.
+
+The shared `App\Models\User` and Breeze authentication intentionally use Eloquent.
+**All future business persistence must use Doctrine entities, repositories and
+associations.** Production mappings scan only `app/Entities`; it currently has
+no entity classes. Place repositories under `app/Repositories`.
+
+Use Laravel migrations for schema changes so the team has one setup command.
+Reference shared users with scalar user IDs plus restricted MySQL foreign keys;
+do not create duplicate user models/tables. Business-to-business relationships
+use Doctrine associations. Read [the Doctrine architecture guide](docs/doctrine.md)
+before beginning a module, especially its validation and schema-tool boundaries.
+
+## Tests and checks
+
+```powershell
+php artisan test
+php vendor/bin/pint --test
+npm.cmd run build
+composer validate --strict
+composer check-platform-reqs
+composer audit
+npm.cmd audit
+php artisan olivetrace:check-doctrine
+```
+
+The normal suite uses SQLite in memory and never resets the development MySQL
+database. To run the same suite against MySQL, create a **separate** schema using
+administrative credentials and grant your local application user access:
+
+```sql
+CREATE DATABASE IF NOT EXISTS olivetrace_testing
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+Then run:
+
+```powershell
+php scripts/test-mysql.php
+```
+
+This reads credentials from your local `.env` and uses its database name with
+`_testing` appended. Tests recreate only that separate testing schema. The test
+bootstrap rejects a non-testing MySQL database; do not point tests at real data.
+The Doctrine persistence fixture is test-only and leaves no business table in
+the application schema. The GitHub workflow repeats build, format, SQLite/MySQL
+suite and Doctrine checks on pushes/PRs for main and develop.
+
+## Git workflow
+
+`main` is the stable branch; `develop` is integration. The future module branches
+are documented, not created:
+
+```text
+feature/mariem-producer-farms
+feature/sofiene-harvest-mill
+feature/oussema-lab-certification
+feature/hana-distribution
+feature/aymen-consumer-feedback
+```
+
+Start from develop, for example:
+
+```powershell
+git fetch origin
+git switch develop
+git pull --ff-only origin develop
+git switch -c feature/mariem-producer-farms
+```
+
+Use your own feature branch name. Workflow: **feature branch -> Pull Request ->
+develop -> integration tests -> Pull Request -> main**. Small, meaningful commits
+are expected. Setup/auth/users/layouts are shared and should not be rebuilt per
+module. Invite teammates through GitHub Settings > Collaborators.
+
+The supplied PDF assigns the first two modules to the opposite owners from the
+explicit base-project request. The requested branch ownership above takes
+precedence here. [Team workflow notes](docs/team-workflow.md) record the difference
+so it is clear before module work begins.
+
+## Repository hygiene
+
+`.env`, other local environment files, `vendor`, `node_modules`, builds, logs,
+local databases, private keys and temporary/local setup files are ignored.
+`.env.example` contains placeholders only. Never commit credentials, API keys,
+private configuration or generated password-reset links. Review `git status` and
+`git diff --cached` before every commit.
+
+The functional reference is `OliveTrace_Final_Team_Specification.pdf`. This base
+implements its shared Phase 0 infrastructure; the later module and AI requirements
+remain the team's next stages.
