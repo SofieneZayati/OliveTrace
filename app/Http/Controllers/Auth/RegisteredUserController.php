@@ -35,6 +35,8 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // Public registration always uses the database's consumer/active defaults.
+        // Role and account status are never accepted from the registration form.
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
