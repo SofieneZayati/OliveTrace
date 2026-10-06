@@ -1,0 +1,52 @@
+name: Project checks
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: olivetrace
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql, pdo_sqlite, xml, curl, zip, intl
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer validate --strict
+      - run: composer check-platform-reqs
+      - run: cp .env.example .env
+      - run: php artisan key:generate
+      - run: mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE olivetrace_testing CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
+      - run: php artisan migrate --seed --no-interaction
+      - run: php artisan olivetrace:check-doctrine
+      - run: npm ci
+      - run: npm run build
+      - run: php vendor/bin/pint --test
+      - run: php artisan test
+      - run: php scripts/test-mysql.php

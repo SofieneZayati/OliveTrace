@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0c066cc6e8037ed7f14d0c97ff069d3a",
+    "content-hash": "9122c76e20cab754d26b2b3f0c1a6f5b",
     "packages": [
         {
             "name": "brick/math",
@@ -1648,31 +1648,31 @@
         },
         {
             "name": "laravel-doctrine/orm",
-            "version": "3.3.0",
+            "version": "3.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel-doctrine/orm.git",
-                "reference": "a677d72bedcac172e35b192182de41e515c40212"
+                "reference": "dca0c45b2a43c545e19a18ac4fb9dfb84a22a7c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel-doctrine/orm/zipball/a677d72bedcac172e35b192182de41e515c40212",
-                "reference": "a677d72bedcac172e35b192182de41e515c40212",
+                "url": "https://api.github.com/repos/laravel-doctrine/orm/zipball/dca0c45b2a43c545e19a18ac4fb9dfb84a22a7c8",
+                "reference": "dca0c45b2a43c545e19a18ac4fb9dfb84a22a7c8",
                 "shasum": ""
             },
             "require": {
                 "doctrine/dbal": "^3.0 || ^4.0",
                 "doctrine/orm": "^3.1",
                 "doctrine/persistence": "^3.3 || ^4.0",
-                "illuminate/auth": "^10.0|^11.0 || ^12.0",
-                "illuminate/console": "^10.0|^11.0 || ^12.0",
-                "illuminate/container": "^10.0|^11.0 || ^12.0",
-                "illuminate/contracts": "^10.0|^11.0 || ^12.0",
-                "illuminate/pagination": "^10.0|^11.0 || ^12.0",
-                "illuminate/routing": "^10.0|^11.0 || ^12.0",
-                "illuminate/support": "^10.0|^11.0 || ^12.0",
-                "illuminate/validation": "^10.0|^11.0 || ^12.0",
-                "illuminate/view": "^10.0|^11.0 || ^12.0",
+                "illuminate/auth": "^10.0|^11.0 || ^12.0 || ^13.0",
+                "illuminate/console": "^10.0|^11.0 || ^12.0 || ^13.0",
+                "illuminate/container": "^10.0|^11.0 || ^12.0 || ^13.0",
+                "illuminate/contracts": "^10.0|^11.0 || ^12.0 || ^13.0",
+                "illuminate/pagination": "^10.0|^11.0 || ^12.0 || ^13.0",
+                "illuminate/routing": "^10.0|^11.0 || ^12.0 || ^13.0",
+                "illuminate/support": "^10.0|^11.0 || ^12.0 || ^13.0",
+                "illuminate/validation": "^10.0|^11.0 || ^12.0 || ^13.0",
+                "illuminate/view": "^10.0|^11.0 || ^12.0 || ^13.0",
                 "php": "^8.3",
                 "symfony/cache": "^6.0|^7.0|^8.0",
                 "symfony/serializer": "^5.0|^6.0|^7.0|^8.0"
@@ -1683,13 +1683,13 @@
             "require-dev": {
                 "doctrine/coding-standard": "^14.0",
                 "fakerphp/faker": "^1.23",
-                "illuminate/log": "^10.0 || ^11.0 || ^12.0",
-                "illuminate/notifications": "^10.0 || ^11.0 || ^12.0",
-                "illuminate/queue": "^10.0 || ^11.0 || ^12.0",
-                "laravel/framework": "^10.0 || ^11.0 || ^12.0",
+                "illuminate/log": "^10.0 || ^11.0 || ^12.0 || ^13.0",
+                "illuminate/notifications": "^10.0 || ^11.0 || ^12.0 || ^13.0",
+                "illuminate/queue": "^10.0 || ^11.0 || ^12.0 || ^13.0",
+                "laravel/framework": "^10.0 || ^11.0 || ^12.0 || ^13.0",
                 "mockery/mockery": "^1.6.12",
                 "nikic/php-parser": "^4.19 || ^5.0",
-                "orchestra/testbench": "^9.5 || ^10.0",
+                "orchestra/testbench": "^9.5 || ^10.0 || ^11.0",
                 "php-parallel-lint/php-parallel-lint": "^1.4",
                 "phpstan/phpstan": "^1.9 || ^2.1",
                 "phpstan/phpstan-deprecation-rules": "^1.1 || ^2.0",
@@ -1747,9 +1747,9 @@
             ],
             "support": {
                 "issues": "https://github.com/laravel-doctrine/orm/issues",
-                "source": "https://github.com/laravel-doctrine/orm/tree/3.3.0"
+                "source": "https://github.com/laravel-doctrine/orm/tree/3.3.3"
             },
-            "time": "2026-02-08T02:30:26+00:00"
+            "time": "2026-04-12T21:35:48+00:00"
         },
         {
             "name": "laravel/framework",
@@ -7405,16 +7405,16 @@
         },
         {
             "name": "laravel/breeze",
-            "version": "v2.4.0",
+            "version": "v2.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/breeze.git",
-                "reference": "26c4a6db35abfbf302aa26d338e0b6487844f3c9"
+                "reference": "4f20e7b2cc8d25daa85d8647241a89c8e0930305"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/breeze/zipball/26c4a6db35abfbf302aa26d338e0b6487844f3c9",
-                "reference": "26c4a6db35abfbf302aa26d338e0b6487844f3c9",
+                "url": "https://api.github.com/repos/laravel/breeze/zipball/4f20e7b2cc8d25daa85d8647241a89c8e0930305",
+                "reference": "4f20e7b2cc8d25daa85d8647241a89c8e0930305",
                 "shasum": ""
             },
             "require": {
@@ -7462,7 +7462,7 @@
                 "issues": "https://github.com/laravel/breeze/issues",
                 "source": "https://github.com/laravel/breeze"
             },
-            "time": "2026-02-21T13:32:22+00:00"
+            "time": "2026-05-14T16:54:25+00:00"
         },
         {
             "name": "laravel/pail",
@@ -9640,7 +9640,7 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,

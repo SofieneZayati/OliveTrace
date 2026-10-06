@@ -22,8 +22,7 @@ class UserController extends Controller
             'active' => ['nullable', Rule::in(['0', '1'])],
         ]);
         $users = User::query()
-            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where(fn ($query) =>
-                $query->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%')))
+            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where(fn ($query) => $query->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%')))
             ->when($filters['role'] ?? null, fn ($query, $role) => $query->where('role', $role))
             ->when(isset($filters['active']), fn ($query) => $query->where('is_active', $filters['active']))
             ->orderBy('name')->orderBy('id')->paginate(15)->withQueryString();
