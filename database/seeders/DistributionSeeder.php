@@ -67,7 +67,42 @@ class DistributionSeeder extends Seeder
                 'bottle_volume_ml' => 750,
                 'packaging_date' => $now->copy()->subDay()->toDateString(),
                 'public_status' => OilProductPublicStatus::Visible,
-            ])->save();
+            ]);
+            $product->archived_at = null;
+            $product->save();
+            $catalogProducts = [$product];
+
+            foreach ([
+                ['name' => 'Chemlali Harvest Selection', 'brand' => 'Sfax Harvest', 'volume' => 250, 'status' => OilProductPublicStatus::Visible],
+                ['name' => 'Organic Grove Blend', 'brand' => 'Domaine En Nour', 'volume' => 500, 'status' => OilProductPublicStatus::Visible],
+                ['name' => 'Early Press Reserve', 'brand' => 'Zitouna Select', 'volume' => 1000, 'status' => OilProductPublicStatus::Visible],
+                ['name' => 'Seasonal Trial Blend', 'brand' => 'OliveTrace Test', 'volume' => 500, 'status' => OilProductPublicStatus::Hidden],
+                ['name' => 'Archived Grove Oil', 'brand' => 'Old Press', 'volume' => 250, 'status' => OilProductPublicStatus::Hidden, 'archived' => true],
+            ] as $sample) {
+                $sampleProduct = OilProduct::query()->firstOrNew([
+                    'created_by_user_id' => $producer->id,
+                    'name' => $sample['name'],
+                ]);
+                $sampleProduct->created_by_user_id = $producer->id;
+                $sampleProduct->oil_lot_id = (int) $lot->id;
+                $sampleProduct->fill([
+                    'name' => $sample['name'],
+                    'brand' => $sample['brand'],
+                    'bottle_volume_ml' => $sample['volume'],
+                    'packaging_date' => $now->copy()->subDays(2)->toDateString(),
+                    'public_status' => $sample['status'],
+                ]);
+                if ($sample['archived'] ?? false) {
+                    $sampleProduct->archived_at = $now->copy()->subDay();
+                } else {
+                    $sampleProduct->archived_at = null;
+                }
+                $sampleProduct->save();
+
+                if ($sample['status'] === OilProductPublicStatus::Visible) {
+                    $catalogProducts[] = $sampleProduct;
+                }
+            }
 
             Shipment::query()->updateOrCreate(
                 [
@@ -81,6 +116,22 @@ class DistributionSeeder extends Seeder
                     'departure_date' => $now->copy()->subDays(2)->toDateString(),
                     'arrival_date' => $now->copy()->subDay()->toDateString(),
                     'distance_km' => '270.00',
+                    'transport_type' => TransportType::Truck,
+                    'co2_estimate' => null,
+                ],
+            );
+            Shipment::query()->updateOrCreate(
+                [
+                    'oil_product_id' => $catalogProducts[1]->id,
+                    'distributor_profile_id' => $profile->id,
+                    'departure_location' => 'Sfax, Tunisia',
+                    'destination' => 'Monastir, Tunisia',
+                    'status' => ShipmentStatus::Delivered,
+                ],
+                [
+                    'departure_date' => $now->copy()->subDays(3)->toDateString(),
+                    'arrival_date' => $now->copy()->subDays(2)->toDateString(),
+                    'distance_km' => '190.00',
                     'transport_type' => TransportType::Truck,
                     'co2_estimate' => null,
                 ],

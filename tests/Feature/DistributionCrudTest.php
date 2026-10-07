@@ -137,7 +137,11 @@ class DistributionCrudTest extends TestCase
         $this->assertSame(1, DB::table('oil_lots')->where('lot_code', 'LOT-2026-001')->count());
         $this->assertSame(1, DistributorProfile::query()->where('user_id', $distributor->id)->count());
         $this->assertSame(1, OilProduct::query()->where('created_by_user_id', $producer->id)->where('name', 'Huile d’olive vierge extra - El Baraka')->count());
-        $this->assertSame(2, Shipment::query()->count());
+        $this->assertSame(3, Shipment::query()->count());
+        $this->assertSame(4, OilProduct::query()->publiclyVisible()->count());
+        $this->assertSame(1, OilProduct::query()->where('public_status', OilProductPublicStatus::Hidden)->whereNull('archived_at')->count());
+        $this->assertSame(1, OilProduct::query()->whereNotNull('archived_at')->count());
+        $this->assertEqualsCanonicalizing([250, 500, 750, 1000], OilProduct::query()->publiclyVisible()->pluck('bottle_volume_ml')->all());
     }
 
     private function createLot(string $lotCode): int
