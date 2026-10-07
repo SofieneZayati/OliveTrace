@@ -8,6 +8,11 @@ use App\Models\User;
 
 class DistributorProfilePolicy
 {
+    public function create(User $user): bool
+    {
+        return $user->is_active && $user->role === Role::Distributor;
+    }
+
     public function view(User $user, DistributorProfile $profile): bool
     {
         return $user->is_active

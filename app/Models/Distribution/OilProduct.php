@@ -7,6 +7,9 @@ use App\Data\OilLotSummary;
 use App\Enums\OilProductPublicStatus;
 use App\Enums\ShipmentStatus;
 use App\Models\User;
+use App\Services\Distribution\ProductQrCode;
+use App\Services\Distribution\ProductSlugGenerator;
+use App\Services\Distribution\ProductTraceUrl;
 use Database\Factories\Distribution\OilProductFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,8 +30,21 @@ class OilProduct extends Model
     ];
 
     protected $fillable = [
-        'oil_lot_id', 'name', 'brand', 'bottle_volume_ml', 'packaging_date', 'image', 'slug',
+        'oil_lot_id', 'name', 'brand', 'bottle_volume_ml', 'packaging_date', 'image', 'public_status',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (OilProduct $product): void {
+            $product->slug = app(ProductSlugGenerator::class)->generate($product->name);
+        });
+
+        static::updating(function (OilProduct $product): void {
+            if ($product->isDirty('slug')) {
+                $product->slug = $product->getOriginal('slug');
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -54,6 +70,16 @@ class OilProduct extends Model
     public function oilLot(): ?OilLotSummary
     {
         return app(OilLotLookup::class)->find((int) $this->oil_lot_id);
+    }
+
+    public function traceUrl(): string
+    {
+        return app(ProductTraceUrl::class)->forProduct($this);
+    }
+
+    public function qrSvg(): string
+    {
+        return app(ProductQrCode::class)->svg($this);
     }
 
     public static function findBySlug(string $slug): ?self

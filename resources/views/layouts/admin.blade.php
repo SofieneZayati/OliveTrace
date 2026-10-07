@@ -21,10 +21,17 @@
             @if(auth()->user()->role === \App\Enums\Role::Producer)
                 <a href="{{ route('producer.profile.show') }}" class="sidebar-link" @if(request()->routeIs('producer.profile.*')) aria-current="page" @endif><x-icon name="user" />Producer profile</a>
                 <a href="{{ route('producer.farms.index') }}" class="sidebar-link" @if(request()->routeIs('producer.farms.*')) aria-current="page" @endif><x-icon name="leaf" />My farms</a>
+                <a href="{{ route('producer.products.index') }}" class="sidebar-link" @if(request()->routeIs('producer.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
+            @endif
+            @if(auth()->user()->role === \App\Enums\Role::Distributor)
+                <a href="{{ route('distributor.profile.show') }}" class="sidebar-link" @if(request()->routeIs('distributor.profile.*')) aria-current="page" @endif><x-icon name="user" />My profile</a>
+                <a href="{{ route('distributor.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('distributor.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
             @endif
             @can('access-admin')
                 <a href="{{ route('admin.producers.index') }}" class="sidebar-link" @if(request()->routeIs('admin.producers.*')) aria-current="page" @endif><x-icon name="users" />Producers</a>
                 <a href="{{ route('admin.farms.index') }}" class="sidebar-link" @if(request()->routeIs('admin.farms.*')) aria-current="page" @endif><x-icon name="leaf" />Farms</a>
+                <a href="{{ route('admin.products.index') }}" class="sidebar-link" @if(request()->routeIs('admin.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
+                <a href="{{ route('admin.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('admin.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
             @endcan
             <a href="{{ route('profile.edit') }}" class="sidebar-link" @if(request()->routeIs('profile.*')) aria-current="page" @endif><x-icon name="user" />Profile</a>
             <form method="POST" action="{{ route('logout') }}" class="lg:mt-4">

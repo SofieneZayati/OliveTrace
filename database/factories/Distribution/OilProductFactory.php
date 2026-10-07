@@ -33,7 +33,6 @@ class OilProductFactory extends Factory
             'bottle_volume_ml' => 750,
             'packaging_date' => fake()->date(),
             'image' => null,
-            'slug' => null,
             'public_status' => OilProductPublicStatus::Visible,
             'archived_at' => null,
             'created_by_user_id' => User::factory()->state(['role' => Role::Producer]),

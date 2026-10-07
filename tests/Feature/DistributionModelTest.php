@@ -40,7 +40,6 @@ class DistributionModelTest extends TestCase
         $visible = OilProduct::factory()->create([
             'created_by_user_id' => $owner->id,
             'packaging_date' => '2026-10-01',
-            'slug' => 'sfax-chemlali-test',
         ]);
         OilProduct::factory()->hidden()->create([
             'created_by_user_id' => $owner->id,
@@ -103,5 +102,9 @@ class DistributionModelTest extends TestCase
         $this->assertSame('LOT-SFAX-TEST', $lookup->find($id)?->lotCode);
         $this->assertFalse($lookup->exists($id + 1000));
         $this->assertNull($lookup->find($id + 1000));
+        $this->assertContains($id, collect($lookup->available())->pluck('id')->all());
+
+        OilProduct::factory()->create(['oil_lot_id' => $id]);
+        $this->assertNotContains($id, collect($lookup->available())->pluck('id')->all());
     }
 }
