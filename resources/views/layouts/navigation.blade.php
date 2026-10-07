@@ -13,6 +13,7 @@
             @else
                 @if (auth()->user()->role === \App\Enums\Role::Consumer)
                     <a href="{{ route('home') }}" @if(request()->routeIs('home')) aria-current="page" @endif class="nav-link">Home</a>
+                    <a href="{{ route('complaints.index') }}" @if(request()->routeIs('complaints.*')) aria-current="page" @endif class="nav-link">My complaints</a>
                 @endif
                 <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('dashboard') }}" @if(request()->routeIs('dashboard', 'admin.dashboard')) aria-current="page" @endif class="nav-link">Dashboard</a>
                 @can('access-admin')

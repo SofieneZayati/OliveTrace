@@ -25,6 +25,8 @@
             @can('access-admin')
                 <a href="{{ route('admin.producers.index') }}" class="sidebar-link" @if(request()->routeIs('admin.producers.*')) aria-current="page" @endif><x-icon name="users" />Producers</a>
                 <a href="{{ route('admin.farms.index') }}" class="sidebar-link" @if(request()->routeIs('admin.farms.*')) aria-current="page" @endif><x-icon name="leaf" />Farms</a>
+                <a href="{{ route('admin.consumer.feedback.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.feedback.*')) aria-current="page" @endif><x-icon name="chat" />Reviews</a>
+                <a href="{{ route('admin.consumer.complaints.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.complaints.*')) aria-current="page" @endif><x-icon name="flag" />Complaints</a>
             @endcan
             <a href="{{ route('profile.edit') }}" class="sidebar-link" @if(request()->routeIs('profile.*')) aria-current="page" @endif><x-icon name="user" />Profile</a>
             <form method="POST" action="{{ route('logout') }}" class="lg:mt-4">
