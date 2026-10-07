@@ -18,6 +18,14 @@
             @can('access-admin')
                 <a href="{{ route('admin.users.index') }}" class="sidebar-link" @if(request()->routeIs('admin.users.*')) aria-current="page" @endif><x-icon name="users" />Users</a>
             @endcan
+            @if(auth()->user()->role === \App\Enums\Role::Producer)
+                <a href="{{ route('producer.profile.show') }}" class="sidebar-link" @if(request()->routeIs('producer.profile.*')) aria-current="page" @endif><x-icon name="user" />Producer profile</a>
+                <a href="{{ route('producer.farms.index') }}" class="sidebar-link" @if(request()->routeIs('producer.farms.*')) aria-current="page" @endif><x-icon name="leaf" />My farms</a>
+            @endif
+            @can('access-admin')
+                <a href="{{ route('admin.producers.index') }}" class="sidebar-link" @if(request()->routeIs('admin.producers.*')) aria-current="page" @endif><x-icon name="users" />Producers</a>
+                <a href="{{ route('admin.farms.index') }}" class="sidebar-link" @if(request()->routeIs('admin.farms.*')) aria-current="page" @endif><x-icon name="leaf" />Farms</a>
+            @endcan
             <a href="{{ route('profile.edit') }}" class="sidebar-link" @if(request()->routeIs('profile.*')) aria-current="page" @endif><x-icon name="user" />Profile</a>
             <form method="POST" action="{{ route('logout') }}" class="lg:mt-4">
                 @csrf

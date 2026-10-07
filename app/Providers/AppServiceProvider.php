@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Production\Farm;
+use App\Models\Production\ProducerProfile;
 use App\Models\User;
+use App\Policies\ProductionPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(ProducerProfile::class, ProductionPolicy::class);
+        Gate::policy(Farm::class, ProductionPolicy::class);
         Gate::define('access-admin', fn (User $user) => $user->is_active && $user->isAdmin());
     }
 }
