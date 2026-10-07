@@ -9,7 +9,7 @@ shared work; they do not count as an individual student's module.
 
 ## Included
 
-- Laravel 12, MySQL and a configured Doctrine entity manager.
+- Laravel 12, MySQL and Eloquent for all persistence.
 - Breeze with Blade: register, login, logout, password reset and account profile.
 - Six roles, active/inactive accounts, protected routes and a reusable role middleware.
 - Admin user list, search, role/status filters, details, edit, role change,
@@ -18,7 +18,7 @@ shared work; they do not count as an individual student's module.
   errors, buttons, cards and a simple dashboard.
 - Development accounts, automated tests and a GitHub Actions check workflow.
 
-- Sofiene's Doctrine ProducerProfile / Farm relationship, ownership-protected CRUD,
+- Sofiene's Eloquent ProducerProfile / Farm relationship, ownership-protected CRUD,
   validated forms, private logo uploads, admin correction/moderation, demo factories
   and seeders, a public origin card and an advisory sustainability AI integration.
 
@@ -40,8 +40,8 @@ model; normal CRUD works without either. Credentials stay in your local `.env`.
 | npm | 10+; tested with 11.6.1 |
 | Git | A working Git installation; tested with 2.46.1 |
 
-Laravel 12 itself supports PHP 8.2, but the chosen Doctrine integration needs
-PHP 8.3. The project's PHP requirement is therefore **8.3**. The lock file targets
+Laravel 12 itself supports PHP 8.2. This project keeps **PHP 8.3+** as its
+shared team baseline after the Eloquent refactor. The lock file targets
 PHP 8.3 so PHP 8.3 and 8.4 developers install the same dependency versions.
 
 PHP must enable Ctype, cURL, DOM, Fileinfo, Filter, Hash, Mbstring, OpenSSL, PCRE,
@@ -58,6 +58,7 @@ use `npm` and `cp .env.example .env`.
 ```powershell
 git clone https://github.com/SofieneZayati/OliveTrace.git olivetrace
 cd olivetrace
+git switch feature/sofiene-production
 composer install
 npm.cmd install
 Copy-Item .env.example .env
@@ -96,12 +97,12 @@ and password. Then finish setup:
 ```powershell
 php artisan migrate --seed
 npm.cmd run build
-php artisan olivetrace:check-doctrine
+php artisan olivetrace:check-database
 php artisan serve
 ```
 
-Open **http://localhost:8000**. The Doctrine check must succeed; this base reports
-two business entities on this branch. Keep the server terminal open while using the app.
+Open **http://localhost:8000**. The database check verifies the connection and
+required tables without changing data. Keep the server terminal open while using the app.
 
 For live frontend changes, run `npm.cmd run dev` in a second terminal. Otherwise
 rebuild with `npm.cmd run build`. `composer run dev` starts the Laravel server;
@@ -190,21 +191,45 @@ using the options in `config/mail.php`, then run `php artisan config:clear`.
 Do not commit SMTP passwords or reset URLs. The base does not require SMTP setup
 or verified emails to access the dashboard.
 
-## Doctrine architecture
+## Eloquent architecture
 
-`laravel-doctrine/orm` **3.3.3** is installed and supports Laravel 12 / PHP 8.3.
-Doctrine ORM **3.7.4** and DBAL **4.5.0** connect to the same MySQL database.
+All application persistence now uses Laravel Eloquent, including Breeze's shared
+`App\Models\User` and the business models in `app/Models/Production`.
+`User::producerProfile()` is `hasOne`; `ProducerProfile::user()` is `belongsTo`;
+`ProducerProfile::farms()` is `hasMany`; `Farm::producerProfile()` is `belongsTo`.
+Enum, boolean and decimal casts preserve the existing stored values.
 
-The shared `App\Models\User` and Breeze authentication intentionally use Eloquent.
-**All future business persistence must use Doctrine entities, repositories and
-associations.** Production mappings scan only `app/Entities`, including
-Sofiene's ProducerProfile and Farm. Place repositories under `app/Repositories`.
+Keep one shared User table/model and use Laravel migrations for every schema
+change. Future modules should use Eloquent models, relationships and factories;
+do not install a second ORM. Repositories expose the current integration
+contracts, while services enforce authorization and mutations. Read
+[the persistence guide](docs/persistence.md) before starting a module.
 
-Use Laravel migrations for schema changes so the team has one setup command.
-Reference shared users with scalar user IDs plus restricted MySQL foreign keys;
-do not create duplicate user models/tables. Business-to-business relationships
-use Doctrine associations. Read [the Doctrine architecture guide](docs/doctrine.md)
-before beginning a module, especially its validation and schema-tool boundaries.
+### Updating an existing clone after the ORM refactor
+
+These changes are on **feature/sofiene-production** until reviewed and merged
+into `develop`. Cloning or pulling `main` alone does not include them. With a
+clean working tree on Sofiene's branch:
+
+```powershell
+git fetch origin
+git switch feature/sofiene-production
+git pull --ff-only origin feature/sofiene-production
+composer install
+php artisan optimize:clear
+php artisan migrate
+npm.cmd ci
+npm.cmd run build
+php artisan olivetrace:check-database
+php artisan test
+```
+
+Keep your existing `.env`, application key and database. This conversion keeps
+the same tables, IDs, foreign keys and data; it introduces no migration.
+Do not run `migrate:fresh` or reseed common users to update. The old Doctrine
+environment variables can be removed from your private `.env`; they are unused.
+Replace old `App\Entities\Production` imports with `App\Models\Production` and
+use snake_case attributes such as `area_ha`, `olive_variety` and `user_id`.
 
 ## Tests and checks
 
@@ -216,7 +241,7 @@ composer validate --strict
 composer check-platform-reqs
 composer audit
 npm.cmd audit
-php artisan olivetrace:check-doctrine
+php artisan olivetrace:check-database
 ```
 
 The normal suite uses SQLite in memory and never resets the development MySQL
@@ -237,9 +262,9 @@ php scripts/test-mysql.php
 This reads credentials from your local `.env` and uses its database name with
 `_testing` appended. Tests recreate only that separate testing schema. The test
 bootstrap rejects a non-testing MySQL database; do not point tests at real data.
-The Doctrine persistence fixture is test-only and leaves no business table in
-the application schema. The GitHub workflow repeats build, format, SQLite/MySQL
-suite and Doctrine checks on pushes/PRs for main and develop.
+All model tests now use the same Laravel connection, including SQLite in memory.
+The GitHub workflow repeats build, formatting, SQLite/MySQL tests and the database
+check on pushes/PRs for main and develop.
 
 ## Git workflow
 

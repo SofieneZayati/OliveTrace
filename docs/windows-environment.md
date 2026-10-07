@@ -1,8 +1,8 @@
 # Sofiene's Windows environment
 
 The existing Git 2.46.1, Node.js 24.20.0 and npm 11.6.1 were reused. XAMPP's PHP
-8.2.12 and MariaDB 10.4.32 were left intact. Current Laravel Doctrine requires
-PHP 8.3+, and the university asks for MySQL, so separate tools were installed:
+8.2.12 and MariaDB 10.4.32 were left intact. The team baseline is PHP 8.3+
+and MySQL, using the following separate tools:
 
 | Tool | Version | Location |
 | --- | --- | --- |

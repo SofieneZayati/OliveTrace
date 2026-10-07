@@ -1,67 +1,73 @@
-# Shared base verification
+# Project verification
 
-Verified on 6 October 2026 on Sofiene's Windows computer.
+Verified on 7 October 2026 on Sofiene's Windows computer after the Eloquent
+refactor on `feature/sofiene-production`. These results cover the shared base
+and Sofiene's Producer/Farm module. Main and develop are unchanged.
 
 ## Environment
 
 - PHP 8.4.26 with Laravel/MySQL extensions and Composer 2.10.3.
-- Laravel 12.69.3, Breeze 2.4.2 (Blade).
-- Laravel Doctrine integration 3.3.3, ORM 3.7.4 and DBAL 4.5.0.
+- Laravel 12.69.3 and Breeze 2.4.2 with Blade.
+- Eloquent for User, ProducerProfile and Farm persistence.
 - MySQL Community 8.4.9 on 127.0.0.1:3306.
-- Git 2.46.1, Node 24.20.0, npm 11.6.1.
+- Git 2.46.1, Node 24.20.0 and npm 11.6.1.
 
 ## Checks completed
 
 | Check | Result |
 | --- | --- |
-| Composer install, strict manifest validation, platform requirements | Passed |
-| Composer audit | No reported security advisories |
-| npm install and frontend build | Passed |
-| npm audit | No reported vulnerabilities |
-| Laravel start and HTTP pages | Passed at 127.0.0.1:8000 |
-| MySQL connection, migrations and development seeder | Passed |
-| Default SQLite test suite | 44 passed, 184 assertions |
-| Same suite against separate MySQL testing database | 44 passed, 184 assertions |
+| Locked Composer install with package discovery | Passed |
+| Strict manifest validation and platform requirements | Passed |
+| Dependency removal | 14 unused packages removed; no remaining packages upgraded |
+| Composer security audit during dependency resolution | No reported advisories |
+| Frontend production build | Passed |
+| SQLite suite | 61 passed, 395 assertions |
+| Separate MySQL testing suite | 61 passed, 395 assertions |
 | Pint formatting check | Passed |
 | Route cache and Blade view cache | Passed; caches cleared afterward |
-| Doctrine connection/mapping health check | Passed; 0 production business entities |
-| Test-only Doctrine persist/read/update/delete round trip | Passed on SQLite and MySQL |
-| Clean local Git clone: dependencies, assets, fresh MySQL migration/seed, tests | Passed |
+| Database connection and required tables check | Passed |
+| Development migration command | Nothing to migrate; schema preserved |
+| ProductionSeeder rerun | Passed without changing existing records |
+| Existing user/profile/farm data fingerprints | Unchanged from the pre-refactor snapshot |
 | Git diff whitespace check | Passed |
-| Real local credentials/key patterns in Git history | None found |
-| .env, vendor, node_modules, builds and private setup files tracked | None |
 
-The clean clone used a newly created, separate test schema; it did not reset
-the development database. The test bootstrap also rejects non-testing database
-names before migration tests run.
+A private MySQL backup was saved in the ignored local working directory before
+the conversion. No application migration was edited or added. All primary keys,
+foreign keys, stored values and timestamps were kept. Tests only recreate an
+isolated testing schema, never the development database.
 
-## Account and browser checks
+## Behavior covered
 
-Automated checks cover registration, login, logout, password confirmation,
-password update, reset-token generation and password reset, profile edit/delete,
-every role's dashboard, all admin user routes for every non-admin role, input
-validation, filtering, role/status changes, activation/deactivation, self-admin
-safeguards, final-admin protection, restricted foreign-key deletion and
-development-only/idempotent seeding.
+The suite exercises shared registration, login/logout, password reset/profile,
+all roles, inactive sessions, admin-only user management and final-admin
+safeguards. Producer/Farm checks cover full CRUD, ownership and filter isolation,
+restricted foreign-key deletion, archival, admin moderation, disabled-state
+protection, private logo replacement/removal and safe public origin display.
+The development seeder preserves edited producer and farm records.
 
-Browser checks cover the Home/Front Office layout, registration as consumer,
-admin login/dashboard, admin user list/search/role filter/edit form, consumer
-dashboard/profile, logout, consumer denial at `/admin/users` (403), and reset-link
-request generation. No browser console warnings/errors were recorded during
-those flows. Temporary browser-test data were removed afterward.
+Persistence checks read rows inserted with the original column names through
+Eloquent, verify relations and enum/decimal/timestamp casts, and prove that a
+single transaction rolls back User, ProducerProfile and Farm together. Generic
+test-only references verify the replacement foreign-key exception handling.
+The test harness no longer needs two ORM connections or temporary SQLite files.
 
-Password reset uses the **local log mailer**. The generated notification was
-verified in the private application log, and the full token reset was tested
-automatically. SMTP delivery was not configured or claimed as tested.
+AI adapter tests use mocked OpenAI and Ollama responses. They cover limited
+inputs, escaped/validated output, throttling, missing configuration and failures
+without changing farm records. Live AI remains unconfigured and unverified.
 
-## Scope verified
+## Browser checks
 
-The development database contains `users`, `password_reset_tokens`, `sessions`,
-`cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs` and `migrations`.
-There are exactly six development users after cleanup. There are no business
-entities, module migrations/controllers/pages, QR features or AI integrations.
+Home, Breeze login/logout, producer dashboard/profile, farm lists/details,
+populated edit form, public origin card, and admin producer/farm lists rendered
+successfully at `http://127.0.0.1:8000`. No application console warnings or
+errors were reported by the browser log check.
 
-GitHub Actions is enabled and configured to repeat core checks with PHP 8.3,
-Node 24 and MySQL 8.4, including an optional manual run. The checks above were
-performed locally before pushing; remote run status is available in the
-repository's Actions tab.
+Password reset still defaults to the local log mailer; automated tests verify
+the token reset flow. Actual SMTP delivery is not configured.
+
+## Team integration
+
+The GitHub workflow now uses `olivetrace:check-database` alongside Composer,
+build, formatting and SQLite/MySQL tests. These are local verification results;
+remote checks run when the workflow is triggered on main/develop or a pull
+request. See the README and `docs/persistence.md` for the exact update steps.

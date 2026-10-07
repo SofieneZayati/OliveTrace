@@ -17,7 +17,12 @@ The remaining modules belong on their owners' feature branches.
 `OliveTrace_Final_Team_Specification.pdf`: Producer/Farm belongs to Sofiene and
 Harvest/Mill to Mariem. This supersedes the earlier swap in the shared-base notes.
 
-Start your branch from current `develop`:
+The Eloquent refactor is currently on `feature/sofiene-production`; `main` and
+`develop` are unchanged until integration. See the README update commands to
+check out and test this branch. Use Eloquent for new modules and coordinate any
+integration of this branch into existing feature work.
+
+After the shared changes are merged, start your branch from current `develop`:
 
 ```powershell
 git fetch origin
@@ -28,7 +33,7 @@ git switch -c feature/sofiene-production
 
 Replace the final branch name with your own. Make small commits in your own words,
 push the feature branch, and open a pull request targeting **develop**. Include the
-problem solved, resulting behavior, database/mapping changes, and tests run.
+problem solved, resulting behavior, schema/model changes, and tests run.
 Review and integrate on develop; promote a tested develop branch to main through
 another pull request. Do not push unreviewed feature work directly to main.
 
@@ -39,7 +44,7 @@ composer install
 npm ci
 npm run build
 php artisan migrate
-php artisan olivetrace:check-doctrine
+php artisan olivetrace:check-database
 php artisan test
 php vendor/bin/pint --test
 git status
