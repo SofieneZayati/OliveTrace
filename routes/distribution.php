@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\Distribution\DistributorProfileController;
 use App\Http\Controllers\Distribution\OilProductController;
+use App\Http\Controllers\Distribution\PublicCatalogController;
 use App\Http\Controllers\Distribution\ShipmentController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/catalog', PublicCatalogController::class)->name('catalog.index');
 
 Route::prefix('products')->name('producer.products.')->middleware(['auth', 'active', 'role:producer,admin'])->group(function (): void {
     Route::get('/', [OilProductController::class, 'index'])->name('index');

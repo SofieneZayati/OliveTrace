@@ -12,4 +12,9 @@ interface OilLotLookup
 
     /** @return array<OilLotSummary> */
     public function available(): array;
+
+    /** @param array<int> $ids
+     * @return array<int, OilLotSummary>
+     */
+    public function findMany(array $ids): array;
 }
