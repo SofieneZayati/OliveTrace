@@ -13,9 +13,19 @@
         <x-icon name="leaf" class="pointer-events-none absolute -right-6 -top-8 h-64 w-64 rotate-12 text-cream/5" />
         <div class="relative max-w-xl">
             <p class="eyebrow mb-4 text-olive-100/70">Growing together</p>
-            <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Your workspace is taking root.</h2>
-            <p class="mt-4 text-sm leading-7 text-olive-100/80">The business modules will appear here.</p>
-            <p class="mt-1 text-sm leading-7 text-olive-100/80">For now, your account and shared tools are ready.</p>
+            @if(auth()->user()->role === \App\Enums\Role::Producer)
+                <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Your origin starts here.</h2>
+                <p class="mt-4 text-sm leading-7 text-olive-100/80">Build your producer profile, manage your farms and record the land behind every harvest.</p>
+                <a href="{{ route('producer.farms.index') }}" class="btn-secondary mt-6">Explore my farms <x-icon name="arrow" /></a>
+            @elseif(auth()->user()->isAdmin())
+                <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Look after the origin story.</h2>
+                <p class="mt-4 text-sm leading-7 text-olive-100/80">Inspect producer profiles and farms, correct details and keep invalid origin information out of public view.</p>
+                <a href="{{ route('admin.farms.index') }}" class="btn-secondary mt-6">Explore community farms <x-icon name="arrow" /></a>
+            @else
+                <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Your workspace is taking root.</h2>
+                <p class="mt-4 text-sm leading-7 text-olive-100/80">The business modules will appear here.</p>
+                <p class="mt-1 text-sm leading-7 text-olive-100/80">For now, your account and shared tools are ready.</p>
+            @endif
         </div>
     </section>
     <div class="grid gap-5 md:grid-cols-2">

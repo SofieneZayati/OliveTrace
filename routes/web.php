@@ -23,4 +23,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admi
     Route::resource('users', UserController::class)->only(['index', 'show', 'edit', 'update', 'destroy']);
 });
 
+require __DIR__.'/production.php';
 require __DIR__.'/auth.php';
