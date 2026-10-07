@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Enums\Role;
+use App\Models\Production\ProducerProfile;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -45,6 +47,11 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->hasRole(Role::Admin);
+    }
+
+    public function producerProfile(): HasOne
+    {
+        return $this->hasOne(ProducerProfile::class);
     }
 
     /**

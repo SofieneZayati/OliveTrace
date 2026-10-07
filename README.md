@@ -3,13 +3,13 @@
 OliveTrace is a university web project for tracing Tunisian olive oil from farm
 to consumer. The team is Sofiene, Mariem, Oussema, Hana and Aymen.
 
-**This repository contains the SHARED BASE only. No business module is implemented.**
+**This repository contains the shared base and Sofiene's Producer & Farm Management module.**
 Authentication, roles, common user management, layouts and infrastructure are
 shared work; they do not count as an individual student's module.
 
-## Included in this base
+## Included
 
-- Laravel 12, MySQL and a configured Doctrine entity manager.
+- Laravel 12, MySQL and Eloquent for all persistence.
 - Breeze with Blade: register, login, logout, password reset and account profile.
 - Six roles, active/inactive accounts, protected routes and a reusable role middleware.
 - Admin user list, search, role/status filters, details, edit, role change,
@@ -18,11 +18,15 @@ shared work; they do not count as an individual student's module.
   errors, buttons, cards and a simple dashboard.
 - Development accounts, automated tests and a GitHub Actions check workflow.
 
-There are no Producer/Farm, Harvest, Mill, Mill Request, Oil Lot, Laboratory,
-Certification, Certificate, Product/Distribution, Shipment, Feedback, Complaint,
-QR traceability or AI tables, controllers or screens. No business statistics or
-links to unimplemented modules are present. Advanced module forms and one AI
-feature per student are future work; API credentials must stay in local `.env`.
+- Sofiene's Eloquent ProducerProfile / Farm relationship, ownership-protected CRUD,
+  validated forms, private logo uploads, admin correction/moderation, demo factories
+  and seeders, a public origin card and an advisory sustainability AI integration.
+
+Harvest/Mill/Oil Lot, Laboratory/Certification, Product/Distribution and Consumer
+Traceability/Feedback remain the other members' future modules. See
+[Sofiene's implementation and integration contracts](docs/sofiene-production.md).
+Real AI suggestions require a configured OpenAI key or an installed local Ollama
+model; normal CRUD works without either. Credentials stay in your local `.env`.
 
 ## Software required
 
@@ -36,8 +40,8 @@ feature per student are future work; API credentials must stay in local `.env`.
 | npm | 10+; tested with 11.6.1 |
 | Git | A working Git installation; tested with 2.46.1 |
 
-Laravel 12 itself supports PHP 8.2, but the chosen Doctrine integration needs
-PHP 8.3. The project's PHP requirement is therefore **8.3**. The lock file targets
+Laravel 12 itself supports PHP 8.2. This project keeps **PHP 8.3+** as its
+shared team baseline after the Eloquent refactor. The lock file targets
 PHP 8.3 so PHP 8.3 and 8.4 developers install the same dependency versions.
 
 PHP must enable Ctype, cURL, DOM, Fileinfo, Filter, Hash, Mbstring, OpenSSL, PCRE,
@@ -92,12 +96,12 @@ and password. Then finish setup:
 ```powershell
 php artisan migrate --seed
 npm.cmd run build
-php artisan olivetrace:check-doctrine
+php artisan olivetrace:check-database
 php artisan serve
 ```
 
-Open **http://localhost:8000**. The Doctrine check must succeed; this base reports
-zero business entities. Keep the server terminal open while using the app.
+Open **http://localhost:8000**. The database check verifies the connection and
+required tables without changing data. Keep the server terminal open while using the app.
 
 For live frontend changes, run `npm.cmd run dev` in a second terminal. Otherwise
 rebuild with `npm.cmd run build`. `composer run dev` starts the Laravel server;
@@ -186,21 +190,50 @@ using the options in `config/mail.php`, then run `php artisan config:clear`.
 Do not commit SMTP passwords or reset URLs. The base does not require SMTP setup
 or verified emails to access the dashboard.
 
-## Doctrine architecture
+## Eloquent architecture
 
-`laravel-doctrine/orm` **3.3.3** is installed and supports Laravel 12 / PHP 8.3.
-Doctrine ORM **3.7.4** and DBAL **4.5.0** connect to the same MySQL database.
+All application persistence now uses Laravel Eloquent, including Breeze's shared
+`App\Models\User` and the business models in `app/Models/Production`.
+`User::producerProfile()` is `hasOne`; `ProducerProfile::user()` is `belongsTo`;
+`ProducerProfile::farms()` is `hasMany`; `Farm::producerProfile()` is `belongsTo`.
+Enum, boolean and decimal casts preserve the existing stored values.
 
-The shared `App\Models\User` and Breeze authentication intentionally use Eloquent.
-**All future business persistence must use Doctrine entities, repositories and
-associations.** Production mappings scan only `app/Entities`; it currently has
-no entity classes. Place repositories under `app/Repositories`.
+Keep one shared User table/model and use Laravel migrations for every schema
+change. Future modules should use Eloquent models, relationships and factories;
+do not install a second ORM. Repositories expose the current integration
+contracts, while services enforce authorization and mutations. Read
+[the persistence guide](docs/persistence.md) before starting a module.
 
-Use Laravel migrations for schema changes so the team has one setup command.
-Reference shared users with scalar user IDs plus restricted MySQL foreign keys;
-do not create duplicate user models/tables. Business-to-business relationships
-use Doctrine associations. Read [the Doctrine architecture guide](docs/doctrine.md)
-before beginning a module, especially its validation and schema-tool boundaries.
+### Updating an existing clone
+
+The shared base, Producer/Farm module and Eloquent refactor are available on
+**main** and **develop**. With a clean working tree, update your local main:
+
+```powershell
+git fetch origin
+git switch main
+git pull --ff-only origin main
+composer install
+php artisan optimize:clear
+php artisan migrate
+npm.cmd ci
+npm.cmd run build
+php artisan olivetrace:check-database
+php artisan test
+```
+
+Keep your existing `.env`, application key and database. The Eloquent conversion
+preserves existing tables, IDs, foreign keys and data. The Producer/Farm migration
+adds its two tables if you have not already installed the module.
+Do not run `migrate:fresh` or reseed common users to update. The old Doctrine
+environment variables can be removed from your private `.env`; they are unused.
+Replace old `App\Entities\Production` imports with `App\Models\Production` and
+use snake_case attributes such as `area_ha`, `olive_variety` and `user_id`.
+
+To add the optional producer demo profile and farms after an update, run
+`php artisan db:seed --class=ProductionSeeder`. This requires the existing
+`producer@test.com` development account and preserves edited module records.
+The full `migrate --seed` setup command is for a fresh development installation.
 
 ## Tests and checks
 
@@ -212,7 +245,7 @@ composer validate --strict
 composer check-platform-reqs
 composer audit
 npm.cmd audit
-php artisan olivetrace:check-doctrine
+php artisan olivetrace:check-database
 ```
 
 The normal suite uses SQLite in memory and never resets the development MySQL
@@ -233,18 +266,18 @@ php scripts/test-mysql.php
 This reads credentials from your local `.env` and uses its database name with
 `_testing` appended. Tests recreate only that separate testing schema. The test
 bootstrap rejects a non-testing MySQL database; do not point tests at real data.
-The Doctrine persistence fixture is test-only and leaves no business table in
-the application schema. The GitHub workflow repeats build, format, SQLite/MySQL
-suite and Doctrine checks on pushes/PRs for main and develop.
+All model tests now use the same Laravel connection, including SQLite in memory.
+The GitHub workflow repeats build, formatting, SQLite/MySQL tests and the database
+check on pushes/PRs for main and develop.
 
 ## Git workflow
 
-`main` is the stable branch; `develop` is integration. The future module branches
-are documented, not created:
+`main` is the stable branch; `develop` is integration. Sofiene's current branch is
+`feature/sofiene-production`; the other module branches remain planned:
 
 ```text
-feature/mariem-producer-farms
-feature/sofiene-harvest-mill
+feature/sofiene-production
+feature/mariem-harvest-mill
 feature/oussema-lab-certification
 feature/hana-distribution
 feature/aymen-consumer-feedback
@@ -256,7 +289,7 @@ Start from develop, for example:
 git fetch origin
 git switch develop
 git pull --ff-only origin develop
-git switch -c feature/mariem-producer-farms
+git switch -c feature/sofiene-production
 ```
 
 Use your own feature branch name. Workflow: **feature branch -> Pull Request ->
@@ -264,10 +297,9 @@ develop -> integration tests -> Pull Request -> main**. Small, meaningful commit
 are expected. Setup/auth/users/layouts are shared and should not be rebuilt per
 module. Invite teammates through GitHub Settings > Collaborators.
 
-The supplied PDF assigns the first two modules to the opposite owners from the
-explicit base-project request. The requested branch ownership above takes
-precedence here. [Team workflow notes](docs/team-workflow.md) record the difference
-so it is clear before module work begins.
+The final specification supplied by Sofiene supersedes the earlier ownership
+swap: Sofiene owns Producer/Farm and Mariem owns Harvest/Mill/Oil Lot.
+[Team workflow notes](docs/team-workflow.md) follow that corrected assignment.
 
 ## Repository hygiene
 
@@ -278,5 +310,5 @@ private configuration or generated password-reset links. Review `git status` and
 `git diff --cached` before every commit.
 
 The functional reference is `OliveTrace_Final_Team_Specification.pdf`. This base
-implements its shared Phase 0 infrastructure; the later module and AI requirements
-remain the team's next stages.
+implements shared Phase 0 infrastructure plus Sofiene's Phase 1 origin module and
+AI adapter. The remaining modules and live AI configuration are the next stages.
