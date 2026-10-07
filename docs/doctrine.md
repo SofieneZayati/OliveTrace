@@ -78,7 +78,8 @@ php artisan olivetrace:check-doctrine
 ```
 
 This validates mapping metadata and executes `SELECT 1` through Doctrine. It does
-not compare, generate or change schemas. The base reports **0 business entities**.
+not compare, generate or change schemas. This branch reports **2 business entities**
+(Sofiene's ProducerProfile and Farm).
 Doctrine create/update/drop schema commands do not know about all Laravel-owned
 tables. Do not run them against the shared application database. Use reviewed
 Laravel migrations instead; never apply a generated destructive schema diff.

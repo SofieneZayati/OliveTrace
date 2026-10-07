@@ -1,4 +1,5 @@
-Future business entities go here, using Doctrine PHP attributes.
+Business entities go here, using Doctrine PHP attributes.
 
-No business entities are included in the shared base. See `docs/doctrine.md`
-before adding an entity, repository or association.
+`Production/ProducerProfile.php` and `Production/Farm.php` implement Sofiene's
+origin module. See `docs/doctrine.md` and `docs/sofiene-production.md` before
+adding an entity, repository or cross-module association.
