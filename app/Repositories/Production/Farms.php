@@ -2,54 +2,49 @@
 
 namespace App\Repositories\Production;
 
-use App\Entities\Production\Farm;
 use App\Enums\FarmStatus;
 use App\Enums\Role;
-use App\Models\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Models\Production\Farm;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class Farms
 {
-    public function __construct(private EntityManagerInterface $manager) {}
-
     public function find(int $id): Farm
     {
-        return $this->manager->find(Farm::class, $id) ?? abort(404);
+        return Farm::with('producerProfile.user')->findOrFail($id);
     }
 
-    /** Mariem can select active farms by authenticated producer ID, without copying origin fields. */
+    /** Mariem can select eligible farms by producer ID, without copying origin fields. @return list<Farm> */
     public function selectableForUser(int $userId): array
     {
-        if (! User::whereKey($userId)->where('role', Role::Producer->value)->where('is_active', true)->exists()) {
-            return [];
-        }
-
-        return $this->manager->createQueryBuilder()->select('f', 'p')->from(Farm::class, 'f')
-            ->join('f.producerProfile', 'p')->where('p.userId = :user')->andWhere('p.isActive = true')
-            ->andWhere('f.status = :status')->setParameter('user', $userId)
-            ->setParameter('status', FarmStatus::Active->value)->orderBy('f.name', 'ASC')->getQuery()->getResult();
+        return Farm::with('producerProfile')
+            ->where('status', FarmStatus::Active)
+            ->whereHas('producerProfile', function (Builder $query) use ($userId) {
+                $query->where('user_id', $userId)->where('is_active', true)
+                    ->whereHas('user', fn (Builder $users) => $users
+                        ->where('role', Role::Producer)->where('is_active', true));
+            })
+            ->orderBy('name')->orderBy('id')->get()->all();
     }
 
     public function paginate(array $filters, int $page, ?int $userId = null): LengthAwarePaginator
     {
-        $query = $this->manager->createQueryBuilder()->select('f', 'p')->from(Farm::class, 'f')->join('f.producerProfile', 'p');
+        $query = Farm::with('producerProfile');
         if ($userId !== null) {
-            $query->andWhere('p.userId = :user')->setParameter('user', $userId);
+            $query->whereHas('producerProfile', fn (Builder $profiles) => $profiles->where('user_id', $userId));
         }
         if ($filters['search'] ?? null) {
-            $query->andWhere('LOWER(f.name) LIKE :search OR LOWER(p.displayName) LIKE :search')
-                ->setParameter('search', '%'.mb_strtolower($filters['search']).'%');
+            $search = '%'.mb_strtolower($filters['search']).'%';
+            $query->where(fn (Builder $farms) => $farms->whereRaw('LOWER(name) LIKE ?', [$search])
+                ->orWhereHas('producerProfile', fn (Builder $profiles) => $profiles->whereRaw('LOWER(display_name) LIKE ?', [$search])));
         }
         foreach (['governorate', 'status'] as $field) {
             if ($filters[$field] ?? null) {
-                $query->andWhere('f.'.$field.' = :'.$field)->setParameter($field, $filters[$field]);
+                $query->where($field, $filters[$field]);
             }
         }
-        $total = (int) (clone $query)->select('COUNT(f.id)')->getQuery()->getSingleScalarResult();
-        $items = $query->orderBy('f.name', 'ASC')->addOrderBy('f.id', 'ASC')
-            ->setFirstResult(($page - 1) * 12)->setMaxResults(12)->getQuery()->getResult();
 
-        return (new LengthAwarePaginator($items, $total, 12, $page, ['path' => request()->url()]))->withQueryString();
+        return $query->orderBy('name')->orderBy('id')->paginate(12, ['*'], 'page', $page)->withQueryString();
     }
 }

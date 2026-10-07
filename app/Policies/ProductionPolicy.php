@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
-use App\Entities\Production\Farm;
-use App\Entities\Production\ProducerProfile;
 use App\Enums\Role;
+use App\Models\Production\Farm;
+use App\Models\Production\ProducerProfile;
 use App\Models\User;
 
 class ProductionPolicy
@@ -13,7 +13,7 @@ class ProductionPolicy
     {
         $profile = $record instanceof Farm ? $record->producerProfile : $record;
 
-        return $user->is_active && ($user->isAdmin() || ($user->role === Role::Producer && $profile->userId === $user->id));
+        return $user->is_active && ($user->isAdmin() || ($user->role === Role::Producer && $profile->user_id === $user->id));
     }
 
     public function update(User $user, ProducerProfile|Farm $record): bool
@@ -25,6 +25,6 @@ class ProductionPolicy
     {
         $profile = $record instanceof Farm ? $record->producerProfile : $record;
 
-        return $user->is_active && $user->role === Role::Producer && $profile->userId === $user->id;
+        return $user->is_active && $user->role === Role::Producer && $profile->user_id === $user->id;
     }
 }

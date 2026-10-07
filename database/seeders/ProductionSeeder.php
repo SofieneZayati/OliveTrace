@@ -2,14 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Entities\Production\Farm;
 use App\Enums\Role;
+use App\Models\Production\Farm;
+use App\Models\Production\ProducerProfile;
 use App\Models\User;
-use App\Repositories\Production\ProducerProfiles;
-use Database\Factories\Production\FarmFactory;
-use Database\Factories\Production\ProducerProfileFactory;
-use Doctrine\ORM\EntityManagerInterface;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use LogicException;
 
 class ProductionSeeder extends Seeder
@@ -19,30 +17,28 @@ class ProductionSeeder extends Seeder
         if (! app()->environment(['local', 'testing'])) {
             throw new LogicException('Production demo data may only be seeded in local or testing environments.');
         }
-        $user = User::where('email', 'producer@test.com')->where('role', Role::Producer->value)->first();
+        $user = User::where('email', 'producer@test.com')->where('role', Role::Producer)->first();
         if (! $user) {
             throw new LogicException('Seed DevelopmentUserSeeder first to create the demo producer.');
         }
-        $manager = app(EntityManagerInterface::class);
-        $profile = app(ProducerProfiles::class)->forUser($user->id);
-        if (! $profile) {
-            $profile = (new ProducerProfileFactory)->make($user->id, [
-                'displayName' => 'El Baraka Olive Growers', 'companyName' => 'El Baraka',
-                'address' => 'Agareb, Sfax (demo)', 'isPublic' => true,
-            ]);
-            $manager->persist($profile);
-            $manager->flush();
-        }
-        foreach (['Farm El Baraka' => '12.50', 'Parcel En Nour' => '6.25'] as $name => $area) {
-            if ($manager->getRepository(Farm::class)->findOneBy(['producerProfile' => $profile, 'name' => $name])) {
-                continue;
+
+        DB::transaction(function () use ($user) {
+            $profile = $user->producerProfile;
+            if (! $profile) {
+                $profile = ProducerProfile::factory()->for($user)->create([
+                    'display_name' => 'El Baraka Olive Growers', 'company_name' => 'El Baraka',
+                    'address' => 'Agareb, Sfax (demo)', 'is_public' => true,
+                ]);
             }
-            $farm = (new FarmFactory)->make($profile, [
-                'name' => $name, 'areaHa' => $area, 'isPublic' => true,
-                'description' => 'Demo olive parcel in Sfax, ready for Mariem’s harvest workflow.',
-            ]);
-            $manager->persist($farm);
-        }
-        $manager->flush();
+            foreach (['Farm El Baraka' => '12.50', 'Parcel En Nour' => '6.25'] as $name => $area) {
+                if ($profile->farms()->where('name', $name)->exists()) {
+                    continue;
+                }
+                Farm::factory()->for($profile, 'producerProfile')->create([
+                    'name' => $name, 'area_ha' => $area, 'is_public' => true,
+                    'description' => 'Demo olive parcel in Sfax, ready for Mariem’s harvest workflow.',
+                ]);
+            }
+        });
     }
 }

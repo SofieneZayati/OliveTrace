@@ -1,5 +1,7 @@
-Doctrine repositories go here. Inject `Doctrine\ORM\EntityManagerInterface`
-into repositories/services; keep persistence and ownership checks out of Blade views.
+Eloquent query repositories go here. Keep persistence and ownership checks out
+of Blade views. Authorize mutations through policies and services; use Laravel
+transactions when several model changes must succeed together.
 
-`Production/Farms.php` provides farm selection for Mariem.
-`Production/ProducerProfiles.php` reads profiles through Doctrine.
+`Production/Farms.php` preserves the farm selector contract for Mariem.
+`Production/ProducerProfiles.php` queries Eloquent profiles.
+See `docs/persistence.md` for models, relationships and team conventions.

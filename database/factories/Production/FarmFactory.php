@@ -2,29 +2,27 @@
 
 namespace Database\Factories\Production;
 
-use App\Entities\Production\Farm;
-use App\Entities\Production\ProducerProfile;
 use App\Enums\FarmingType;
+use App\Enums\FarmStatus;
 use App\Enums\IrrigationType;
-use Faker\Factory;
+use App\Models\Production\Farm;
+use App\Models\Production\ProducerProfile;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
-class FarmFactory
+/** @extends Factory<Farm> */
+class FarmFactory extends Factory
 {
-    public function make(ProducerProfile $profile, array $overrides = []): Farm
-    {
-        $faker = Factory::create();
-        $farm = new Farm($profile);
-        $farm->name = 'Farm '.$faker->unique()->word();
-        $farm->governorate = 'Sfax';
-        $farm->delegation = 'Agareb';
-        $farm->areaHa = number_format($faker->randomFloat(2, 1, 35), 2, '.', '');
-        $farm->oliveVariety = 'Chemlali';
-        $farm->farmingType = FarmingType::Integrated;
-        $farm->irrigationType = IrrigationType::Rainfed;
-        foreach ($overrides as $property => $value) {
-            $farm->{$property} = $value;
-        }
+    protected $model = Farm::class;
 
-        return $farm;
+    public function definition(): array
+    {
+        return [
+            'producer_profile_id' => ProducerProfile::factory(),
+            'name' => 'Farm '.fake()->unique()->word(), 'governorate' => 'Sfax',
+            'delegation' => 'Agareb', 'area_ha' => fake()->randomFloat(2, 1, 35),
+            'olive_variety' => 'Chemlali', 'farming_type' => FarmingType::Integrated,
+            'irrigation_type' => IrrigationType::Rainfed,
+            'status' => FarmStatus::Active, 'is_public' => false,
+        ];
     }
 }

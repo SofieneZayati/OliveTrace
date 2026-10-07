@@ -10,7 +10,7 @@
             <div class="flex items-center gap-3"><button type="submit" class="btn-primary">Filter</button><a class="text-link" href="{{ route('admin.producers.index') }}">Reset</a></div>
         </form>
         <div class="overflow-x-auto"><table class="w-full text-left text-sm"><caption class="sr-only">Producer profiles</caption><thead class="border-b border-stone-200 text-stone-500"><tr><th class="py-4 pr-4" scope="col">Producer</th><th class="py-4 pr-4" scope="col">Company</th><th class="py-4 pr-4" scope="col">Status</th><th class="py-4" scope="col">Details</th></tr></thead><tbody>
-        @forelse($profiles as $profile)<tr class="border-b border-stone-100"><td class="py-5 pr-4 font-semibold">{{ $profile->displayName }}</td><td class="py-5 pr-4">{{ $profile->companyName ?? '—' }}</td><td class="py-5 pr-4">{{ $profile->isActive ? 'Enabled' : 'Disabled' }}</td><td class="py-5"><a class="text-link" href="{{ route('admin.producers.show', $profile->id) }}">View producer<span class="sr-only"> {{ $profile->displayName }}</span></a></td></tr>
+        @forelse($profiles as $profile)<tr class="border-b border-stone-100"><td class="py-5 pr-4 font-semibold">{{ $profile->display_name }}</td><td class="py-5 pr-4">{{ $profile->company_name ?? '—' }}</td><td class="py-5 pr-4">{{ $profile->is_active ? 'Enabled' : 'Disabled' }}</td><td class="py-5"><a class="text-link" href="{{ route('admin.producers.show', $profile->id) }}">View producer<span class="sr-only"> {{ $profile->display_name }}</span></a></td></tr>
         @empty<tr><td colspan="4" class="py-12 text-center text-stone-500">No producers match your filters.</td></tr>@endforelse
         </tbody></table></div><div class="mt-6">{{ $profiles->links() }}</div>
     </x-card>

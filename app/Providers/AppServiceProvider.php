@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Entities\Production\Farm;
-use App\Entities\Production\ProducerProfile;
+use App\Models\Production\Farm;
+use App\Models\Production\ProducerProfile;
 use App\Models\User;
 use App\Policies\ProductionPolicy;
 use Illuminate\Support\Facades\Gate;

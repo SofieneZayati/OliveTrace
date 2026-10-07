@@ -2,22 +2,25 @@
 
 namespace Database\Factories\Production;
 
-use App\Entities\Production\ProducerProfile;
-use Faker\Factory;
+use App\Enums\Role;
+use App\Models\Production\ProducerProfile;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
-/** Doctrine entity factory: make first, then persist/flush using the entity manager. */
-class ProducerProfileFactory
+/** @extends Factory<ProducerProfile> */
+class ProducerProfileFactory extends Factory
 {
-    public function make(int $userId, array $overrides = []): ProducerProfile
-    {
-        $faker = Factory::create();
-        $profile = new ProducerProfile($userId, $faker->company());
-        $profile->companyName = $profile->displayName;
-        $profile->description = 'An olive-growing family sharing the origin of its harvests.';
-        foreach ($overrides as $property => $value) {
-            $profile->{$property} = $value;
-        }
+    protected $model = ProducerProfile::class;
 
-        return $profile;
+    public function definition(): array
+    {
+        $name = fake()->company();
+
+        return [
+            'user_id' => User::factory()->state(['role' => Role::Producer]),
+            'display_name' => $name, 'company_name' => $name,
+            'description' => 'An olive-growing family sharing the origin of its harvests.',
+            'is_active' => true, 'is_public' => false,
+        ];
     }
 }

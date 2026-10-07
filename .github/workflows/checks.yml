@@ -45,7 +45,7 @@ jobs:
       - run: php artisan key:generate
       - run: mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE olivetrace_testing CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
       - run: php artisan migrate --seed --no-interaction
-      - run: php artisan olivetrace:check-doctrine
+      - run: php artisan olivetrace:check-database
       - run: npm ci
       - run: npm run build
       - run: php vendor/bin/pint --test

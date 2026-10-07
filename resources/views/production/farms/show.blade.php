@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 @section('title', 'Farm details')
 @section('content')
-    <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow mb-4 text-olive-600">{{ $farm->governorate }} / Farm #{{ $farm->id }}</p><h1 class="display-title text-4xl sm:text-5xl">{{ $farm->name }}</h1><p class="mt-4 text-sm text-stone-500">Managed by {{ $farm->producerProfile->displayName }}</p></div><a class="btn-primary" href="{{ route($admin ? 'admin.farms.edit' : 'producer.farms.edit', $farm->id) }}">Edit farm <x-icon name="arrow" /></a></div>
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow mb-4 text-olive-600">{{ $farm->governorate }} / Farm #{{ $farm->id }}</p><h1 class="display-title text-4xl sm:text-5xl">{{ $farm->name }}</h1><p class="mt-4 text-sm text-stone-500">Managed by {{ $farm->producerProfile->display_name }}</p></div><a class="btn-primary" href="{{ route($admin ? 'admin.farms.edit' : 'producer.farms.edit', $farm->id) }}">Edit farm <x-icon name="arrow" /></a></div>
     <div class="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <x-card>
             <span class="role-badge">{{ $farm->status->label() }}</span>
             <dl class="mt-7 grid gap-6 text-sm sm:grid-cols-2">
-                @foreach(['Governorate' => $farm->governorate, 'Delegation' => $farm->delegation, 'Area' => $farm->areaHa.' ha', 'Olive variety' => $farm->oliveVariety, 'Farming type' => $farm->farmingType->label(), 'Irrigation' => $farm->irrigationType->label(), 'Private latitude' => $farm->gpsLat, 'Private longitude' => $farm->gpsLng] as $label => $value)
+                @foreach(['Governorate' => $farm->governorate, 'Delegation' => $farm->delegation, 'Area' => $farm->area_ha.' ha', 'Olive variety' => $farm->olive_variety, 'Farming type' => $farm->farming_type->label(), 'Irrigation' => $farm->irrigation_type->label(), 'Private latitude' => $farm->gps_lat, 'Private longitude' => $farm->gps_lng] as $label => $value)
                     <div><dt class="text-stone-500">{{ $label }}</dt><dd class="mt-2 font-semibold">{{ $value ?? 'Not provided' }}</dd></div>
                 @endforeach
             </dl>

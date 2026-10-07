@@ -14,8 +14,8 @@
                 <div class="mb-6 flex items-center justify-between"><span class="grid h-12 w-12 place-items-center rounded-full bg-olive-50 text-olive-600"><x-icon name="leaf" class="h-6 w-6" /></span><span class="role-badge">{{ $farm->status->label() }}</span></div>
                 <p class="eyebrow text-stone-500">{{ $farm->governorate }} @if($farm->delegation) / {{ $farm->delegation }} @endif</p>
                 <h2 class="mt-3 font-display text-3xl">{{ $farm->name }}</h2>
-                <p class="mt-3 text-sm text-stone-500">{{ $farm->producerProfile->displayName }}</p>
-                <div class="my-6 grid grid-cols-2 gap-4 border-y border-stone-100 py-5 text-sm"><div><p class="text-xs text-stone-500">Area</p><p class="mt-2 font-semibold">{{ $farm->areaHa }} ha</p></div><div><p class="text-xs text-stone-500">Olive variety</p><p class="mt-2 font-semibold">{{ $farm->oliveVariety }}</p></div></div>
+                <p class="mt-3 text-sm text-stone-500">{{ $farm->producerProfile->display_name }}</p>
+                <div class="my-6 grid grid-cols-2 gap-4 border-y border-stone-100 py-5 text-sm"><div><p class="text-xs text-stone-500">Area</p><p class="mt-2 font-semibold">{{ $farm->area_ha }} ha</p></div><div><p class="text-xs text-stone-500">Olive variety</p><p class="mt-2 font-semibold">{{ $farm->olive_variety }}</p></div></div>
                 <a class="text-link mt-auto flex items-center justify-between" href="{{ route($admin ? 'admin.farms.show' : 'producer.farms.show', $farm->id) }}">View farm <span class="sr-only">{{ $farm->name }}</span><x-icon name="arrow" /></a>
             </x-card>
         @empty<x-card class="md:col-span-2 xl:col-span-3"><h2 class="font-display text-2xl">No farms to show yet.</h2><p class="mt-3 text-sm text-stone-500">Try different filters{{ $admin ? '.' : ' or add your first parcel.' }}</p></x-card>@endforelse

@@ -86,8 +86,8 @@ class ProducerProfileController extends Controller
     {
         $record = $this->profiles->find($profile);
         Gate::authorize('view', $record);
-        abort_unless($record->logoPath && Storage::disk('local')->exists($record->logoPath), 404);
+        abort_unless($record->logo_path && Storage::disk('local')->exists($record->logo_path), 404);
 
-        return response()->file(Storage::disk('local')->path($record->logoPath), ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+        return response()->file(Storage::disk('local')->path($record->logo_path), ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
     }
 }

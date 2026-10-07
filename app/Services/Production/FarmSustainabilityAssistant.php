@@ -2,7 +2,7 @@
 
 namespace App\Services\Production;
 
-use App\Entities\Production\Farm;
+use App\Models\Production\Farm;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -31,9 +31,9 @@ class FarmSustainabilityAssistant
         }
         $facts = [
             'governorate' => $farm->governorate, 'delegation' => $farm->delegation,
-            'area_ha' => $farm->areaHa, 'olive_variety' => $farm->oliveVariety,
-            'farming_type' => $farm->farmingType->value, 'irrigation_type' => $farm->irrigationType->value,
-            'has_coordinates' => $farm->gpsLat !== null && $farm->gpsLng !== null,
+            'area_ha' => $farm->area_ha, 'olive_variety' => $farm->olive_variety,
+            'farming_type' => $farm->farming_type->value, 'irrigation_type' => $farm->irrigation_type->value,
+            'has_coordinates' => $farm->gps_lat !== null && $farm->gps_lng !== null,
             'has_farm_notes' => filled($farm->description),
         ];
         try {

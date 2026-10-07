@@ -2,17 +2,18 @@
 
 namespace Tests\Feature;
 
-use App\Entities\Production\Farm;
 use App\Enums\Role;
+use App\Models\Production\Farm;
+use App\Models\Production\ProducerProfile;
 use App\Models\User;
-use Database\Factories\Production\FarmFactory;
-use Database\Factories\Production\ProducerProfileFactory;
-use Doctrine\ORM\EntityManagerInterface;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use Tests\ProductionTestCase;
+use Tests\TestCase;
 
-class FarmAssistantTest extends ProductionTestCase
+class FarmAssistantTest extends TestCase
 {
+    use RefreshDatabase;
+
     private Farm $farm;
 
     protected function setUp(): void
@@ -20,12 +21,8 @@ class FarmAssistantTest extends ProductionTestCase
         parent::setUp();
         Http::preventStrayRequests();
         $user = User::factory()->create(['role' => Role::Producer]);
-        $profile = (new ProducerProfileFactory)->make($user->id, ['phone' => 'private-phone-marker', 'address' => 'private-address-marker']);
-        $this->farm = (new FarmFactory)->make($profile, ['name' => 'Private farm name', 'description' => 'private-notes-marker', 'gpsLat' => '34.1234567']);
-        $manager = app(EntityManagerInterface::class);
-        $manager->persist($profile);
-        $manager->persist($this->farm);
-        $manager->flush();
+        $profile = ProducerProfile::factory()->for($user)->create(['phone' => 'private-phone-marker', 'address' => 'private-address-marker']);
+        $this->farm = Farm::factory()->for($profile, 'producerProfile')->create(['name' => 'Private farm name', 'description' => 'private-notes-marker', 'gps_lat' => '34.1234567']);
         $this->actingAs($user);
         config(['farm-assistant.provider' => 'openai', 'farm-assistant.openai_key' => 'fake-test-key', 'farm-assistant.model' => 'test-model']);
     }
