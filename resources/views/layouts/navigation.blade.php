@@ -6,6 +6,7 @@
             <x-icon name="menu" /><span class="sr-only">Toggle navigation</span>
         </button>
         <div id="front-navigation" class="hidden w-full flex-col gap-5 pb-2 text-sm font-medium sm:flex sm:w-auto sm:flex-row sm:items-center sm:gap-8 sm:pb-0" :class="{ '!flex': open }">
+            <a href="{{ route('catalog.index') }}" @if(request()->routeIs('catalog.*')) aria-current="page" @endif class="nav-link">Catalog</a>
             @guest
                 <a href="{{ route('home') }}" @if(request()->routeIs('home')) aria-current="page" @endif class="nav-link">Home</a>
                 <a href="{{ route('login') }}" @if(request()->routeIs('login')) aria-current="page" @endif class="nav-link">Login</a>

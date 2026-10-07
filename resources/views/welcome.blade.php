@@ -10,6 +10,7 @@
             <h1 id="home-heading" class="display-title max-w-xl text-[clamp(3.1rem,5.3vw,5.1rem)]">Rooted in tradition.<br><span class="italic text-olive-600">Connected</span><br>by trust.</h1>
             <p class="mt-7 max-w-md text-base leading-7 text-stone-600 sm:text-lg sm:leading-8">Behind every drop of olive oil, there are people, places, and a story. OliveTrace brings them together in one shared workspace.</p>
             <div class="mt-9 flex flex-wrap items-center gap-5">
+                <x-button-link href="{{ route('catalog.index') }}">Browse products <x-icon name="arrow" /></x-button-link>
                 @auth
                     <x-button-link href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('dashboard') }}">Open your dashboard <x-icon name="arrow" /></x-button-link>
                 @else
