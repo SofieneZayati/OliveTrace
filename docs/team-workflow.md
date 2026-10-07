@@ -17,12 +17,13 @@ The remaining modules belong on their owners' feature branches.
 `OliveTrace_Final_Team_Specification.pdf`: Producer/Farm belongs to Sofiene and
 Harvest/Mill to Mariem. This supersedes the earlier swap in the shared-base notes.
 
-The Eloquent refactor is currently on `feature/sofiene-production`; `main` and
-`develop` are unchanged until integration. See the README update commands to
-check out and test this branch. Use Eloquent for new modules and coordinate any
-integration of this branch into existing feature work.
+The shared base, Sofiene's Producer/Farm module and the Eloquent refactor are
+available on `main` and `develop`. Use Eloquent for new modules. Existing feature
+branches should incorporate `origin/develop` and follow the README update steps
+for dependencies, migrations and frontend assets. Commit or stash your current
+work before switching branches; do not discard it to pull shared changes.
 
-After the shared changes are merged, start your branch from current `develop`:
+Start a new module branch from current `develop`:
 
 ```powershell
 git fetch origin

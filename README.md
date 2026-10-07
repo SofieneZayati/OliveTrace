@@ -3,7 +3,7 @@
 OliveTrace is a university web project for tracing Tunisian olive oil from farm
 to consumer. The team is Sofiene, Mariem, Oussema, Hana and Aymen.
 
-**This branch contains the shared base and Sofiene's Producer & Farm Management module.**
+**This repository contains the shared base and Sofiene's Producer & Farm Management module.**
 Authentication, roles, common user management, layouts and infrastructure are
 shared work; they do not count as an individual student's module.
 
@@ -58,7 +58,6 @@ use `npm` and `cp .env.example .env`.
 ```powershell
 git clone https://github.com/SofieneZayati/OliveTrace.git olivetrace
 cd olivetrace
-git switch feature/sofiene-production
 composer install
 npm.cmd install
 Copy-Item .env.example .env
@@ -205,16 +204,15 @@ do not install a second ORM. Repositories expose the current integration
 contracts, while services enforce authorization and mutations. Read
 [the persistence guide](docs/persistence.md) before starting a module.
 
-### Updating an existing clone after the ORM refactor
+### Updating an existing clone
 
-These changes are on **feature/sofiene-production** until reviewed and merged
-into `develop`. Cloning or pulling `main` alone does not include them. With a
-clean working tree on Sofiene's branch:
+The shared base, Producer/Farm module and Eloquent refactor are available on
+**main** and **develop**. With a clean working tree, update your local main:
 
 ```powershell
 git fetch origin
-git switch feature/sofiene-production
-git pull --ff-only origin feature/sofiene-production
+git switch main
+git pull --ff-only origin main
 composer install
 php artisan optimize:clear
 php artisan migrate
@@ -224,12 +222,18 @@ php artisan olivetrace:check-database
 php artisan test
 ```
 
-Keep your existing `.env`, application key and database. This conversion keeps
-the same tables, IDs, foreign keys and data; it introduces no migration.
+Keep your existing `.env`, application key and database. The Eloquent conversion
+preserves existing tables, IDs, foreign keys and data. The Producer/Farm migration
+adds its two tables if you have not already installed the module.
 Do not run `migrate:fresh` or reseed common users to update. The old Doctrine
 environment variables can be removed from your private `.env`; they are unused.
 Replace old `App\Entities\Production` imports with `App\Models\Production` and
 use snake_case attributes such as `area_ha`, `olive_variety` and `user_id`.
+
+To add the optional producer demo profile and farms after an update, run
+`php artisan db:seed --class=ProductionSeeder`. This requires the existing
+`producer@test.com` development account and preserves edited module records.
+The full `migrate --seed` setup command is for a fresh development installation.
 
 ## Tests and checks
 

@@ -2,7 +2,8 @@
 
 Verified on 7 October 2026 on Sofiene's Windows computer after the Eloquent
 refactor on `feature/sofiene-production`. These results cover the shared base
-and Sofiene's Producer/Farm module. Main and develop are unchanged.
+and Sofiene's Producer/Farm module. Integration follows the pull-request workflow
+from the feature branch to develop, then from develop to main.
 
 ## Environment
 
