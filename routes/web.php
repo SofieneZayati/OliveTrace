@@ -46,4 +46,5 @@ Route::prefix('mill')->name('mill.')->middleware(['auth', 'active', 'role:miller
 });
 
 require __DIR__.'/production.php';
+require __DIR__.'/certification.php';
 require __DIR__.'/auth.php';

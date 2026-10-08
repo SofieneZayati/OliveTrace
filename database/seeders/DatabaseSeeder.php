@@ -15,5 +15,6 @@ class DatabaseSeeder extends Seeder
         $this->call(MillSeeder::class);
         $this->call([HarvestSeeder::class, MillRequestSeeder::class]);
         $this->call(OilLotSeeder::class);
+        $this->call(CertificationSeeder::class);
     }
 }

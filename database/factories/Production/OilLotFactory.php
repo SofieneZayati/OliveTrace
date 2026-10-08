@@ -15,7 +15,8 @@ class OilLotFactory extends Factory
     {
         return [
             'mill_request_id' => MillRequest::factory()->state(fn () => ['status' => 'completed']),
-            'lot_number' => 'LOT-'.fake()->year().'-'.fake()->unique()->numberBetween(100, 999),
+            'producer_user_id' => fn (array $attributes) => MillRequest::find($attributes['mill_request_id'])?->harvest?->farm?->producerProfile?->user_id,
+            'lot_number' => 'LOT-'.fake()->year().'-'.fake()->unique()->numberBetween(1000, 9999),
             'liters' => fake()->randomFloat(2, 50, 500),
             'quality_grade' => fake()->randomElement(OilQuality::cases()),
             'production_date' => fake()->dateTimeBetween('-30 days', 'now'),

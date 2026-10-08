@@ -57,6 +57,7 @@ class OilLotController extends Controller
 
         $oilLot = new OilLot($data);
         $oilLot->mill_request_id = $mill_request->id;
+        $oilLot->producer_user_id = $mill_request->harvest?->farm?->producerProfile?->user_id;
         $oilLot->save();
 
         return redirect()->route('mill.mill-requests.show', $mill_request->id)

@@ -18,11 +18,14 @@ class OilLotPolicy
         if ($user->isActiveAdmin()) {
             return true;
         }
+        if ($oilLot->producer_user_id === $user->id) {
+            return true;
+        }
         if ($user->isActiveMiller()) {
-            return $oilLot->millRequest->mill?->user_id === $user->id;
+            return $oilLot->millRequest?->mill?->user_id === $user->id;
         }
 
-        return $oilLot->millRequest->harvest->farm->producerProfile->user_id === $user->id;
+        return $oilLot->millRequest?->harvest?->farm?->producerProfile?->user_id === $user->id;
     }
 
     public function create(User $user): bool
@@ -36,7 +39,8 @@ class OilLotPolicy
             return true;
         }
 
-        return $oilLot->millRequest->mill?->user_id === $user->id && $oilLot->millRequest->status === MillRequestStatus::Completed;
+        return $oilLot->millRequest?->mill?->user_id === $user->id
+            && $oilLot->millRequest->status === MillRequestStatus::Completed;
     }
 
     public function delete(User $user, OilLot $oilLot): bool
