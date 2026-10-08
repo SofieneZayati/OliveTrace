@@ -60,6 +60,27 @@ class DistributionCrudTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_product_forms_only_offer_owned_lots_and_allow_multiple_bottle_sizes(): void
+    {
+        $ownLot = OilLot::factory()->create();
+        $otherLot = OilLot::factory()->create();
+        $producer = $ownLot->producer;
+        $this->actingAs($producer)->get(route('producer.products.create'))->assertOk()
+            ->assertSee($ownLot->lot_number)->assertDontSee($otherLot->lot_number);
+
+        $this->post(route('producer.products.store'), $this->validProduct($ownLot->id, ['bottle_volume_ml' => 250]))
+            ->assertSessionHasNoErrors()->assertRedirect();
+        $first = OilProduct::where('oil_lot_id', $ownLot->id)->firstOrFail();
+        $this->get(route('producer.products.create'))->assertOk()->assertSee($ownLot->lot_number)->assertDontSee($otherLot->lot_number);
+        $this->get(route('producer.products.edit', $first))->assertOk()->assertSee($ownLot->lot_number)->assertDontSee($otherLot->lot_number);
+        $this->post(route('producer.products.store'), $this->validProduct($ownLot->id, ['bottle_volume_ml' => 750]))
+            ->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame([250, 750], OilProduct::where('oil_lot_id', $ownLot->id)->orderBy('bottle_volume_ml')->pluck('bottle_volume_ml')->all());
+
+        $this->post(route('producer.products.store'), $this->validProduct($otherLot->id))->assertSessionHasErrors('oil_lot_id');
+        $this->assertDatabaseCount('oil_products', 2);
+    }
+
     public function test_consumer_is_forbidden_from_product_shipment_and_admin_spaces(): void
     {
         $consumer = User::factory()->state(['role' => Role::Consumer])->create();

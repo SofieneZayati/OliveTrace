@@ -21,4 +21,12 @@ class Certificate extends Model
     {
         return $this->belongsTo(CertificateRequest::class);
     }
+
+    public function isCurrentlyValid(): bool
+    {
+        return $this->certificateRequest?->status === 'approved'
+            && in_array($this->status, ['active', 'valid', 'verified', 'certified'], true)
+            && $this->issue_date !== null && $this->issue_date->lte(today())
+            && $this->expiry_date !== null && $this->expiry_date->gte(today());
+    }
 }

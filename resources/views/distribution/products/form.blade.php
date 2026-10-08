@@ -4,7 +4,7 @@
     <div class="mb-8 max-w-2xl">
         <p class="eyebrow mb-4 text-olive-600">A product with a traceable origin</p>
         <h1 class="display-title text-4xl">{{ $product ? 'Refine your product.' : 'Add a product.' }}</h1>
-        <p class="mt-4 text-sm leading-6 text-stone-500">Choose an available oil lot. Its origin record remains linked, not copied, to this product.</p>
+        <p class="mt-4 text-sm leading-6 text-stone-500">Choose an oil lot. The same lot can supply several bottle sizes, and each product keeps its origin link.</p>
     </div>
     <x-card class="max-w-3xl">
         <x-validation-errors class="mb-6" />
