@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\Role;
+use App\Models\Mill;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,29 @@ class UserAdministration
             $target->role = Role::from($attributes['role']);
             $target->is_active = (bool) $attributes['is_active'];
             $target->save();
+
+            $this->syncMill($target, $attributes);
         });
+    }
+
+    /**
+     * A miller account always owns exactly one mill row: promoting creates or
+     * completes it, demoting soft deletes it so the history is preserved.
+     */
+    private function syncMill(User $target, array $attributes): void
+    {
+        $mill = Mill::withTrashed()->where('user_id', $target->id)->first();
+
+        if ($target->role !== Role::Miller) {
+            $mill?->delete();
+
+            return;
+        }
+
+        $mill ??= new Mill(['user_id' => $target->id]);
+        $mill->fill(collect($attributes['mill'] ?? [])->only(['name', 'region', 'extraction_type', 'capacity', 'contact'])->all());
+        $mill->deleted_at = null;
+        $mill->save();
     }
 
     public function delete(User $actor, User $target): void

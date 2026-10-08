@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', 'Farm details')
 @section('content')
-    <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow mb-4 text-olive-600">{{ $farm->governorate }} / Farm #{{ $farm->id }}</p><h1 class="display-title text-4xl sm:text-5xl">{{ $farm->name }}</h1><p class="mt-4 text-sm text-stone-500">Managed by {{ $farm->producerProfile->display_name }}</p></div><a class="btn-primary" href="{{ route($admin ? 'admin.farms.edit' : 'producer.farms.edit', $farm->id) }}">Edit farm <x-icon name="arrow" /></a></div>
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow mb-4 text-olive-600">{{ $farm->governorate }} / Farm #{{ $farm->id }}</p><h1 class="display-title text-4xl sm:text-5xl">{{ $farm->name }}</h1><p class="mt-4 text-sm text-stone-500">Managed by {{ $farm->producerProfile->display_name }}</p></div><div class="flex flex-wrap gap-3">@can('create', [\App\Models\Production\Harvest::class, $farm])<a class="btn-primary" href="{{ route('producer.harvests.create', ['farm' => $farm->id]) }}">Add a harvest <x-icon name="arrow" /></a>@endcan<a class="btn-secondary" href="{{ route($admin ? 'admin.farms.edit' : 'producer.farms.edit', $farm->id) }}">Edit farm <x-icon name="arrow" /></a></div></div>
     <div class="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <x-card>
             <span class="role-badge">{{ $farm->status->label() }}</span>
@@ -32,6 +32,25 @@
                 <form method="POST" action="{{ route('producer.farms.archive', $farm->id) }}">@csrf @method('PATCH')<button type="submit" class="btn-secondary">Archive farm</button></form>
                 <form method="POST" action="{{ route('producer.farms.destroy', $farm->id) }}" x-data @submit="if (!confirm('Delete this farm if unlinked, or archive it if harvest history exists?')) $event.preventDefault()">@csrf @method('DELETE')<button class="btn-danger" type="submit">Delete farm</button></form>
             </div>
+        @endif
+    </x-card>
+    <x-card class="mt-8">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div><h2 class="font-display text-2xl">Harvests on this farm</h2><p class="mt-3 text-sm text-stone-500">{{ count($harvests) }} recorded on this parcel.</p></div>
+            @can('create', [\App\Models\Production\Harvest::class, $farm])<a class="btn-primary" href="{{ route('producer.harvests.create', ['farm' => $farm->id]) }}">Add a harvest <x-icon name="arrow" /></a>@endcan
+        </div>
+        @if(count($harvests))
+            <div class="mt-6 grid gap-4 md:grid-cols-2">
+                @foreach($harvests as $harvest)
+                    <div class="rounded-xl border border-stone-100 p-5">
+                        <div class="flex items-center justify-between gap-3"><span class="text-sm font-semibold">{{ $harvest->quantity_kg }} kg</span><span class="role-badge">{{ $harvest->status->label() }}</span></div>
+                        <p class="mt-3 text-sm leading-6 text-stone-500">{{ $harvest->harvest_date->isoFormat('ll') }} · {{ $harvest->method->label() }}<br />Milling: {{ $harvest->millingStatus()?->label() ?? 'Not requested' }}</p>
+                        <a class="text-link mt-4 flex items-center justify-between" href="{{ route($admin ? 'admin.harvests.show' : 'producer.harvests.show', $harvest->id) }}">View harvest <x-icon name="arrow" /></a>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <p class="mt-4 text-sm leading-6 text-stone-500">No harvest declared yet{{ $admin ? '.' : ' — add your first one to start the traceability story.' }}</p>
         @endif
     </x-card>
 @endsection

@@ -95,11 +95,13 @@ service. Adapters and mocked-provider tests are included. Put credentials only
 in the ignored local `.env`, never in Git or chat:
 
 ```dotenv
-FARM_AI_PROVIDER=openai
-FARM_AI_MODEL=gpt-4.1-mini
-OPENAI_API_KEY=your_private_key
+FARM_AI_PROVIDER=gemini
+FARM_AI_MODEL=gemini-3.1-flash-lite
+GEMINI_API_KEY=your_private_key
 ```
 
+OpenAI remains supported with `FARM_AI_PROVIDER=openai`,
+`FARM_AI_MODEL=gpt-4.1-mini` and `OPENAI_API_KEY`.
 Alternatively, with Ollama already running and a model installed:
 
 ```dotenv
@@ -118,7 +120,8 @@ must review advice, with local agronomic guidance. Missing configuration,
 refusals, invalid output and service outages leave normal CRUD available.
 No rule-based fallback is represented as AI.
 
-Adapter references: [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
+Adapter references: [Gemini structured outputs](https://ai.google.dev/gemini-api/docs/structured-output),
+[OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 and [Ollama chat API](https://docs.ollama.com/api/chat).
 
 ## Checks and remaining team work
@@ -133,9 +136,9 @@ php artisan olivetrace:check-database
 
 Module tests use `RefreshDatabase` with SQLite in memory or the separate MySQL
 testing schema. Users, profiles and farms share one Laravel connection and
-transaction boundary. Tests never touch development farm data. The minimal
-harvest table in one test is an isolated integration fixture, not a production
-implementation of Mariem's module.
+transaction boundary. Tests never touch development farm data. Integration tests
+now use the real harvest, milling, certification and distribution tables.
 
-Live AI accuracy/availability must be demonstrated after local configuration.
-Full farm-to-consumer integration awaits the other four modules.
+Live Gemini generation was verified on Sofiene's machine on 8 October 2026.
+Every teammate needs their own private configuration to reproduce it. The five
+modules are now integrated, including the consumer trace page's public-origin checks.

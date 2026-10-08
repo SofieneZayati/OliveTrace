@@ -6,6 +6,7 @@ use App\Enums\FarmStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Production\FarmRequest;
 use App\Repositories\Production\Farms;
+use App\Repositories\Production\Harvests;
 use App\Repositories\Production\ProducerProfiles;
 use App\Services\Production\ProductionManagement;
 use App\Services\Production\PublicOrigin;
@@ -53,12 +54,17 @@ class FarmController extends Controller
         return redirect()->route('producer.farms.show', $farm->id)->with('success', 'Farm created. Its ID can now be used by the harvest module.');
     }
 
-    public function show(Request $request, int $farm)
+    public function show(Request $request, Harvests $harvests, int $farm)
     {
         $record = $this->farms->find($farm);
         Gate::authorize('view', $record);
 
-        return view('production.farms.show', ['farm' => $record, 'admin' => $request->routeIs('admin.*'), 'publicOrigin' => app(PublicOrigin::class)->forFarm($record->id)]);
+        return view('production.farms.show', [
+            'farm' => $record,
+            'admin' => $request->routeIs('admin.*'),
+            'publicOrigin' => app(PublicOrigin::class)->forFarm($record->id),
+            'harvests' => $harvests->forFarm($record->id),
+        ]);
     }
 
     public function edit(Request $request, int $farm)

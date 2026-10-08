@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Production;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\Production\Farms;
+use App\Repositories\Production\Harvests;
 use App\Services\Production\FarmSustainabilityAssistant;
 use App\Services\Production\PublicOrigin;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Gate;
 
 class FarmAssistantController extends Controller
 {
-    public function __invoke(Request $request, int $farm, Farms $farms, FarmSustainabilityAssistant $assistant)
+    public function __invoke(Request $request, int $farm, Farms $farms, Harvests $harvests, FarmSustainabilityAssistant $assistant)
     {
         $record = $farms->find($farm);
         Gate::authorize('view', $record);
@@ -21,6 +22,7 @@ class FarmAssistantController extends Controller
         return response()->view('production.farms.show', [
             'farm' => $record, 'admin' => $request->routeIs('admin.*'), 'assistantResult' => $result,
             'publicOrigin' => app(PublicOrigin::class)->forFarm($record->id),
+            'harvests' => $harvests->forFarm($record->id),
         ])->header('Cache-Control', 'no-store');
     }
 }

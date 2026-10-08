@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Models\Mill;
 use App\Models\User;
 use App\Services\UserAdministration;
 use Illuminate\Http\RedirectResponse;
@@ -32,12 +33,19 @@ class UserController extends Controller
 
     public function show(User $user): View
     {
-        return view('admin.users.show', compact('user'));
+        return view('admin.users.show', [
+            'user' => $user,
+            'mill' => Mill::withTrashed()->where('user_id', $user->id)->first(),
+        ]);
     }
 
     public function edit(User $user): View
     {
-        return view('admin.users.edit', ['user' => $user, 'roles' => Role::cases()]);
+        return view('admin.users.edit', [
+            'user' => $user,
+            'roles' => Role::cases(),
+            'mill' => Mill::withTrashed()->where('user_id', $user->id)->first(),
+        ]);
     }
 
     public function update(UpdateUserRequest $request, User $user, UserAdministration $administration): RedirectResponse
