@@ -39,12 +39,12 @@ class DistributionRulesPoliciesTest extends TestCase
     private function oilLot(string $code = 'LOT-SFAX-001'): int
     {
         return DB::table('oil_lots')->insertGetId([
-            'harvest_id' => null,
-            'lot_code' => $code,
-            'extraction_date' => '2026-10-01',
-            'volume_l' => '400.00',
-            'grade' => 'Extra virgin',
-            'acidity' => '0.250',
+            'mill_request_id' => null,
+            'producer_user_id' => auth()->id(),
+            'lot_number' => $code,
+            'production_date' => '2026-10-01',
+            'liters' => '400.00',
+            'quality_grade' => 'extra_virgin',
             'notes' => null,
             'created_at' => now(),
             'updated_at' => now(),
@@ -361,18 +361,19 @@ class DistributionRulesPoliciesTest extends TestCase
         $this->assertFalse(Gate::forUser($admin)->allows('update', $profile));
     }
 
-    public function test_default_oil_lot_services_are_isolated_and_temporary(): void
+    public function test_default_oil_lot_services_use_real_records_and_enforce_ownership(): void
     {
+        $producer = User::factory()->create(['role' => Role::Producer]);
+        $this->actingAs($producer);
         $lotId = $this->oilLot();
 
         $this->assertTrue(app(OilProductEligibility::class)->isEligible($lotId));
         $this->assertFalse(app(OilProductEligibility::class)->isEligible($lotId + 1000));
         $this->assertSame('not available', app(OilLotCertificationStatusProvider::class)->statusFor($lotId));
-        $this->assertTrue(app(OilLotOwnership::class)->belongsToUser($lotId, 123));
+        $this->assertTrue(app(OilLotOwnership::class)->belongsToUser($lotId, $producer->id));
+        $this->assertFalse(app(OilLotOwnership::class)->belongsToUser($lotId, $producer->id + 1000));
         $this->assertFalse(app(OilLotLookup::class)->exists($lotId + 1000));
 
-        $producer = User::factory()->create(['role' => Role::Producer]);
-        $this->actingAs($producer);
         $ownership = Mockery::mock(OilLotOwnership::class);
         $ownership->shouldReceive('belongsToUser')->once()->with($lotId, $producer->id)->andReturn(false);
         $this->app->instance(OilLotOwnership::class, $ownership);

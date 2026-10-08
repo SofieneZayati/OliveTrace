@@ -6,7 +6,6 @@ use App\Contracts\OilLotLookup;
 use App\Data\OilLotSummary;
 use App\Models\Production\OilLot;
 use DateTimeImmutable;
-use Illuminate\Support\Collection;
 
 /**
  * Real OilLot lookup using Mariem's oil_lots table.
@@ -58,10 +57,10 @@ class TemporaryOilLotLookup implements OilLotLookup
         return new OilLotSummary(
             id: (int) $lot->id,
             lotCode: $lot->lot_number,
-            extractionDate: new DateTimeImmutable($lot->production_date?->format('Y-m-d') ?? 'now'),
-            volumeL: (string) ($lot->liters ?? '0.00'),
+            extractionDate: $lot->production_date ? new DateTimeImmutable($lot->production_date->format('Y-m-d')) : null,
+            volumeL: $lot->liters,
             grade: $lot->quality_grade?->value ?? 'unknown',
-            acidity: '0.000', // real acidity not tracked in your oil_lots table
+            acidity: null, // Acidity belongs to laboratory analyses; unknown is never zero.
         );
     }
 }

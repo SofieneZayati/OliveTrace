@@ -9,6 +9,7 @@ use App\Enums\TransportType;
 use App\Models\Distribution\DistributorProfile;
 use App\Models\Distribution\OilProduct;
 use App\Models\Distribution\Shipment;
+use App\Models\Production\OilLot;
 use App\Models\User;
 use Database\Seeders\DistributionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -128,16 +129,19 @@ class DistributionCrudTest extends TestCase
         $distributor = User::factory()->state(['role' => Role::Distributor])->create(['email' => 'distributor@test.com']);
         $producerPassword = $producer->password;
         $distributorPassword = $distributor->password;
+        foreach (['LOT-2026-001', 'LOT-2026-002'] as $number) {
+            OilLot::factory()->create(['lot_number' => $number, 'mill_request_id' => null, 'producer_user_id' => $producer->id]);
+        }
 
         $this->seed(DistributionSeeder::class);
         $this->seed(DistributionSeeder::class);
 
         $this->assertSame($producerPassword, $producer->fresh()->password);
         $this->assertSame($distributorPassword, $distributor->fresh()->password);
-        $this->assertSame(1, DB::table('oil_lots')->where('lot_code', 'LOT-2026-001')->count());
+        $this->assertSame(1, DB::table('oil_lots')->where('lot_number', 'LOT-2026-001')->count());
         $this->assertSame(1, DistributorProfile::query()->where('user_id', $distributor->id)->count());
-        $this->assertSame(1, OilProduct::query()->where('created_by_user_id', $producer->id)->where('name', 'Huile d’olive vierge extra - El Baraka')->count());
-        $this->assertSame(3, Shipment::query()->count());
+        $this->assertSame(1, OilProduct::query()->where('created_by_user_id', $producer->id)->where('name', "Huile d'olive extra vierge — El Baraka")->count());
+        $this->assertSame(5, Shipment::query()->count());
         $this->assertSame(4, OilProduct::query()->publiclyVisible()->count());
         $this->assertSame(1, OilProduct::query()->where('public_status', OilProductPublicStatus::Hidden)->whereNull('archived_at')->count());
         $this->assertSame(1, OilProduct::query()->whereNotNull('archived_at')->count());
@@ -147,12 +151,12 @@ class DistributionCrudTest extends TestCase
     private function createLot(string $lotCode): int
     {
         return DB::table('oil_lots')->insertGetId([
-            'harvest_id' => null,
-            'lot_code' => $lotCode,
-            'extraction_date' => now()->subDay()->toDateString(),
-            'volume_l' => '200.00',
-            'grade' => 'Extra virgin - Chemlali',
-            'acidity' => '0.300',
+            'mill_request_id' => null,
+            'producer_user_id' => auth()->id(),
+            'lot_number' => $lotCode,
+            'production_date' => now()->subDay()->toDateString(),
+            'liters' => '200.00',
+            'quality_grade' => 'extra_virgin',
             'notes' => null,
             'created_at' => now(),
             'updated_at' => now(),

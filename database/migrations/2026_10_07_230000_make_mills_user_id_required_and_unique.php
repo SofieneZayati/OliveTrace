@@ -50,16 +50,15 @@ return new class extends Migration
             });
         }
 
-        Schema::table('mills', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id')->nullable()->change();
-            $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
-        });
-
         if (Schema::hasIndex('mills', 'mills_user_id_unique')) {
             Schema::table('mills', function (Blueprint $table) {
                 $table->dropUnique('mills_user_id_unique');
             });
         }
+        Schema::table('mills', function (Blueprint $table) {
+            $table->unsignedBigInteger('user_id')->nullable()->change();
+            $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
+        });
     }
 
     private function userIdIsNullable(): bool

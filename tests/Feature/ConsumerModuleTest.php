@@ -9,12 +9,11 @@ use App\Models\Consumer\Complaint;
 use App\Models\Consumer\Feedback;
 use App\Models\Distribution\OilProduct;
 use App\Models\Distribution\Shipment;
+use App\Models\Production\OilLot;
 use App\Models\User;
 use App\Services\Consumer\FeedbackRatingSummary;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class ConsumerModuleTest extends TestCase
@@ -39,6 +38,7 @@ class ConsumerModuleTest extends TestCase
     public function test_trace_page_composes_product_feedback_and_graceful_missing_sections(): void
     {
         $product = OilProduct::factory()->create(['name' => 'Chemlali Gold 750ml']);
+        OilLot::findOrFail($product->oil_lot_id)->update(['mill_request_id' => null]);
         $consumer = $this->consumer();
         Feedback::factory()->create(['oil_product_id' => $product->id, 'consumer_user_id' => $consumer->id, 'rating' => 5, 'comment' => 'Superb oil!']);
 
@@ -195,25 +195,9 @@ class ConsumerModuleTest extends TestCase
 
     public function test_trace_page_links_certificate_document_when_available(): void
     {
-        Schema::create('certificate_requests', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('oil_lot_id');
-            $table->string('status', 30)->default('approved');
-        });
-        Schema::create('certificates', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('certificate_request_id');
-            $table->string('certificate_number')->nullable();
-            $table->string('type')->nullable();
-            $table->date('issue_date')->nullable();
-            $table->date('expiry_date')->nullable();
-            $table->string('status', 30)->nullable();
-            $table->string('pdf_url')->nullable();
-        });
-
         $product = OilProduct::factory()->create();
         $lotId = (int) DB::table('oil_lots')->where('id', $product->oil_lot_id)->value('id');
-        $requestId = DB::table('certificate_requests')->insertGetId(['oil_lot_id' => $lotId, 'status' => 'approved']);
+        $requestId = DB::table('certificate_requests')->insertGetId(['oil_lot_id' => $lotId, 'producer_user_id' => $product->created_by_user_id, 'status' => 'approved']);
         DB::table('certificates')->insert([
             'certificate_request_id' => $requestId, 'certificate_number' => 'CERT-2026-001',
             'type' => 'Organic', 'issue_date' => now()->toDateString(),

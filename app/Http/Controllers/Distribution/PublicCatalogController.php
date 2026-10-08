@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Distribution;
 
+use App\Contracts\BatchOilLotCertificationStatusProvider;
 use App\Contracts\OilLotCertificationStatusProvider;
 use App\Contracts\OilLotLookup;
 use App\Contracts\ProductRatingSummary;
@@ -46,9 +47,11 @@ class PublicCatalogController extends Controller
             ->withQueryString();
 
         $lotSummaries = $lots->findMany($products->getCollection()->pluck('oil_lot_id')->unique()->values()->all());
-        $certificationStatuses = collect($lotSummaries)->mapWithKeys(fn ($lot): array => [
-            $lot->id => strtolower(trim($certifications->statusFor($lot->id))),
-        ]);
+        $certificationStatuses = $certifications instanceof BatchOilLotCertificationStatusProvider
+            ? collect($certifications->statusesFor(array_keys($lotSummaries)))
+            : collect($lotSummaries)->mapWithKeys(fn ($lot): array => [
+                $lot->id => strtolower(trim($certifications->statusFor($lot->id))),
+            ]);
         $catalogCards = $products->getCollection()->map(function (OilProduct $product) use ($lotSummaries, $certificationStatuses, $ratings): array {
             $lot = $lotSummaries[$product->oil_lot_id] ?? null;
             $deliveredShipment = $product->shipments->first();

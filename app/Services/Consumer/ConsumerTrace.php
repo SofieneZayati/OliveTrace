@@ -5,6 +5,8 @@ namespace App\Services\Consumer;
 use App\Models\Consumer\Feedback;
 use App\Models\Distribution\OilProduct;
 use App\Models\Production\Farm;
+use App\Services\Production\PublicOrigin;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -84,9 +86,10 @@ class ConsumerTrace
 
     private function harvest(?object $oilLot): ?object
     {
-        return $oilLot && isset($oilLot->harvest_id)
-            ? $this->tableRow('harvests', 'id', $oilLot->harvest_id)
-            : null;
+        $request = $oilLot && isset($oilLot->mill_request_id)
+            ? $this->tableRow('mill_requests', 'id', $oilLot->mill_request_id) : null;
+
+        return $request ? $this->tableRow('harvests', 'id', $request->harvest_id) : null;
     }
 
     private function farm(?object $harvest): ?Farm
@@ -116,11 +119,7 @@ class ConsumerTrace
 
     private function origin(?Farm $farm): ?array
     {
-        if (! $farm || ! $farm->is_public || ! $farm->producerProfile || ! $farm->producerProfile->is_public) {
-            return null;
-        }
-
-        return $farm->publicOrigin();
+        return $farm ? app(PublicOrigin::class)->forFarm($farm->id) : null;
     }
 
     private function verification(?object $oilLot): ?array
@@ -138,9 +137,15 @@ class ConsumerTrace
             ? DB::table('certificates')->where('certificate_request_id', $request->id)->latest('id')->first()
             : null;
 
-        $expired = $certificate && isset($certificate->expiry_date) && $certificate->expiry_date < now()->toDateString();
+        $expired = $certificate && isset($certificate->expiry_date) && Carbon::parse($certificate->expiry_date)->toDateString() < now()->toDateString();
+        $verified = $certificate && $request->status === 'approved' && ! $expired
+            && Carbon::parse($certificate->issue_date)->toDateString() <= now()->toDateString()
+            && in_array($certificate->status, ['active', 'valid', 'verified', 'certified'], true);
 
-        return ['request' => $request, 'certificate' => $certificate, 'expired' => $expired, 'document_url' => $this->documentUrl($certificate)];
+        $analysis = Schema::hasTable('lab_analyses')
+            ? DB::table('lab_analyses')->where('certificate_request_id', $request->id)->latest('id')->first() : null;
+
+        return ['request' => $request, 'certificate' => $certificate, 'analysis' => $analysis, 'expired' => $expired, 'verified' => $verified, 'document_url' => $this->documentUrl($certificate)];
     }
 
     // The laboratory module may expose the certificate file under different

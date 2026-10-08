@@ -5,9 +5,13 @@ namespace Database\Factories\Distribution;
 use App\Enums\OilProductPublicStatus;
 use App\Enums\Role;
 use App\Models\Distribution\OilProduct;
+use App\Models\Production\Farm;
+use App\Models\Production\Harvest;
+use App\Models\Production\MillRequest;
+use App\Models\Production\OilLot;
+use App\Models\Production\ProducerProfile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\DB;
 
 /** @extends Factory<OilProduct> */
 class OilProductFactory extends Factory
@@ -17,17 +21,15 @@ class OilProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'oil_lot_id' => fn () => DB::table('oil_lots')->insertGetId([
-                'harvest_id' => null,
-                'lot_code' => 'TEST-LOT-'.fake()->unique()->bothify('########'),
-                'extraction_date' => fake()->date(),
-                'volume_l' => fake()->randomElement(['250.00', '500.00', '750.00']),
-                'grade' => 'Extra virgin',
-                'acidity' => '0.300',
-                'notes' => 'Chemlali olives from the Sfax region.',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]),
+            'created_by_user_id' => User::factory()->state(['role' => Role::Producer]),
+            'oil_lot_id' => function (array $attributes) {
+                $user = User::findOrFail($attributes['created_by_user_id']);
+                $profile = $user->producerProfile ?? ProducerProfile::factory()->for($user)->create();
+                $harvest = Harvest::factory()->for(Farm::factory()->for($profile, 'producerProfile'))->create();
+                $request = MillRequest::factory()->for($harvest)->create(['status' => 'completed']);
+
+                return OilLot::factory()->for($request, 'millRequest')->create(['producer_user_id' => $user->id])->id;
+            },
             'name' => 'Extra virgin Chemlali olive oil',
             'brand' => 'Sfax Harvest',
             'bottle_volume_ml' => 750,
@@ -35,7 +37,6 @@ class OilProductFactory extends Factory
             'image' => null,
             'public_status' => OilProductPublicStatus::Visible,
             'archived_at' => null,
-            'created_by_user_id' => User::factory()->state(['role' => Role::Producer]),
         ];
     }
 

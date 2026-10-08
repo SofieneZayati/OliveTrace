@@ -14,8 +14,7 @@
         $myFeedback = auth()->check() ? $feedback['items']->firstWhere('consumer_user_id', auth()->id()) : null;
         $bottle = ((int) ($product->bottle_volume_ml ?? 0)) === 1000 ? '1 L' : ($product->bottle_volume_ml ?? '—').(is_numeric($product->bottle_volume_ml ?? null) ? ' ml' : '');
         $packaged = $product->packaging_date instanceof \DateTimeInterface ? $product->packaging_date->format('d M Y') : ($product->packaging_date ?? '—');
-        $certStatus = $verification && $verification['certificate'] ? strtolower(trim($verification['certificate']->status ?? $verification['request']->status ?? '')) : '';
-        $verified = $verification && $verification['certificate'] && ! $verification['expired'] && in_array($certStatus, ['valid', 'verified', 'certified'], true);
+        $verified = $verification['verified'] ?? false;
         $verificationBadge = ! $verification ? 'No certificate available' : ($verification['certificate'] ? ($verification['expired'] ? 'Expired' : ($verified ? 'Verified' : 'Certificate issued')) : 'Certification pending');
         $delivered = collect($shipments)->first(fn ($shipment) => ($shipment->status ?? '') === 'delivered');
     @endphp
@@ -40,7 +39,7 @@
                 <h2 class="font-display mt-3 text-3xl sm:text-4xl">{{ $product->name ?? 'Olive oil product #'.$product->id }}</h2>
                 <dl class="mt-6 grid gap-5 border-t border-stone-100 pt-6 text-sm sm:grid-cols-3">
                     <div><dt class="text-stone-500">Packaged</dt><dd class="mt-1 font-semibold">{{ $packaged }}</dd></div>
-                    <div><dt class="text-stone-500">Oil lot</dt><dd class="mt-1 font-semibold">{{ $oilLot->lot_code ?? '—' }}</dd></div>
+                    <div><dt class="text-stone-500">Oil lot</dt><dd class="mt-1 font-semibold">{{ $oilLot->lot_number ?? '—' }}</dd></div>
                     <div><dt class="text-stone-500">Olive variety</dt><dd class="mt-1 font-semibold">{{ $origin['olive_variety'] ?? '—' }}</dd></div>
                 </dl>
                 <div class="mt-6 flex flex-wrap items-center gap-2">
@@ -85,10 +84,10 @@
                         @endif
                         @if($oilLot)
                             <dl class="mt-4 grid gap-5 text-sm sm:grid-cols-4">
-                                <div><dt class="text-stone-500">Lot code</dt><dd class="mt-1 font-semibold">{{ $oilLot->lot_code ?? '—' }}</dd></div>
-                                <div><dt class="text-stone-500">Extraction</dt><dd class="mt-1 font-semibold">{{ $oilLot->extraction_date ?? '—' }}</dd></div>
-                                <div><dt class="text-stone-500">Volume</dt><dd class="mt-1 font-semibold">{{ isset($oilLot->volume_l) ? $oilLot->volume_l.' L' : '—' }}</dd></div>
-                                <div><dt class="text-stone-500">Grade · Acidity</dt><dd class="mt-1 font-semibold">{{ $oilLot->grade ?? '—' }} · {{ $oilLot->acidity ?? '—' }}</dd></div>
+                                <div><dt class="text-stone-500">Lot code</dt><dd class="mt-1 font-semibold">{{ $oilLot->lot_number ?? '—' }}</dd></div>
+                                <div><dt class="text-stone-500">Extraction</dt><dd class="mt-1 font-semibold">{{ $oilLot->production_date ?? '—' }}</dd></div>
+                                <div><dt class="text-stone-500">Volume</dt><dd class="mt-1 font-semibold">{{ isset($oilLot->liters) ? $oilLot->liters.' L' : '—' }}</dd></div>
+                                <div><dt class="text-stone-500">Grade · Acidity</dt><dd class="mt-1 font-semibold">{{ isset($oilLot->quality_grade) ? \App\Enums\OilQuality::tryFrom($oilLot->quality_grade)?->label() ?? '—' : '—' }} · {{ $verification['analysis']->acidity ?? '—' }}</dd></div>
                             </dl>
                         @endif
                     </div>

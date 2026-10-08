@@ -13,6 +13,9 @@
 
             <x-card>
                 <h3 class="text-lg font-bold text-olive-800 mb-4 border-b border-olive-100 pb-2">Request Information</h3>
+                @if($oilLots->isEmpty())
+                    <p class="mb-6 text-sm text-stone-500">No eligible oil lots are available. Complete milling and record a real oil lot before requesting certification.</p>
+                @endif
                 <form method="POST" action="{{ route('certification.producer.requests.store') }}">
                     @csrf
                     <div class="mb-6">
@@ -34,7 +37,7 @@
                     </div>
 
                     <div class="flex items-center justify-end pt-4 border-t border-olive-100">
-                        <button type="submit" class="btn-primary">
+                        <button type="submit" class="btn-primary" @disabled($oilLots->isEmpty())>
                             Submit Request
                         </button>
                     </div>

@@ -16,8 +16,11 @@ class UpdateOilProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $product = $this->routeProduct();
+
         return $this->user()?->is_active
-            && in_array($this->user()->role, [Role::Producer, Role::Admin], true);
+            && in_array($this->user()->role, [Role::Producer, Role::Admin], true)
+            && $product !== null && $this->user()->can('update', $product);
     }
 
     public function rules(): array

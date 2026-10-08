@@ -31,7 +31,7 @@ class DistributionModelTest extends TestCase
         $this->assertCount(1, $product->shipments);
         $this->assertCount(1, $profile->shipments);
         $this->assertNotNull($product->oilLot());
-        $this->assertStringStartsWith('TEST-LOT-', $product->oilLot()->lotCode);
+        $this->assertStringStartsWith('LOT-', $product->oilLot()->lotCode);
     }
 
     public function test_product_scopes_filter_visibility_status_date_and_owner(): void
@@ -86,12 +86,11 @@ class DistributionModelTest extends TestCase
     public function test_temporary_oil_lot_lookup_reports_missing_and_existing_lots(): void
     {
         $id = DB::table('oil_lots')->insertGetId([
-            'harvest_id' => null,
-            'lot_code' => 'LOT-SFAX-TEST',
-            'extraction_date' => '2026-10-01',
-            'volume_l' => '150.00',
-            'grade' => 'Extra virgin',
-            'acidity' => '0.250',
+            'mill_request_id' => null,
+            'lot_number' => 'LOT-SFAX-TEST',
+            'production_date' => '2026-10-01',
+            'liters' => '150.00',
+            'quality_grade' => 'extra_virgin',
             'notes' => null,
             'created_at' => now(),
             'updated_at' => now(),

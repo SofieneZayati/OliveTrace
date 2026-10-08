@@ -13,10 +13,10 @@ use App\Models\Distribution\Shipment;
 use App\Policies\Distribution\DistributorProfilePolicy;
 use App\Policies\Distribution\OilProductPolicy;
 use App\Policies\Distribution\ShipmentPolicy;
+use App\Services\Distribution\DatabaseOilLotCertificationStatus;
 use App\Services\Distribution\ExistingOilLotEligibility;
 use App\Services\Distribution\TemporaryOilLotLookup;
 use App\Services\Distribution\TemporaryPermissiveOilLotOwnership;
-use App\Services\Distribution\UnavailableOilLotCertificationStatus;
 use App\Services\Distribution\UnavailableProductRatingSummary;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -27,7 +27,7 @@ class DistributionServiceProvider extends ServiceProvider
     {
         $this->app->bind(OilLotLookup::class, TemporaryOilLotLookup::class);
         $this->app->bind(OilProductEligibility::class, ExistingOilLotEligibility::class);
-        $this->app->bind(OilLotCertificationStatusProvider::class, UnavailableOilLotCertificationStatus::class);
+        $this->app->bind(OilLotCertificationStatusProvider::class, DatabaseOilLotCertificationStatus::class);
         $this->app->bind(OilLotOwnership::class, TemporaryPermissiveOilLotOwnership::class);
         $this->app->bind(ProductRatingSummary::class, UnavailableProductRatingSummary::class);
     }
