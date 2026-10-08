@@ -23,12 +23,21 @@
                 <a href="{{ route('producer.farms.index') }}" class="sidebar-link" @if(request()->routeIs('producer.farms.*')) aria-current="page" @endif><x-icon name="leaf" />My farms</a>
                 <a href="{{ route('producer.harvests.index') }}" class="sidebar-link" @if(request()->routeIs('producer.harvests.*')) aria-current="page" @endif><x-icon name="harvest" />My harvests</a>
                 <a href="{{ route('producer.oil-lots.index') }}" class="sidebar-link" @if(request()->routeIs('producer.oil-lots.*')) aria-current="page" @endif><x-icon name="drop" />My oil lots</a>
+                <a href="{{ route('producer.products.index') }}" class="sidebar-link" @if(request()->routeIs('producer.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
+            @endif
+            @if(auth()->user()->role === \App\Enums\Role::Distributor)
+                <a href="{{ route('distributor.profile.show') }}" class="sidebar-link" @if(request()->routeIs('distributor.profile.*')) aria-current="page" @endif><x-icon name="user" />My profile</a>
+                <a href="{{ route('distributor.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('distributor.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
             @endif
             @can('access-admin')
                 <a href="{{ route('admin.producers.index') }}" class="sidebar-link" @if(request()->routeIs('admin.producers.*')) aria-current="page" @endif><x-icon name="users" />Producers</a>
                 <a href="{{ route('admin.farms.index') }}" class="sidebar-link" @if(request()->routeIs('admin.farms.*')) aria-current="page" @endif><x-icon name="leaf" />Farms</a>
                 <a href="{{ route('admin.harvests.index') }}" class="sidebar-link" @if(request()->routeIs('admin.harvests.*')) aria-current="page" @endif><x-icon name="harvest" />Harvests</a>
                 <a href="{{ route('admin.mills.index') }}" class="sidebar-link" @if(request()->routeIs('admin.mills.*')) aria-current="page" @endif><x-icon name="drop" />Mills</a>
+                <a href="{{ route('admin.products.index') }}" class="sidebar-link" @if(request()->routeIs('admin.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
+                <a href="{{ route('admin.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('admin.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
+                <a href="{{ route('admin.consumer.feedback.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.feedback.*')) aria-current="page" @endif><x-icon name="chat" />Reviews</a>
+                <a href="{{ route('admin.consumer.complaints.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.complaints.*')) aria-current="page" @endif><x-icon name="flag" />Complaints</a>
             @endcan
             @if(auth()->user()->role === \App\Enums\Role::Miller)
                 <a href="{{ route('mill.show') }}" class="sidebar-link" @if(request()->routeIs('mill.*')) aria-current="page" @endif><x-icon name="drop" />My mill</a>
