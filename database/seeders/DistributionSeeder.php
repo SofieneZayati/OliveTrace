@@ -9,6 +9,7 @@ use App\Enums\TransportType;
 use App\Models\Distribution\DistributorProfile;
 use App\Models\Distribution\OilProduct;
 use App\Models\Distribution\Shipment;
+use App\Models\Production\OilLot;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -22,136 +23,204 @@ class DistributionSeeder extends Seeder
             throw new LogicException('Distribution demo data may only be seeded in local or testing environments.');
         }
 
-        $producer = User::query()->where('email', 'producer@test.com')->where('role', Role::Producer)->first();
-        $distributor = User::query()->where('email', 'distributor@test.com')->where('role', Role::Distributor)->first();
+        $producer    = User::where('email', 'producer@test.com')->where('role', Role::Producer)->first();
+        $distributor = User::where('email', 'distributor@test.com')->where('role', Role::Distributor)->first();
+
         if ($producer === null || $distributor === null) {
-            throw new LogicException('Seed DevelopmentUserSeeder first to create the demo producer and distributor.');
+            throw new LogicException('Seed DevelopmentUserSeeder first.');
         }
 
-        DB::transaction(function () use ($producer, $distributor): void {
-            $now = now();
-            DB::table('oil_lots')->updateOrInsert(
-                ['lot_code' => 'LOT-2026-001'],
-                [
-                    'harvest_id' => null,
-                    'extraction_date' => $now->copy()->subDays(2)->toDateString(),
-                    'volume_l' => '750.00',
-                    'grade' => 'Extra virgin - Chemlali',
-                    'acidity' => '0.300',
-                    'notes' => 'Demo lot from the Sfax region.',
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ],
-            );
-            $lot = DB::table('oil_lots')->where('lot_code', 'LOT-2026-001')->firstOrFail();
+        $lot1 = OilLot::where('lot_number', 'LOT-2026-001')->first();
+        $lot2 = OilLot::where('lot_number', 'LOT-2026-002')->first();
 
-            $profile = DistributorProfile::query()->updateOrCreate(
+        if (! $lot1 || ! $lot2) {
+            throw new LogicException('Seed OilLotSeeder first to create the demo oil lots.');
+        }
+
+        DB::transaction(function () use ($producer, $distributor, $lot1, $lot2): void {
+            $now = now();
+
+            // ── Distributor profile ──────────────────────────────────────────────
+            $profile = DistributorProfile::updateOrCreate(
                 ['user_id' => $distributor->id],
                 [
-                    'company_name' => 'OliveTrace Distribution',
-                    'address' => 'Route de Tunis, Sfax',
-                    'phone' => '+216 74 000 000',
-                    'region' => 'Sfax',
-                    'is_active' => true,
-                ],
+                    'company_name' => 'Zitouna Distribution SARL',
+                    'address'      => 'Route de Tunis Km 3, Sfax 3000, Tunisie',
+                    'phone'        => '+216 74 220 000',
+                    'region'       => 'Sfax',
+                    'is_active'    => true,
+                ]
             );
-            $product = OilProduct::query()->firstOrNew([
-                'oil_lot_id' => (int) $lot->id,
-                'created_by_user_id' => $producer->id,
-                'name' => 'Huile d’olive vierge extra - El Baraka',
-            ]);
-            $product->oil_lot_id = (int) $lot->id;
-            $product->created_by_user_id = $producer->id;
-            $product->fill([
-                'brand' => 'El Baraka',
+
+            // ── Products — tied to real OilLot records ───────────────────────────
+            //
+            // Product A — LOT-001, EVOO certified, publicly visible, in catalog
+            $productA = $this->upsertProduct($producer, $lot1->id, [
+                'name'             => 'Huile d\'olive extra vierge — El Baraka',
+                'brand'            => 'El Baraka',
                 'bottle_volume_ml' => 750,
-                'packaging_date' => $now->copy()->subDay()->toDateString(),
-                'public_status' => OilProductPublicStatus::Visible,
+                'packaging_date'   => '2026-10-03',
+                'public_status'    => OilProductPublicStatus::Visible,
+                'archived_at'      => null,
             ]);
-            $product->archived_at = null;
-            $product->save();
-            $catalogProducts = [$product];
 
-            foreach ([
-                ['name' => 'Chemlali Harvest Selection', 'brand' => 'Sfax Harvest', 'volume' => 250, 'status' => OilProductPublicStatus::Visible],
-                ['name' => 'Organic Grove Blend', 'brand' => 'Domaine En Nour', 'volume' => 500, 'status' => OilProductPublicStatus::Visible],
-                ['name' => 'Early Press Reserve', 'brand' => 'Zitouna Select', 'volume' => 1000, 'status' => OilProductPublicStatus::Visible],
-                ['name' => 'Seasonal Trial Blend', 'brand' => 'OliveTrace Test', 'volume' => 500, 'status' => OilProductPublicStatus::Hidden],
-                ['name' => 'Archived Grove Oil', 'brand' => 'Old Press', 'volume' => 250, 'status' => OilProductPublicStatus::Hidden, 'archived' => true],
-            ] as $sample) {
-                $sampleProduct = OilProduct::query()->firstOrNew([
-                    'created_by_user_id' => $producer->id,
-                    'name' => $sample['name'],
-                ]);
-                $sampleProduct->created_by_user_id = $producer->id;
-                $sampleProduct->oil_lot_id = (int) $lot->id;
-                $sampleProduct->fill([
-                    'name' => $sample['name'],
-                    'brand' => $sample['brand'],
-                    'bottle_volume_ml' => $sample['volume'],
-                    'packaging_date' => $now->copy()->subDays(2)->toDateString(),
-                    'public_status' => $sample['status'],
-                ]);
-                if ($sample['archived'] ?? false) {
-                    $sampleProduct->archived_at = $now->copy()->subDay();
-                } else {
-                    $sampleProduct->archived_at = null;
-                }
-                $sampleProduct->save();
+            // Product B — LOT-001, 250 ml gourmet size, visible
+            $productB = $this->upsertProduct($producer, $lot1->id, [
+                'name'             => 'Chemlali Harvest Selection — 250 ml',
+                'brand'            => 'Sfax Harvest',
+                'bottle_volume_ml' => 250,
+                'packaging_date'   => '2026-10-03',
+                'public_status'    => OilProductPublicStatus::Visible,
+                'archived_at'      => null,
+            ]);
 
-                if ($sample['status'] === OilProductPublicStatus::Visible) {
-                    $catalogProducts[] = $sampleProduct;
-                }
-            }
+            // Product C — LOT-002, premium early press, visible
+            $productC = $this->upsertProduct($producer, $lot2->id, [
+                'name'             => 'Early Press Reserve — Domaine En Nour',
+                'brand'            => 'Domaine En Nour',
+                'bottle_volume_ml' => 500,
+                'packaging_date'   => '2026-10-06',
+                'public_status'    => OilProductPublicStatus::Visible,
+                'archived_at'      => null,
+            ]);
 
-            Shipment::query()->updateOrCreate(
-                [
-                    'oil_product_id' => $product->id,
-                    'distributor_profile_id' => $profile->id,
-                    'departure_location' => 'Sfax, Tunisia',
-                    'destination' => 'Tunis, Tunisia',
-                    'status' => ShipmentStatus::Delivered,
-                ],
-                [
-                    'departure_date' => $now->copy()->subDays(2)->toDateString(),
-                    'arrival_date' => $now->copy()->subDay()->toDateString(),
-                    'distance_km' => '270.00',
-                    'transport_type' => TransportType::Truck,
-                    'co2_estimate' => null,
-                ],
-            );
-            Shipment::query()->updateOrCreate(
-                [
-                    'oil_product_id' => $catalogProducts[1]->id,
-                    'distributor_profile_id' => $profile->id,
-                    'departure_location' => 'Sfax, Tunisia',
-                    'destination' => 'Monastir, Tunisia',
-                    'status' => ShipmentStatus::Delivered,
-                ],
-                [
-                    'departure_date' => $now->copy()->subDays(3)->toDateString(),
-                    'arrival_date' => $now->copy()->subDays(2)->toDateString(),
-                    'distance_km' => '190.00',
-                    'transport_type' => TransportType::Truck,
-                    'co2_estimate' => null,
-                ],
-            );
-            Shipment::query()->updateOrCreate(
-                [
-                    'oil_product_id' => $product->id,
-                    'distributor_profile_id' => $profile->id,
-                    'departure_location' => 'Sfax, Tunisia',
-                    'destination' => 'Sousse, Tunisia',
-                    'status' => ShipmentStatus::Planned,
-                ],
-                [
-                    'departure_date' => $now->copy()->addDay()->toDateString(),
-                    'arrival_date' => null,
-                    'distance_km' => '130.00',
-                    'transport_type' => TransportType::Van,
-                    'co2_estimate' => null,
-                ],
-            );
+            // Product D — LOT-002, 1 L bulk catering size, visible
+            $productD = $this->upsertProduct($producer, $lot2->id, [
+                'name'             => 'Organic Grove Blend — 1L Catering',
+                'brand'            => 'Zitouna Select',
+                'bottle_volume_ml' => 1000,
+                'packaging_date'   => '2026-10-06',
+                'public_status'    => OilProductPublicStatus::Visible,
+                'archived_at'      => null,
+            ]);
+
+            // Product E — LOT-001, hidden (draft, not yet published)
+            $productE = $this->upsertProduct($producer, $lot1->id, [
+                'name'             => 'Seasonal Trial Blend',
+                'brand'            => 'OliveTrace Test',
+                'bottle_volume_ml' => 500,
+                'packaging_date'   => $now->copy()->subDays(5)->toDateString(),
+                'public_status'    => OilProductPublicStatus::Hidden,
+                'archived_at'      => null,
+            ]);
+
+            // Product F — archived (demonstrates the archive feature)
+            $productF = $this->upsertProduct($producer, $lot1->id, [
+                'name'             => 'Old Press 2025 — Archived',
+                'brand'            => 'El Baraka',
+                'bottle_volume_ml' => 250,
+                'packaging_date'   => $now->copy()->subDays(30)->toDateString(),
+                'public_status'    => OilProductPublicStatus::Hidden,
+                'archived_at'      => $now->copy()->subDays(10),
+            ]);
+
+            // ── Shipments ────────────────────────────────────────────────────────
+            // 1. Product A → Tunis (delivered 2 days ago)
+            $this->upsertShipment($productA, $profile, [
+                'departure_location' => 'Sfax, Tunisie',
+                'destination'        => 'Tunis, Tunisie',
+                'departure_date'     => $now->copy()->subDays(4)->toDateString(),
+                'arrival_date'       => $now->copy()->subDays(2)->toDateString(),
+                'distance_km'        => '270.00',
+                'transport_type'     => TransportType::Truck,
+                'status'             => ShipmentStatus::Delivered,
+                'co2_estimate'       => '48.60',
+            ]);
+
+            // 2. Product B → Monastir (delivered yesterday)
+            $this->upsertShipment($productB, $profile, [
+                'departure_location' => 'Sfax, Tunisie',
+                'destination'        => 'Monastir, Tunisie',
+                'departure_date'     => $now->copy()->subDays(3)->toDateString(),
+                'arrival_date'       => $now->copy()->subDay()->toDateString(),
+                'distance_km'        => '190.00',
+                'transport_type'     => TransportType::Van,
+                'status'             => ShipmentStatus::Delivered,
+                'co2_estimate'       => '19.00',
+            ]);
+
+            // 3. Product C → Sousse (in transit right now)
+            $this->upsertShipment($productC, $profile, [
+                'departure_location' => 'Sfax, Tunisie',
+                'destination'        => 'Sousse, Tunisie',
+                'departure_date'     => $now->toDateString(),
+                'arrival_date'       => null,
+                'distance_km'        => '130.00',
+                'transport_type'     => TransportType::Van,
+                'status'             => ShipmentStatus::InTransit,
+                'co2_estimate'       => '13.00',
+            ]);
+
+            // 4. Product D → Nabeul (planned for tomorrow)
+            $this->upsertShipment($productD, $profile, [
+                'departure_location' => 'Sfax, Tunisie',
+                'destination'        => 'Nabeul, Tunisie',
+                'departure_date'     => $now->copy()->addDay()->toDateString(),
+                'arrival_date'       => null,
+                'distance_km'        => '280.00',
+                'transport_type'     => TransportType::Truck,
+                'status'             => ShipmentStatus::Planned,
+                'co2_estimate'       => null,
+            ]);
+
+            // 5. Product A second shipment → Djerba (planned next week, for export demo)
+            $this->upsertShipment($productA, $profile, [
+                'departure_location' => 'Sfax, Tunisie',
+                'destination'        => 'Djerba — Export Port',
+                'departure_date'     => $now->copy()->addDays(5)->toDateString(),
+                'arrival_date'       => null,
+                'distance_km'        => '150.00',
+                'transport_type'     => TransportType::Truck,
+                'status'             => ShipmentStatus::Planned,
+                'co2_estimate'       => null,
+            ]);
         });
+    }
+
+    private function upsertProduct(User $producer, int $lotId, array $attrs): OilProduct
+    {
+        $product = OilProduct::query()
+            ->where('created_by_user_id', $producer->id)
+            ->where('name', $attrs['name'])
+            ->first();
+
+        if (! $product) {
+            $product = new OilProduct;
+            $product->created_by_user_id = $producer->id;
+            $product->oil_lot_id = $lotId;
+            $product->name = $attrs['name'];
+        }
+
+        $product->oil_lot_id = $lotId;
+        $product->fill([
+            'brand'            => $attrs['brand'],
+            'bottle_volume_ml' => $attrs['bottle_volume_ml'],
+            'packaging_date'   => $attrs['packaging_date'],
+            'public_status'    => $attrs['public_status'],
+        ]);
+        $product->archived_at = $attrs['archived_at'] ?? null;
+        $product->save();
+
+        return $product;
+    }
+
+    private function upsertShipment(OilProduct $product, DistributorProfile $profile, array $attrs): Shipment
+    {
+        return Shipment::updateOrCreate(
+            [
+                'oil_product_id'        => $product->id,
+                'distributor_profile_id' => $profile->id,
+                'departure_location'    => $attrs['departure_location'],
+                'destination'           => $attrs['destination'],
+            ],
+            [
+                'departure_date' => $attrs['departure_date'],
+                'arrival_date'   => $attrs['arrival_date'],
+                'distance_km'    => $attrs['distance_km'],
+                'transport_type' => $attrs['transport_type'],
+                'status'         => $attrs['status'],
+                'co2_estimate'   => $attrs['co2_estimate'],
+            ]
+        );
     }
 }
