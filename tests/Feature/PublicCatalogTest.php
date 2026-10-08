@@ -221,7 +221,7 @@ class PublicCatalogTest extends TestCase
                 return false;
             }
 
-            public function available(): array
+            public function available(?int $producerUserId = null): array
             {
                 return [];
             }

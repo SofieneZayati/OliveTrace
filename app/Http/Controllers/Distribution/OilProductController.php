@@ -37,13 +37,13 @@ class OilProductController extends Controller
         return view('distribution.products.index', compact('products', 'admin', 'filters'));
     }
 
-    public function create(OilLotLookup $lots): View
+    public function create(Request $request, OilLotLookup $lots): View
     {
         $this->authorize('create', OilProduct::class);
 
         return view('distribution.products.form', [
             'product' => null,
-            'lots' => $lots->available(),
+            'lots' => $lots->available($request->user()->id),
             'admin' => false,
         ]);
     }
@@ -78,7 +78,7 @@ class OilProductController extends Controller
     {
         $this->authorize('update', $product);
 
-        $availableLots = collect($lots->available());
+        $availableLots = collect($lots->available($request->user()->isAdmin() ? null : $request->user()->id));
         $currentLot = $product->oilLot();
         if ($currentLot !== null && ! $availableLots->contains('id', $currentLot->id)) {
             $availableLots->prepend($currentLot);
