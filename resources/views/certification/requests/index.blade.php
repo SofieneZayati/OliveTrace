@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="Certificate requests">
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-olive-800 leading-tight">
             {{ __('My Certificate Requests') }}

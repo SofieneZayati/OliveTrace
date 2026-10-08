@@ -27,11 +27,10 @@ class TemporaryOilLotLookup implements OilLotLookup
         return OilLot::where('id', $id)->exists();
     }
 
-    public function available(): array
+    public function available(?int $producerUserId = null): array
     {
         return OilLot::query()
-            ->leftJoin('oil_products', 'oil_products.oil_lot_id', '=', 'oil_lots.id')
-            ->whereNull('oil_products.id')
+            ->when($producerUserId !== null, fn ($query) => $query->where('producer_user_id', $producerUserId))
             ->orderBy('oil_lots.lot_number')
             ->get(['oil_lots.*'])
             ->mapWithKeys(fn (OilLot $lot) => [(int) $lot->id => $this->toSummary($lot)])

@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="New certificate request">
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-olive-800 leading-tight">
             {{ __('New Certificate Request') }}
@@ -23,7 +23,7 @@
                         <select name="oil_lot_id" id="oil_lot_id" class="border-stone-300 focus:border-olive-500 focus:ring-olive-500 rounded-md shadow-sm block w-full bg-white" required>
                             <option value="">-- Select an Oil Lot --</option>
                             @foreach($oilLots as $lot)
-                                <option value="{{ $lot->id }}">{{ $lot->lot_number }}</option>
+                                <option value="{{ $lot->id }}" @selected((string) old('oil_lot_id') === (string) $lot->id)>{{ $lot->lot_number }}</option>
                             @endforeach
                         </select>
                         <p class="text-xs text-stone-500 mt-2">Only oil lots that do not currently have a pending or approved request are shown.</p>
@@ -32,7 +32,7 @@
 
                     <div class="mb-6">
                         <label for="note" class="block font-medium text-sm text-stone-700 mb-1">Additional Notes</label>
-                        <textarea name="note" id="note" rows="4" class="border-stone-300 focus:border-olive-500 focus:ring-olive-500 rounded-md shadow-sm block w-full" placeholder="Optional notes for the laboratory..."></textarea>
+                        <textarea name="note" id="note" rows="4" maxlength="5000" class="border-stone-300 focus:border-olive-500 focus:ring-olive-500 rounded-md shadow-sm block w-full" placeholder="Optional notes for the laboratory...">{{ old('note') }}</textarea>
                         @error('note') <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span> @enderror
                     </div>
 

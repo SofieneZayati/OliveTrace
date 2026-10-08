@@ -10,9 +10,11 @@ class CertificateController extends Controller
     public function show($certificateNumber)
     {
         $certificate = Certificate::where('certificate_number', $certificateNumber)
-            ->with(['certificateRequest.oilLot', 'certificateRequest.labAnalysis'])
+            ->with(['certificateRequest.oilLot', 'certificateRequest.producer', 'certificateRequest.labAnalysis.labUser'])
             ->firstOrFail();
 
-        return view('certification.certificates.show', compact('certificate'));
+        $valid = $certificate->isCurrentlyValid();
+
+        return view('certification.certificates.show', compact('certificate', 'valid'));
     }
 }

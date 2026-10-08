@@ -29,6 +29,7 @@ Consumer Traceability/Feedback/Complaints. See
 The farm sustainability assistant supports Gemini, OpenAI and local Ollama.
 Normal CRUD works without an AI provider. Credentials stay in your local `.env`.
 Gemini setup and demonstration steps are in [the farm AI guide](docs/farm-ai.md).
+Certification and product integration rules are in [the module workflow guide](docs/module-workflows.md).
 
 ## Software required
 

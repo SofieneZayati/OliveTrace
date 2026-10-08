@@ -104,6 +104,6 @@ class DistributionModelTest extends TestCase
         $this->assertContains($id, collect($lookup->available())->pluck('id')->all());
 
         OilProduct::factory()->create(['oil_lot_id' => $id]);
-        $this->assertNotContains($id, collect($lookup->available())->pluck('id')->all());
+        $this->assertContains($id, collect($lookup->available())->pluck('id')->all());
     }
 }
