@@ -12,6 +12,7 @@ use App\Models\Production\MillRequest;
 use App\Repositories\Production\Farms;
 use App\Repositories\Production\Harvests;
 use App\Services\Production\HarvestManagement;
+use App\Services\Production\HarvestOilAssistant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -56,6 +57,16 @@ class HarvestController extends Controller
         $harvest = $management->createHarvest($request->user(), $request->validated());
 
         return redirect()->route('producer.harvests.show', $harvest->id)->with('success', 'Harvest declared. You can now schedule a request to a mill.');
+    }
+
+    public function estimate(Request $request, int $harvest, HarvestOilAssistant $assistant)
+    {
+        $record = $this->harvests->find($harvest);
+        Gate::authorize('view', $record);
+
+        return response()->view('production.harvests.show', $this->show($request, $harvest)->getData() + [
+            'estimateResult' => $assistant->estimate($record),
+        ])->header('Cache-Control', 'no-store');
     }
 
     public function show(Request $request, int $harvest)

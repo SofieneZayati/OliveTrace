@@ -95,4 +95,5 @@
             <p class="mt-3 text-sm leading-6 text-stone-500">No requests yet. This harvest has not been offered to a mill.</p>
         @endforelse
     </x-card>
+    @include('production.harvests.assistant')
 @endsection
