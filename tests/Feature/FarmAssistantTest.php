@@ -112,4 +112,48 @@ class FarmAssistantTest extends TestCase
         Http::assertNothingSent();
         $this->assertFarmUnchanged();
     }
+
+    public function test_gemini_returns_validated_escaped_advice_without_sending_private_fields(): void
+    {
+        config(['farm-assistant.provider' => 'gemini', 'farm-assistant.gemini_key' => 'fake-gemini-key', 'farm-assistant.model' => 'gemini-3.1-flash-lite']);
+        $advice = $this->advice();
+        $advice['summary'] = '<script>unsafe()</script>';
+        Http::fake(['generativelanguage.googleapis.com/*' => Http::response(['candidates' => [[
+            'finishReason' => 'STOP', 'content' => ['parts' => [['text' => json_encode($advice)]]],
+        ]]])]);
+        $this->post(route('producer.farms.advice', $this->farm->id))->assertOk()
+            ->assertSee($advice['summary'])->assertDontSee($advice['summary'], false)->assertSee('Discuss mulching');
+        Http::assertSent(function ($request) {
+            $this->assertTrue($request->hasHeader('x-goog-api-key', 'fake-gemini-key'));
+            $this->assertStringNotContainsString('fake-gemini-key', $request->url());
+            $input = $request['contents'][0]['parts'][0]['text'];
+            $this->assertSame('Chemlali', json_decode($input, true)['olive_variety']);
+            foreach (['private-phone-marker', 'private-address-marker', 'private-notes-marker', '34.1234567', 'Private farm name'] as $private) {
+                $this->assertStringNotContainsString($private, $input);
+            }
+            $this->assertSame('application/json', $request['generationConfig']['responseMimeType']);
+            $this->assertFalse($request['generationConfig']['responseJsonSchema']['additionalProperties']);
+
+            return true;
+        });
+        $this->assertFarmUnchanged();
+    }
+
+    public function test_gemini_missing_key_quota_blocked_and_malformed_responses_fail_safely(): void
+    {
+        config(['farm-assistant.provider' => 'gemini', 'farm-assistant.gemini_key' => null]);
+        $this->post(route('producer.farms.advice', $this->farm->id))->assertOk()->assertSee('not configured yet');
+        Http::assertNothingSent();
+        config(['farm-assistant.gemini_key' => 'fake-gemini-key']);
+        Http::fake(['generativelanguage.googleapis.com/*' => Http::sequence()
+            ->push(['error' => ['message' => 'private-provider-message']], 429)
+            ->push(['promptFeedback' => ['blockReason' => 'SAFETY']])
+            ->push(['candidates' => [['finishReason' => 'MAX_TOKENS', 'content' => ['parts' => [['text' => '{}']]]]]])
+            ->push(['candidates' => [['finishReason' => 'STOP', 'content' => ['parts' => [['text' => '{"summary":"Incomplete"}']]]]]])]);
+        $this->post(route('producer.farms.advice', $this->farm->id))->assertOk()->assertSee('usage limit')->assertDontSee('private-provider-message');
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $this->post(route('producer.farms.advice', $this->farm->id))->assertOk()->assertSee('temporarily unavailable');
+        }
+        $this->assertFarmUnchanged();
+    }
 }
