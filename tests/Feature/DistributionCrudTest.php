@@ -206,6 +206,7 @@ class DistributionCrudTest extends TestCase
             'departure_date' => now()->toDateString(),
             'arrival_date' => null,
             'distance_km' => '270.00',
+            'quantity_bottles' => $shipment->quantity_bottles ?? 12,
             'transport_type' => TransportType::Truck->value,
             'status' => $shipment->status->value,
             'co2_estimate' => '999.00',

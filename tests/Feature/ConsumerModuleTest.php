@@ -214,8 +214,10 @@ class ConsumerModuleTest extends TestCase
     public function test_trace_page_shows_transport_footprint_and_product_name_on_complaints(): void
     {
         $product = OilProduct::factory()->create(['name' => 'Chemlali Gold 750ml']);
-        Shipment::factory()->delivered()->create(['oil_product_id' => $product->id, 'co2_estimate' => '12.50']);
-        Shipment::factory()->create(['oil_product_id' => $product->id, 'status' => ShipmentStatus::Cancelled, 'co2_estimate' => '99.99']);
+        $delivered = Shipment::factory()->delivered()->create(['oil_product_id' => $product->id]);
+        $cancelled = Shipment::factory()->create(['oil_product_id' => $product->id, 'status' => ShipmentStatus::Cancelled]);
+        DB::table('shipments')->where('id', $delivered->id)->update(['co2_estimate' => '12.50']);
+        DB::table('shipments')->where('id', $cancelled->id)->update(['co2_estimate' => '99.99']);
 
         $this->get('/trace/'.$product->slug)->assertOk()
             ->assertSee('12.50')

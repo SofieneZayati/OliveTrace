@@ -70,6 +70,7 @@ class DistributionRulesPoliciesTest extends TestCase
             'destination' => 'Tunis',
             'departure_date' => '2026-10-01',
             'distance_km' => 270,
+            'quantity_bottles' => 20,
             'transport_type' => TransportType::Truck->value,
         ];
     }
@@ -224,6 +225,14 @@ class DistributionRulesPoliciesTest extends TestCase
         $withCo2 = $this->validatorFor(StoreShipmentRequest::class, $base + ['co2_estimate' => 987.65]);
         $this->assertFalse($withCo2->fails());
         $this->assertArrayNotHasKey('co2_estimate', $withCo2->validated());
+
+        foreach ([0, 100001, 'invalid'] as $quantity) {
+            $invalidQuantity = $this->validatorFor(StoreShipmentRequest::class, array_replace($base, [
+                'quantity_bottles' => $quantity,
+            ]));
+            $this->assertTrue($invalidQuantity->fails());
+            $this->assertArrayHasKey('quantity_bottles', $invalidQuantity->errors()->toArray());
+        }
     }
 
     public function test_shipment_update_uses_transition_rule_and_ignores_co2_input(): void

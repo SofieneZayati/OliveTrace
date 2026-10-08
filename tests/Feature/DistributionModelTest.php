@@ -61,13 +61,12 @@ class DistributionModelTest extends TestCase
     public function test_total_co2_sums_non_cancelled_shipments_only(): void
     {
         $product = OilProduct::factory()->create();
-        Shipment::factory()->for($product)->create(['co2_estimate' => '12.25']);
-        Shipment::factory()->for($product)->delivered()->create(['co2_estimate' => '7.75']);
-        Shipment::factory()->for($product)->create([
-            'status' => ShipmentStatus::Cancelled,
-            'co2_estimate' => '100.00',
-        ]);
-        Shipment::factory()->for($product)->create(['co2_estimate' => null]);
+        $first = Shipment::factory()->for($product)->create();
+        $second = Shipment::factory()->for($product)->delivered()->create();
+        $cancelled = Shipment::factory()->for($product)->create(['status' => ShipmentStatus::Cancelled]);
+        DB::table('shipments')->where('id', $first->id)->update(['co2_estimate' => '12.25']);
+        DB::table('shipments')->where('id', $second->id)->update(['co2_estimate' => '7.75']);
+        DB::table('shipments')->where('id', $cancelled->id)->update(['co2_estimate' => '100.00']);
 
         $this->assertSame(20.0, $product->totalCo2Kg());
     }
