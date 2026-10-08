@@ -21,3 +21,16 @@ These are indicative estimates, not measured emissions or a lifecycle assessment
 They do not include warehousing, empty returns, route-specific fuel efficiency,
 packaging variation, or production emissions. Cancelled shipments retain their
 estimate for history but are excluded from product totals.
+
+## Impact assistant and updating your checkout
+
+The shipment page offers impact advice with a rule-based fallback. To enable
+external AI advice, set `OLIVETRACE_IMPACT_AI_ENABLED=true` in your private `.env`.
+It uses `FARM_AI_PROVIDER`, `FARM_AI_MODEL` and the matching provider key.
+Gemini uses `GEMINI_API_KEY`; the lab continues to select its own `LAB_AI_MODEL`.
+Missing credentials or provider failures keep rule-based advice available.
+
+After pulling the unified main, run `composer install`, `php artisan optimize:clear`,
+`php artisan migrate`, `npm.cmd ci` and `npm.cmd run build`. Keep your own `.env`
+and existing database; no reseeding is needed. The new migration adds shipment
+quantity and recalculates existing shipment estimates with a default quantity of one.

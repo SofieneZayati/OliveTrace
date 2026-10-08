@@ -149,6 +149,15 @@ class PublicCatalogTest extends TestCase
             ->assertDontSee('Transport: '.number_format((float) ($delivered->co2_estimate + $cancelled->co2_estimate), 1, '.', ',').' kg CO₂');
     }
 
+    public function test_transport_co2_rounds_half_up_consistently(): void
+    {
+        $product = OilProduct::factory()->create();
+        $shipment = Shipment::factory()->for($product)->delivered()->create();
+        DB::table('shipments')->where('id', $shipment->id)->update(['co2_estimate' => 32.05]);
+
+        $this->get(route('catalog.index'))->assertOk()->assertSee('Transport: 32.1 kg CO₂');
+    }
+
     public function test_sort_options_order_products_by_name_or_creation_time(): void
     {
         $older = OilProduct::factory()->create(['name' => 'Zulu olive oil']);

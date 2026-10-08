@@ -93,6 +93,7 @@ class PublicCatalogController extends Controller
             $formatter = new \NumberFormatter($locale, \NumberFormatter::DECIMAL);
             $formatter->setAttribute(\NumberFormatter::MIN_FRACTION_DIGITS, 1);
             $formatter->setAttribute(\NumberFormatter::MAX_FRACTION_DIGITS, 1);
+            $formatter->setAttribute(\NumberFormatter::ROUNDING_MODE, \NumberFormatter::ROUND_HALFUP);
 
             return $formatter->format($co2Kg);
         }
