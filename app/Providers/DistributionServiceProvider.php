@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\DistributionImpactAssistant;
 use App\Contracts\OilLotCertificationStatusProvider;
 use App\Contracts\OilLotLookup;
 use App\Contracts\OilLotOwnership;
@@ -15,6 +16,7 @@ use App\Policies\Distribution\OilProductPolicy;
 use App\Policies\Distribution\ShipmentPolicy;
 use App\Services\Distribution\DatabaseOilLotCertificationStatus;
 use App\Services\Distribution\ExistingOilLotEligibility;
+use App\Services\Distribution\ResilientDistributionImpactAssistant;
 use App\Services\Distribution\TemporaryOilLotLookup;
 use App\Services\Distribution\TemporaryPermissiveOilLotOwnership;
 use App\Services\Distribution\UnavailableProductRatingSummary;
@@ -30,6 +32,7 @@ class DistributionServiceProvider extends ServiceProvider
         $this->app->bind(OilLotCertificationStatusProvider::class, DatabaseOilLotCertificationStatus::class);
         $this->app->bind(OilLotOwnership::class, TemporaryPermissiveOilLotOwnership::class);
         $this->app->bind(ProductRatingSummary::class, UnavailableProductRatingSummary::class);
+        $this->app->bind(DistributionImpactAssistant::class, ResilientDistributionImpactAssistant::class);
     }
 
     public function boot(): void

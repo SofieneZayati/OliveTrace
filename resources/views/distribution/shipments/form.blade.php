@@ -15,6 +15,7 @@
                 <x-production-field name="departure_date" label="Departure date" type="date" :value="$shipment?->departure_date?->format('Y-m-d') ?? now()->format('Y-m-d')" :required="true" />
                 <x-production-field name="arrival_date" label="Arrival date (optional)" type="date" :value="$shipment?->arrival_date?->format('Y-m-d')" />
                 <x-production-field name="distance_km" label="Distance (km)" type="number" :value="$shipment?->distance_km ?? '270.00'" min="0.01" max="20000" step="0.01" :required="true" />
+                <x-production-field name="quantity_bottles" label="Number of bottles" type="number" :value="$shipment?->quantity_bottles ?? 1" min="1" max="100000" :required="true" />
             </div>
             <div class="flex flex-wrap gap-3 border-t border-stone-100 pt-6"><x-primary-button>{{ $shipment ? 'Save shipment' : 'Plan shipment' }}</x-primary-button><a class="btn-secondary" href="{{ $shipment ? route('distributor.shipments.show', $shipment) : route('distributor.shipments.index') }}">Cancel</a></div>
         </form>

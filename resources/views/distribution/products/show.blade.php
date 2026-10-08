@@ -16,7 +16,7 @@
             </dl>
             <div class="mt-7 border-t border-stone-100 pt-6">
                 <h2 class="font-display text-2xl">Recorded transport emissions</h2>
-                <p class="mt-3 text-sm leading-6 text-stone-500">{{ number_format($product->totalCo2Kg(), 2) }} kg from non-cancelled shipments with an existing estimate. Emissions calculation is a later project phase.</p>
+                <p class="mt-3 text-sm leading-6 text-stone-500">{{ number_format($product->totalCo2Kg(), 2) }} kg estimated across non-cancelled shipments.</p>
             </div>
         </x-card>
         <div class="space-y-6">

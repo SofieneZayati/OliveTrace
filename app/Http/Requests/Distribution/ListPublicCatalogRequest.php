@@ -23,7 +23,7 @@ class ListPublicCatalogRequest extends FormRequest
             'search' => is_string($search) && mb_strlen($search) <= 120 ? trim($search) : null,
             'bottle_volume_ml' => in_array((string) $volume, ['250', '500', '750', '1000'], true) ? (string) $volume : null,
             'delivered' => $delivered === '1' ? '1' : null,
-            'sort' => in_array($sort, ['newest', 'name'], true) ? $sort : 'newest',
+            'sort' => in_array($sort, ['newest', 'name', 'lowest_co2'], true) ? $sort : 'newest',
         ]);
     }
 
@@ -33,7 +33,7 @@ class ListPublicCatalogRequest extends FormRequest
             'search' => ['nullable', 'string', 'max:120'],
             'bottle_volume_ml' => ['nullable', Rule::in(['250', '500', '750', '1000'])],
             'delivered' => ['nullable', Rule::in(['1'])],
-            'sort' => ['required', Rule::in(['newest', 'name'])],
+            'sort' => ['required', Rule::in(['newest', 'name', 'lowest_co2'])],
         ];
     }
 }

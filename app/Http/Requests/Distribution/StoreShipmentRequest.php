@@ -28,6 +28,7 @@ class StoreShipmentRequest extends FormRequest
             'departure_date' => ['required', 'date'],
             'arrival_date' => ['nullable', 'date', 'after_or_equal:departure_date'],
             'distance_km' => ['required', 'numeric', 'gt:0', 'max:20000'],
+            'quantity_bottles' => ['required', 'integer', 'between:1,100000'],
             'transport_type' => ['required', Rule::enum(TransportType::class)],
             'status' => ['sometimes', Rule::enum(ShipmentStatus::class)],
             'co2_estimate' => ['exclude'],
