@@ -9,6 +9,7 @@ use Database\Factories\Production\FarmFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Farm extends Model
 {
@@ -36,6 +37,11 @@ class Farm extends Model
     public function producerProfile(): BelongsTo
     {
         return $this->belongsTo(ProducerProfile::class);
+    }
+
+    public function harvests(): HasMany
+    {
+        return $this->hasMany(Harvest::class);
     }
 
     public function publicOrigin(): array

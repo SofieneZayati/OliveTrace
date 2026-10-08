@@ -49,9 +49,29 @@ class User extends Authenticatable
         return $this->hasRole(Role::Admin);
     }
 
+    public function isActiveAdmin(): bool
+    {
+        return $this->is_active && $this->isAdmin();
+    }
+
+    public function isActiveProducer(): bool
+    {
+        return $this->is_active && $this->hasRole(Role::Producer);
+    }
+
+    public function isActiveMiller(): bool
+    {
+        return $this->is_active && $this->hasRole(Role::Miller);
+    }
+
     public function producerProfile(): HasOne
     {
         return $this->hasOne(ProducerProfile::class);
+    }
+
+    public function mill(): HasOne
+    {
+        return $this->hasOne(Mill::class);
     }
 
     /**

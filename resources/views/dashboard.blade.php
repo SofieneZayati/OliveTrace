@@ -21,6 +21,10 @@
                 <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Look after the origin story.</h2>
                 <p class="mt-4 text-sm leading-7 text-olive-100/80">Inspect producer profiles and farms, correct details and keep invalid origin information out of public view.</p>
                 <a href="{{ route('admin.farms.index') }}" class="btn-secondary mt-6">Explore community farms <x-icon name="arrow" /></a>
+            @elseif(auth()->user()->role === \App\Enums\Role::Miller)
+                <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Your mill is part of the story.</h2>
+                <p class="mt-4 text-sm leading-7 text-olive-100/80">Keep your huilerie details accurate: region, extraction method and hourly capacity.</p>
+                <a href="{{ route('mill.show') }}" class="btn-secondary mt-6">Manage my mill <x-icon name="arrow" /></a>
             @else
                 <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Your workspace is taking root.</h2>
                 <p class="mt-4 text-sm leading-7 text-olive-100/80">The business modules will appear here.</p>
@@ -41,6 +45,24 @@
                 <h2 class="text-lg font-semibold">Look after the community</h2>
                 <p class="mb-6 mt-2 text-sm leading-6 text-stone-500">Manage shared accounts, assign roles, and control who can access OliveTrace.</p>
                 <a href="{{ route('admin.users.index') }}" class="text-link inline-flex items-center gap-2">Manage users <x-icon name="arrow" class="h-4 w-4" /></a>
+            </x-card>
+            <x-card>
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="drop" /></div>
+                <h2 class="text-lg font-semibold">Keep the mill directory accurate</h2>
+                <p class="mb-6 mt-2 text-sm leading-6 text-stone-500">Review every huilerie on OliveTrace, its region, extraction method and hourly capacity.</p>
+                <a href="{{ route('admin.mills.index') }}" class="text-link inline-flex items-center gap-2">Browse mills <x-icon name="arrow" class="h-4 w-4" /></a>
+            </x-card>
+        @elseif(auth()->user()->role === \App\Enums\Role::Miller)
+            <x-card>
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="drop" /></div>
+                @if (auth()->user()->mill)
+                    <h2 class="text-lg font-semibold">{{ auth()->user()->mill->name }}</h2>
+                    <p class="mb-6 mt-2 text-sm leading-6 text-stone-500">{{ auth()->user()->mill->region }} · {{ ucwords(str_replace('_', ' ', auth()->user()->mill->extraction_type)) }} · {{ auth()->user()->mill->capacity ? number_format(auth()->user()->mill->capacity).' kg/h' : 'capacity not set' }}. Keep it accurate so the OliveTrace story stays true.</p>
+                    <a href="{{ route('mill.show') }}" class="text-link inline-flex items-center gap-2">Manage my mill <x-icon name="arrow" class="h-4 w-4" /></a>
+                @else
+                    <h2 class="text-lg font-semibold">Your mill is not linked yet</h2>
+                    <p class="mt-2 text-sm leading-6 text-stone-500">No huilerie is attached to this account. Ask an administrator to create it.</p>
+                @endif
             </x-card>
         @else
             <x-card>
