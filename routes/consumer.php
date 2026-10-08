@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 // Module 5 (Aymen) — Consumer Traceability, Feedback & Complaints.
 Route::get('/trace/{slug}', [TraceController::class, 'show'])->name('trace.show');
+Route::redirect('/my-complaints', '/complaints')->name('my-complaints');
 
 Route::middleware(['auth', 'active', 'role:consumer'])->group(function () {
     Route::post('/products/{product}/feedback', [FeedbackController::class, 'store'])->whereNumber('product')->name('feedback.store');

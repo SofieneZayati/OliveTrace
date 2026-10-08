@@ -35,7 +35,7 @@ class ConsumerModerationController extends Controller
     public function complaintsIndex(Request $request)
     {
         $filters = $request->validate(['status' => ['nullable', Rule::enum(ComplaintStatus::class)]]);
-        $complaints = Complaint::with('consumer')->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+        $complaints = Complaint::with(['consumer', 'product'])->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest()->paginate(15);
 
         return view('consumer.admin.complaints-index', ['complaints' => $complaints]);
@@ -44,7 +44,7 @@ class ConsumerModerationController extends Controller
     public function complaintsShow(Complaint $complaint)
     {
         Gate::authorize('view', $complaint);
-        $complaint->load('consumer');
+        $complaint->load(['consumer', 'product']);
 
         return view('consumer.admin.complaints-show', ['complaint' => $complaint]);
     }

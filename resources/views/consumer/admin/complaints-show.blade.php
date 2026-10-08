@@ -2,7 +2,7 @@
 @section('title', 'Complaint #'.$complaint->id)
 @section('content')
     <div class="mx-auto max-w-3xl">
-        <p class="eyebrow mb-4 text-olive-600">Complaint #{{ $complaint->id }} · product #{{ $complaint->oil_product_id }}</p>
+        <p class="eyebrow mb-4 text-olive-600">Complaint #{{ $complaint->id }} · {{ $complaint->product?->name ?? 'product #'.$complaint->oil_product_id }}</p>
         <h1 class="display-title mb-8 text-4xl">{{ $complaint->subject }}</h1>
         <x-card class="mb-6">
             <div class="flex flex-wrap items-center justify-between gap-3"><span class="role-badge">{{ $complaint->status->label() }}</span><span class="text-xs text-stone-500">{{ $complaint->consumer?->name }} ({{ $complaint->consumer?->email }}) · {{ $complaint->created_at?->toDateString() }}</span></div>

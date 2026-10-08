@@ -6,6 +6,7 @@ use App\Models\Consumer\Feedback;
 use App\Models\Consumer\OilProduct;
 use App\Models\Production\Farm;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 // Builds the public trace page by reading every upstream module through
 // relations only — Module 5 never duplicates farm, lot, certificate or
@@ -30,12 +31,14 @@ class ConsumerTrace
 
         return [
             'product' => $product,
+            'image_url' => $this->imageUrl($product),
             'origin' => $this->origin($farm),
             'harvest' => $harvest,
             'mill' => $this->mill($oilLot),
             'oil_lot' => $oilLot,
             'verification' => $this->verification($oilLot),
             'shipments' => $this->shipments($product),
+            'co2_total_kg' => $this->co2Total($product),
             'feedback' => $this->feedback($product),
         ];
     }
@@ -57,7 +60,18 @@ class ConsumerTrace
             return null;
         }
 
-        return $query->first();
+        $product = $query->first();
+
+        // A product hidden or archived by the distribution module must not
+        // resolve to a public trace page.
+        if ($product && in_array('public_status', $columns, true) && (string) $product->public_status === 'hidden') {
+            return null;
+        }
+        if ($product && in_array('archived_at', $columns, true) && $product->archived_at !== null) {
+            return null;
+        }
+
+        return $product;
     }
 
     private function tableRow(string $table, string $column, mixed $value): ?object
@@ -147,6 +161,29 @@ class ConsumerTrace
         }
 
         return \DB::table('shipments')->where('oil_product_id', $product->id)->orderBy('departure_date')->get()->all();
+    }
+
+    // Read-only environmental summary: total transport CO2 estimated by the
+    // distribution module (cancelled legs excluded). Displayed, never edited.
+    private function co2Total(OilProduct $product): ?float
+    {
+        if (! Schema::hasTable('shipments') || ! Schema::hasColumn('shipments', 'co2_estimate')) {
+            return null;
+        }
+
+        $total = \DB::table('shipments')->where('oil_product_id', $product->id)
+            ->where('status', '!=', 'cancelled')->whereNotNull('co2_estimate')->sum('co2_estimate');
+
+        return $total > 0 ? (float) $total : null;
+    }
+
+    private function imageUrl(OilProduct $product): ?string
+    {
+        if (empty($product->image)) {
+            return null;
+        }
+
+        return Storage::disk('public')->exists($product->image) ? Storage::disk('public')->url($product->image) : null;
     }
 
     private function feedback(OilProduct $product): array

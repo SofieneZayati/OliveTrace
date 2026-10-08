@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Contracts\ProductRatingSummary;
 use App\Enums\Role;
+use App\Enums\ShipmentStatus;
 use App\Models\Consumer\Complaint;
 use App\Models\Consumer\Feedback;
 use App\Models\Distribution\OilProduct;
+use App\Models\Distribution\Shipment;
 use App\Models\User;
 use App\Services\Consumer\FeedbackRatingSummary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -157,6 +159,41 @@ class ConsumerModuleTest extends TestCase
         $this->assertSame('resolved', $complaint->status->value);
         $this->assertSame('Replacement bottle shipped.', $complaint->admin_response);
         $this->assertNotNull($complaint->resolved_at);
+    }
+
+    public function test_hidden_and_archived_products_have_no_public_trace(): void
+    {
+        $hidden = OilProduct::factory()->hidden()->create();
+        $archived = OilProduct::factory()->archived()->create();
+
+        $this->get('/trace/'.$hidden->slug)->assertNotFound();
+        $this->get('/trace/'.$archived->slug)->assertNotFound();
+    }
+
+    public function test_trace_page_shows_transport_footprint_and_product_name_on_complaints(): void
+    {
+        $product = OilProduct::factory()->create(['name' => 'Chemlali Gold 750ml']);
+        Shipment::factory()->delivered()->create(['oil_product_id' => $product->id, 'co2_estimate' => '12.50']);
+        Shipment::factory()->create(['oil_product_id' => $product->id, 'status' => ShipmentStatus::Cancelled, 'co2_estimate' => '99.99']);
+
+        $this->get('/trace/'.$product->slug)->assertOk()
+            ->assertSee('12.50')
+            ->assertSee('Estimated transport footprint')
+            ->assertDontSee('99.99');
+
+        $consumer = $this->consumer();
+        $this->actingAs($consumer)->post(route('complaints.store'), [
+            'oil_product_id' => $product->id, 'subject' => 'Leaking bottle', 'description' => 'Oil leaked in the box.',
+        ])->assertRedirect();
+
+        $this->actingAs($consumer)->get(route('complaints.index'))->assertOk()->assertSee('Chemlali Gold 750ml');
+    }
+
+    public function test_my_complaints_alias_redirects_to_complaints(): void
+    {
+        $this->get('/my-complaints')->assertRedirect('/complaints');
+        $this->followingRedirects()->get('/my-complaints')->assertSee('Log in');
+        $this->actingAs($this->consumer())->get('/my-complaints')->assertRedirect(route('complaints.index'));
     }
 
     public function test_product_rating_summary_feeds_hana_catalog_contract(): void

@@ -15,7 +15,7 @@ class ComplaintController extends Controller
 {
     public function index(Request $request)
     {
-        $complaints = Complaint::where('consumer_user_id', $request->user()->id)->latest()->paginate(10);
+        $complaints = Complaint::where('consumer_user_id', $request->user()->id)->with('product')->latest()->paginate(10);
 
         return view('consumer.complaints.index', ['complaints' => $complaints]);
     }
@@ -45,6 +45,7 @@ class ComplaintController extends Controller
     public function show(Request $request, Complaint $complaint)
     {
         Gate::authorize('view', $complaint);
+        $complaint->load('product');
 
         return view('consumer.complaints.show', ['complaint' => $complaint]);
     }
