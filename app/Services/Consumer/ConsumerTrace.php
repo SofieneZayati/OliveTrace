@@ -129,13 +129,13 @@ class ConsumerTrace
             return null;
         }
 
-        $request = \DB::table('certificate_requests')->where('oil_lot_id', $oilLot->id)->latest('id')->first();
+        $request = DB::table('certificate_requests')->where('oil_lot_id', $oilLot->id)->latest('id')->first();
         if (! $request) {
             return null;
         }
 
         $certificate = Schema::hasTable('certificates')
-            ? \DB::table('certificates')->where('certificate_request_id', $request->id)->latest('id')->first()
+            ? DB::table('certificates')->where('certificate_request_id', $request->id)->latest('id')->first()
             : null;
 
         $expired = $certificate && isset($certificate->expiry_date) && $certificate->expiry_date < now()->toDateString();
@@ -167,7 +167,7 @@ class ConsumerTrace
             return [];
         }
 
-        return \DB::table('shipments')->where('oil_product_id', $product->id)->orderBy('departure_date')->get()->all();
+        return DB::table('shipments')->where('oil_product_id', $product->id)->orderBy('departure_date')->get()->all();
     }
 
     // Read-only environmental summary: total transport CO2 estimated by the
@@ -178,7 +178,7 @@ class ConsumerTrace
             return null;
         }
 
-        $total = \DB::table('shipments')->where('oil_product_id', $product->id)
+        $total = DB::table('shipments')->where('oil_product_id', $product->id)
             ->where('status', '!=', 'cancelled')->whereNotNull('co2_estimate')->sum('co2_estimate');
 
         return $total > 0 ? (float) $total : null;
