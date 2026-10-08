@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Distribution;
 
+use App\Contracts\DistributionImpactAssistant;
 use App\Enums\ShipmentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Distribution\ListShipmentFiltersRequest;
@@ -74,6 +75,14 @@ class ShipmentController extends Controller
         $shipment->load(['oilProduct', 'distributorProfile.user']);
 
         return view('distribution.shipments.show', compact('shipment'));
+    }
+
+    public function analyzeImpact(Shipment $shipment, DistributionImpactAssistant $assistant): RedirectResponse
+    {
+        $this->authorize('view', $shipment);
+        $advice = $assistant->analyze($shipment);
+
+        return back()->with('impactAdvice', $advice->toArray());
     }
 
     public function edit(Shipment $shipment, ShipmentStatusTransition $transitions): View

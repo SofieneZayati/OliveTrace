@@ -100,6 +100,36 @@ class OilProduct extends Model
             ->sum('co2_estimate');
     }
 
+    public function transportCo2KgIfAvailable(): ?float
+    {
+        if ($this->relationLoaded('shipments')) {
+            return $this->loadedTransportCo2Kg();
+        }
+
+        $shipments = $this->shipments()
+            ->where('status', '!=', ShipmentStatus::Cancelled->value)
+            ->whereNotNull('co2_estimate');
+
+        if (! $shipments->exists()) {
+            return null;
+        }
+
+        return (float) $shipments->sum('co2_estimate');
+    }
+
+    private function loadedTransportCo2Kg(): ?float
+    {
+        $eligibleShipments = $this->shipments
+            ->filter(fn (Shipment $shipment): bool => $shipment->status !== ShipmentStatus::Cancelled
+                && $shipment->co2_estimate !== null);
+
+        if ($eligibleShipments->isEmpty()) {
+            return null;
+        }
+
+        return (float) $eligibleShipments->sum(fn (Shipment $shipment): float => (float) $shipment->co2_estimate);
+    }
+
     public function archive(): bool
     {
         $this->archived_at ??= Carbon::now();

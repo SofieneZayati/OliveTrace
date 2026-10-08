@@ -33,6 +33,7 @@ Route::prefix('distributor')->name('distributor.')->middleware(['auth', 'active'
     Route::get('/shipments/{shipment}/edit', [ShipmentController::class, 'edit'])->whereNumber('shipment')->name('shipments.edit');
     Route::patch('/shipments/{shipment}', [ShipmentController::class, 'update'])->whereNumber('shipment')->name('shipments.update');
     Route::patch('/shipments/{shipment}/status', [ShipmentController::class, 'updateStatus'])->whereNumber('shipment')->name('shipments.status');
+    Route::post('/shipments/{shipment}/impact', [ShipmentController::class, 'analyzeImpact'])->whereNumber('shipment')->middleware('throttle:10,1')->name('shipments.impact');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admin', 'can:access-admin'])->group(function (): void {
@@ -45,4 +46,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admi
 
     Route::get('/shipments', [ShipmentController::class, 'index'])->name('shipments.index');
     Route::get('/shipments/{shipment}', [ShipmentController::class, 'show'])->whereNumber('shipment')->name('shipments.show');
+    Route::post('/shipments/{shipment}/impact', [ShipmentController::class, 'analyzeImpact'])->whereNumber('shipment')->middleware('throttle:10,1')->name('shipments.impact');
 });

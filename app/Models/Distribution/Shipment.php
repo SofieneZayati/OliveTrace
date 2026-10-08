@@ -4,6 +4,7 @@ namespace App\Models\Distribution;
 
 use App\Enums\ShipmentStatus;
 use App\Enums\TransportType;
+use App\Services\Distribution\Co2Estimator;
 use Database\Factories\Distribution\ShipmentFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,7 +24,7 @@ class Shipment extends Model
 
     protected $fillable = [
         'oil_product_id', 'distributor_profile_id', 'departure_location', 'destination',
-        'departure_date', 'arrival_date', 'distance_km', 'transport_type', 'status', 'co2_estimate',
+        'departure_date', 'arrival_date', 'distance_km', 'quantity_bottles', 'transport_type', 'status',
     ];
 
     protected function casts(): array
@@ -32,10 +33,35 @@ class Shipment extends Model
             'departure_date' => 'date',
             'arrival_date' => 'date',
             'distance_km' => 'decimal:2',
+            'quantity_bottles' => 'integer',
             'transport_type' => TransportType::class,
             'status' => ShipmentStatus::class,
             'co2_estimate' => 'decimal:2',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Shipment $shipment): void {
+            $product = $shipment->relationLoaded('oilProduct')
+                ? $shipment->getRelation('oilProduct')
+                : $shipment->oilProduct()->first();
+
+            if ($product === null) {
+                throw new \LogicException('A shipment must reference a product before its CO2 estimate can be calculated.');
+            }
+
+            $transportType = $shipment->transport_type instanceof TransportType
+                ? $shipment->transport_type->value
+                : (string) $shipment->transport_type;
+
+            $shipment->co2_estimate = app(Co2Estimator::class)->estimate(
+                (float) $shipment->distance_km,
+                $transportType,
+                (int) $shipment->quantity_bottles,
+                (int) $product->bottle_volume_ml,
+            );
+        });
     }
 
     public function oilProduct(): BelongsTo

@@ -108,6 +108,47 @@ class PublicCatalogTest extends TestCase
             ->assertDontSee($pending->name);
     }
 
+    public function test_transport_co2_badge_is_shown_only_when_a_non_cancelled_estimate_exists(): void
+    {
+        $withShipment = OilProduct::factory()->create(['name' => 'CO2 delivered olive oil', 'bottle_volume_ml' => 750]);
+        $withoutShipment = OilProduct::factory()->create(['name' => 'No shipment olive oil']);
+        $shipment = Shipment::factory()->for($withShipment)->delivered()->create([
+            'distance_km' => 270,
+            'quantity_bottles' => 1000,
+        ]);
+        $cancelledOnly = OilProduct::factory()->create(['name' => 'Cancelled shipment olive oil']);
+        Shipment::factory()->for($cancelledOnly)->create(['status' => 'cancelled']);
+
+        $response = $this->get(route('catalog.index'))->assertOk()
+            ->assertSee('title="Estimated from distance, transport type and quantity"', false)
+            ->assertSee('Transport: '.number_format((float) $shipment->co2_estimate, 1, '.', ',').' kg CO₂');
+
+        $html = $response->getContent();
+        $this->assertSame(1, substr_count($html, 'Estimated from distance, transport type and quantity'));
+        $this->assertStringNotContainsString('Transport: 0.0 kg CO₂', $html);
+        $this->assertStringContainsString($withoutShipment->name, $html);
+        $this->assertStringContainsString($cancelledOnly->name, $html);
+    }
+
+    public function test_transport_co2_excludes_cancelled_shipments_from_card_total(): void
+    {
+        $product = OilProduct::factory()->create(['name' => 'Mixed shipment CO2 olive oil']);
+        $delivered = Shipment::factory()->for($product)->delivered()->create([
+            'distance_km' => 270,
+            'quantity_bottles' => 1000,
+        ]);
+        $cancelled = Shipment::factory()->for($product)->create([
+            'status' => 'cancelled',
+            'distance_km' => 2700,
+            'quantity_bottles' => 1000,
+        ]);
+
+        $this->get(route('catalog.index'))
+            ->assertOk()
+            ->assertSee('Transport: '.number_format((float) $delivered->co2_estimate, 1, '.', ',').' kg CO₂')
+            ->assertDontSee('Transport: '.number_format((float) ($delivered->co2_estimate + $cancelled->co2_estimate), 1, '.', ',').' kg CO₂');
+    }
+
     public function test_sort_options_order_products_by_name_or_creation_time(): void
     {
         $older = OilProduct::factory()->create(['name' => 'Zulu olive oil']);
@@ -127,6 +168,18 @@ class PublicCatalogTest extends TestCase
         $this->get(route('catalog.index', ['sort' => 'newest']))
             ->assertOk()
             ->assertSeeInOrder(['Zulu olive oil', 'Alpha olive oil']);
+    }
+
+    public function test_lowest_transport_co2_sort_orders_by_non_cancelled_shipment_estimate(): void
+    {
+        $higher = OilProduct::factory()->create(['name' => 'Higher emissions olive oil']);
+        $lower = OilProduct::factory()->create(['name' => 'Lower emissions olive oil']);
+        Shipment::factory()->for($higher)->create(['distance_km' => 2700, 'quantity_bottles' => 1000]);
+        Shipment::factory()->for($lower)->create(['distance_km' => 270, 'quantity_bottles' => 1000]);
+
+        $this->get(route('catalog.index', ['sort' => 'lowest_co2']))
+            ->assertOk()
+            ->assertSeeInOrder(['Lower emissions olive oil', 'Higher emissions olive oil']);
     }
 
     public function test_invalid_filters_fall_back_to_defaults_without_an_error_page(): void

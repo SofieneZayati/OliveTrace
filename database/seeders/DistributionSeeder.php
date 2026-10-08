@@ -122,9 +122,9 @@ class DistributionSeeder extends Seeder
                 'departure_date' => $now->copy()->subDays(4)->toDateString(),
                 'arrival_date' => $now->copy()->subDays(2)->toDateString(),
                 'distance_km' => '270.00',
+                'quantity_bottles' => 240,
                 'transport_type' => TransportType::Truck,
                 'status' => ShipmentStatus::Delivered,
-                'co2_estimate' => '48.60',
             ]);
 
             // 2. Product B → Monastir (delivered yesterday)
@@ -134,9 +134,9 @@ class DistributionSeeder extends Seeder
                 'departure_date' => $now->copy()->subDays(3)->toDateString(),
                 'arrival_date' => $now->copy()->subDay()->toDateString(),
                 'distance_km' => '190.00',
+                'quantity_bottles' => 80,
                 'transport_type' => TransportType::Van,
                 'status' => ShipmentStatus::Delivered,
-                'co2_estimate' => '19.00',
             ]);
 
             // 3. Product C → Sousse (in transit right now)
@@ -146,9 +146,9 @@ class DistributionSeeder extends Seeder
                 'departure_date' => $now->toDateString(),
                 'arrival_date' => null,
                 'distance_km' => '130.00',
+                'quantity_bottles' => 120,
                 'transport_type' => TransportType::Van,
                 'status' => ShipmentStatus::InTransit,
-                'co2_estimate' => '13.00',
             ]);
 
             // 4. Product D → Nabeul (planned for tomorrow)
@@ -158,9 +158,9 @@ class DistributionSeeder extends Seeder
                 'departure_date' => $now->copy()->addDay()->toDateString(),
                 'arrival_date' => null,
                 'distance_km' => '280.00',
+                'quantity_bottles' => 100,
                 'transport_type' => TransportType::Truck,
                 'status' => ShipmentStatus::Planned,
-                'co2_estimate' => null,
             ]);
 
             // 5. Product A second shipment → Djerba (planned next week, for export demo)
@@ -170,9 +170,9 @@ class DistributionSeeder extends Seeder
                 'departure_date' => $now->copy()->addDays(5)->toDateString(),
                 'arrival_date' => null,
                 'distance_km' => '150.00',
+                'quantity_bottles' => 50,
                 'transport_type' => TransportType::Truck,
                 'status' => ShipmentStatus::Planned,
-                'co2_estimate' => null,
             ]);
         });
     }
@@ -217,9 +217,9 @@ class DistributionSeeder extends Seeder
                 'departure_date' => $attrs['departure_date'],
                 'arrival_date' => $attrs['arrival_date'],
                 'distance_km' => $attrs['distance_km'],
+                'quantity_bottles' => $attrs['quantity_bottles'],
                 'transport_type' => $attrs['transport_type'],
                 'status' => $attrs['status'],
-                'co2_estimate' => $attrs['co2_estimate'],
             ]
         );
     }

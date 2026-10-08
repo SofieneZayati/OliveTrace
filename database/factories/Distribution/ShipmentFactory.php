@@ -24,6 +24,7 @@ class ShipmentFactory extends Factory
             'departure_date' => now()->toDateString(),
             'arrival_date' => null,
             'distance_km' => '270.00',
+            'quantity_bottles' => 1,
             'transport_type' => TransportType::Truck,
             'status' => ShipmentStatus::Planned,
             'co2_estimate' => null,

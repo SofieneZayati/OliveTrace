@@ -35,6 +35,7 @@
                     <select id="sort" name="sort" class="mt-2 w-full">
                         <option value="newest" @selected(($filters['sort'] ?? 'newest') === 'newest')>Newest</option>
                         <option value="name" @selected(($filters['sort'] ?? '') === 'name')>Name</option>
+                        <option value="lowest_co2" @selected(($filters['sort'] ?? '') === 'lowest_co2')>Lowest transport CO₂ first</option>
                     </select>
                 </div>
                 <div class="flex items-center gap-3">
@@ -103,6 +104,13 @@
                             <span class="role-badge" @if($verified) aria-label="Certification verified" @else aria-label="{{ $certificationLabel }}" @endif>{{ $certificationLabel }}</span>
                             @if($card['deliveredDestination'])
                                 <span class="role-badge">Delivered to {{ $card['deliveredDestination'] }}</span>
+                            @endif
+                            @if($card['transportCo2Label'] !== null)
+                                <span class="role-badge" title="Estimated from distance, transport type and quantity">
+                                    <x-icon name="leaf" class="mr-1 inline h-4 w-4" />
+                                    <span class="sr-only">Estimated transport emissions:</span>
+                                    Transport: {{ $card['transportCo2Label'] }} kg CO₂
+                                </span>
                             @endif
                         </div>
                         @if($card['rating'])
