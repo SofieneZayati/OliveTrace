@@ -3,7 +3,7 @@
 OliveTrace is a university web project for tracing Tunisian olive oil from farm
 to consumer. The team is Sofiene, Mariem, Oussema, Hana and Aymen.
 
-**This repository contains the shared base and Sofiene's Producer & Farm Management module.**
+**This repository contains the shared foundation and all five team modules.**
 Authentication, roles, common user management, layouts and infrastructure are
 shared work; they do not count as an individual student's module.
 
@@ -22,11 +22,13 @@ shared work; they do not count as an individual student's module.
   validated forms, private logo uploads, admin correction/moderation, demo factories
   and seeders, a public origin card and an advisory sustainability AI integration.
 
-Harvest/Mill/Oil Lot, Laboratory/Certification, Product/Distribution and Consumer
-Traceability/Feedback remain the other members' future modules. See
+The integrated modules are Sofiene's Producer/Farm, Mariem's Harvest/Mill/Oil Lot,
+Oussema's Laboratory/Certification, Hana's Product/Distribution, and Aymen's
+Consumer Traceability/Feedback/Complaints. See
 [Sofiene's implementation and integration contracts](docs/sofiene-production.md).
-Real AI suggestions require a configured OpenAI key or an installed local Ollama
-model; normal CRUD works without either. Credentials stay in your local `.env`.
+The farm sustainability assistant supports Gemini, OpenAI and local Ollama.
+Normal CRUD works without an AI provider. Credentials stay in your local `.env`.
+Gemini setup and demonstration steps are in [the farm AI guide](docs/farm-ai.md).
 
 ## Software required
 
@@ -273,7 +275,7 @@ check on pushes/PRs for main and develop.
 ## Git workflow
 
 `main` is the stable branch; `develop` is integration. Sofiene's current branch is
-`feature/sofiene-production`; the other module branches remain planned:
+`feature/sofiene-production`. Team feature branch names are:
 
 ```text
 feature/sofiene-production
@@ -309,6 +311,6 @@ local databases, private keys and temporary/local setup files are ignored.
 private configuration or generated password-reset links. Review `git status` and
 `git diff --cached` before every commit.
 
-The functional reference is `OliveTrace_Final_Team_Specification.pdf`. This base
-implements shared Phase 0 infrastructure plus Sofiene's Phase 1 origin module and
-AI adapter. The remaining modules and live AI configuration are the next stages.
+The functional reference is `OliveTrace_Final_Team_Specification.pdf`. The five
+modules are integrated on top of the shared infrastructure. Each teammate keeps
+their own local database and private AI configuration; Git does not copy these.
