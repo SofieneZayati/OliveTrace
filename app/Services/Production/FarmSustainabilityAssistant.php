@@ -25,7 +25,8 @@ class FarmSustainabilityAssistant
     {
         $provider = config('farm-assistant.provider');
         $model = config('farm-assistant.model');
-        if (! in_array($provider, ['openai', 'ollama'], true) || ! is_string($model) || $model === ''
+        if (! in_array($provider, ['gemini', 'openai', 'ollama'], true) || ! is_string($model) || ! preg_match('/^[a-zA-Z0-9._:-]+$/', $model)
+            || ($provider === 'gemini' && ! config('farm-assistant.gemini_key'))
             || ($provider === 'openai' && ! config('farm-assistant.openai_key'))) {
             return ['available' => false, 'message' => 'AI suggestions are not configured yet. Farm management remains available.'];
         }
@@ -38,7 +39,32 @@ class FarmSustainabilityAssistant
         ];
         try {
             $input = json_encode($facts, JSON_THROW_ON_ERROR);
-            if ($provider === 'openai') {
+            if ($provider === 'gemini') {
+                $generation = ['responseMimeType' => 'application/json', 'responseJsonSchema' => $this->schema(), 'maxOutputTokens' => 4096, 'temperature' => 0.2];
+                if (str_starts_with($model, 'gemini-2.5-flash')) {
+                    $generation['thinkingConfig'] = ['thinkingBudget' => 0];
+                }
+                $response = Http::withHeaders(['x-goog-api-key' => config('farm-assistant.gemini_key')])->acceptJson()
+                    ->connectTimeout(5)->timeout(config('farm-assistant.timeout'))
+                    ->post('https://generativelanguage.googleapis.com/v1beta/models/'.rawurlencode($model).':generateContent', [
+                        'systemInstruction' => ['parts' => [['text' => self::INSTRUCTIONS]]],
+                        'contents' => [['role' => 'user', 'parts' => [['text' => $input]]]],
+                        'generationConfig' => $generation,
+                    ]);
+                if ($response->status() === 429) {
+                    return ['available' => false, 'message' => 'The AI provider usage limit has been reached. Please try again later. Your farm data is unchanged.'];
+                }
+                $response->throw();
+                if ($response->json('candidates.0.finishReason') !== 'STOP' || $response->json('promptFeedback.blockReason')) {
+                    throw new RuntimeException('Incomplete or blocked AI response.');
+                }
+                $text = '';
+                foreach ($response->json('candidates.0.content.parts', []) as $part) {
+                    if (! ($part['thought'] ?? false)) {
+                        $text .= $part['text'] ?? '';
+                    }
+                }
+            } elseif ($provider === 'openai') {
                 $response = Http::withToken(config('farm-assistant.openai_key'))->acceptJson()
                     ->connectTimeout(5)->timeout(config('farm-assistant.timeout'))
                     ->post('https://api.openai.com/v1/responses', [

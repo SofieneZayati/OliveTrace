@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Enums\Role;
+use App\Models\Consumer\Complaint;
+use App\Models\Consumer\Feedback;
 use App\Models\Production\ProducerProfile;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -49,9 +52,39 @@ class User extends Authenticatable
         return $this->hasRole(Role::Admin);
     }
 
+    public function isActiveAdmin(): bool
+    {
+        return $this->is_active && $this->isAdmin();
+    }
+
+    public function isActiveProducer(): bool
+    {
+        return $this->is_active && $this->hasRole(Role::Producer);
+    }
+
+    public function isActiveMiller(): bool
+    {
+        return $this->is_active && $this->hasRole(Role::Miller);
+    }
+
     public function producerProfile(): HasOne
     {
         return $this->hasOne(ProducerProfile::class);
+    }
+
+    public function mill(): HasOne
+    {
+        return $this->hasOne(Mill::class);
+    }
+
+    public function feedback(): HasMany
+    {
+        return $this->hasMany(Feedback::class, 'consumer_user_id');
+    }
+
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class, 'consumer_user_id');
     }
 
     /**

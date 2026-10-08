@@ -9,7 +9,13 @@
         @case('lock')<rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2" />@break
         @case('check')<path d="m5 12 4 4L19 6" />@break
         @case('sun')<circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />@break
+        @case('drop')<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z" />@break
+        @case('harvest')<path d="M12 21V5" /><path d="M12 11c-3.3 0-6-2.7-6-6 3.3 0 6 2.7 6 6Z" /><path d="M12 16c3.3 0 6-2.7 6-6-3.3 0-6 2.7-6 6Z" /><path d="M12 21c-3.3 0-6-2.7-6-6 3.3 0 6 2.7 6 6Z" />@break
         @case('menu')<path d="M4 6h16M4 12h16M4 18h16" />@break
+        @case('chat')<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8Z" />@break
+        @case('flag')<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22v-7" />@break
+        @case('star')<path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01Z" />@break
+        @case('shield')<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />@break
         @default<path d="M20 3C10 2 3 6 3 13a7 7 0 0 0 7 7c7 0 10-7 10-17Z" /><path d="M4 21 16 9m-8 8v-5m0 5h5" />
     @endswitch
 </svg>

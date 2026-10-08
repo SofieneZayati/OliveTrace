@@ -4,16 +4,14 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Models\Production\Farm;
+use App\Models\Production\Harvest;
 use App\Models\Production\ProducerProfile;
 use App\Models\User;
 use App\Repositories\Production\Farms;
 use Database\Seeders\DevelopmentUserSeeder;
 use Database\Seeders\ProductionSeeder;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -174,21 +172,12 @@ class ProductionModuleTest extends TestCase
         $user = $this->producer();
         $profile = $this->profile($user, ['is_public' => true]);
         $farm = $this->farm($profile, ['is_public' => true]);
-        // A minimal downstream fixture verifies the agreed FK without implementing Mariem's module.
-        Schema::create('harvests', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('farm_id')->constrained()->restrictOnDelete();
-        });
-        DB::table('harvests')->insert(['farm_id' => $farm->id]);
-        try {
-            $this->actingAs($user)->delete(route('producer.farms.destroy', $farm->id))->assertSessionHasNoErrors();
-            $this->assertDatabaseHas('farms', ['id' => $farm->id, 'status' => 'archived']);
-            $this->assertDatabaseHas('harvests', ['farm_id' => $farm->id]);
-            $this->get(route('origin.farms.show', $farm->id))->assertNotFound();
-            $this->assertCount(0, app(Farms::class)->selectableForUser($user->id));
-        } finally {
-            Schema::drop('harvests');
-        }
+        Harvest::factory()->for($farm)->create();
+        $this->actingAs($user)->delete(route('producer.farms.destroy', $farm->id))->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('farms', ['id' => $farm->id, 'status' => 'archived']);
+        $this->assertDatabaseHas('harvests', ['farm_id' => $farm->id]);
+        $this->get(route('origin.farms.show', $farm->id))->assertNotFound();
+        $this->assertCount(0, app(Farms::class)->selectableForUser($user->id));
     }
 
     public function test_private_image_upload_can_be_replaced_removed_and_is_not_publicly_readable(): void
