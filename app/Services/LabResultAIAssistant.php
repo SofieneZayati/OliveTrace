@@ -8,7 +8,7 @@ class LabResultAIAssistant
 {
     public static function generateExplanation($acidity, $peroxideValue, $notes)
     {
-        $apiKey = config('services.gemini.key');
+        $apiKey = config('services.lab_ai.key');
         if (! $apiKey) {
             return 'AI Assistant is unavailable. Configure the Gemini API key to request an explanation.';
         }
@@ -25,16 +25,28 @@ Keep it concise and professional.';
 
         try {
             $response = Http::withHeaders(['x-goog-api-key' => $apiKey])->acceptJson()->connectTimeout(5)->timeout(30)
-                ->post('https://generativelanguage.googleapis.com/v1beta/models/'.rawurlencode(config('services.gemini.lab_model')).':generateContent', [
-                    'contents' => [
-                        ['parts' => [['text' => $prompt]]],
-                    ],
+                ->post('https://generativelanguage.googleapis.com/v1beta/models/'.rawurlencode(config('services.lab_ai.model')).':generateContent', [
+                    'contents' => [['parts' => [['text' => $prompt]]]],
+                    'generationConfig' => ['maxOutputTokens' => 2048, 'temperature' => 0.2],
                 ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
+            if ($response->status() === 429) {
+                return 'AI Assistant usage limit reached. Please try again later.';
+            }
 
-                return $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Unable to parse AI response.';
+            if ($response->successful()) {
+                if ($response->json('candidates.0.finishReason') !== 'STOP' || $response->json('promptFeedback.blockReason')) {
+                    return 'Unable to parse AI response.';
+                }
+
+                $text = '';
+                foreach ($response->json('candidates.0.content.parts', []) as $part) {
+                    if (! ($part['thought'] ?? false) && is_string($part['text'] ?? null)) {
+                        $text .= $part['text'];
+                    }
+                }
+
+                return trim($text) !== '' ? $text : 'Unable to parse AI response.';
             }
 
             return 'AI Assistant error: Unable to generate explanation.';

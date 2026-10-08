@@ -9,6 +9,7 @@ use App\Models\Certification\LabAnalysis;
 use App\Services\LabResultAIAssistant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class LabAnalysisController extends Controller
 {
@@ -97,6 +98,13 @@ class LabAnalysisController extends Controller
             $validated['notes'] ?? ''
         );
 
-        return response()->json(['explanation' => $explanation]);
+        return response()->json([
+            'explanation' => $explanation,
+            'explanation_html' => Str::markdown($explanation, [
+                'html_input' => 'strip',
+                'allow_unsafe_links' => false,
+                'max_nesting_level' => 20,
+            ]),
+        ]);
     }
 }

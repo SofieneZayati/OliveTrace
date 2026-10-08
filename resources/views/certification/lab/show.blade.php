@@ -58,12 +58,16 @@
                     </div>
 
                     <div class="mb-6 bg-olive-50 p-5 rounded-xl border border-olive-100">
-                        <div class="flex items-center justify-between mb-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
                             <h4 class="font-bold text-olive-800 flex items-center gap-2"><x-icon name="sparkles" class="h-5 w-5 text-olive-600" /> AI Assistant</h4>
                             <button type="button" id="btnAiExplain" class="btn-secondary text-xs py-1.5 px-3">Generate Explanation</button>
                         </div>
                         <p class="text-sm text-stone-600 mb-2">Use the AI Assistant to generate a plain-language explanation of these results automatically.</p>
-                        <div id="aiResponse" class="text-stone-700 text-sm hidden mt-3" role="status" aria-live="polite"></div>
+                        <div id="aiResponse" class="lab-ai-report hidden mt-4 rounded-lg border border-olive-100 bg-white p-5" role="status" aria-live="polite"></div>
+                        <div id="aiActions" class="hidden mt-3 flex flex-wrap items-center gap-3">
+                            <button type="button" id="btnAddAiNotes" class="btn-secondary text-xs py-1.5 px-3">Add to lab notes</button>
+                            <span class="text-xs text-stone-500">Review the explanation before adding it to your analysis.</span>
+                        </div>
                     </div>
 
                     <div class="mb-6">
@@ -85,6 +89,16 @@
             </x-card>
 
             <script>
+                document.getElementById('btnAddAiNotes').addEventListener('click', function() {
+                    const notesField = document.getElementById('notes');
+                    const explanation = document.getElementById('aiResponse').innerText.trim();
+                    notesField.value += (notesField.value ? '\n\n' : '') + 'AI Note:\n' + explanation;
+                    notesField.style.height = 'auto';
+                    notesField.style.height = Math.min(notesField.scrollHeight, 400) + 'px';
+                    this.disabled = true;
+                    this.textContent = 'Added to lab notes';
+                });
+
                 document.getElementById('btnAiExplain').addEventListener('click', async function() {
                     const acidity = document.getElementById('acidity').value;
                     const peroxide = document.getElementById('peroxide_value').value;
@@ -97,6 +111,9 @@
 
                     const button = this;
                     const aiDiv = document.getElementById('aiResponse');
+                    const aiActions = document.getElementById('aiActions');
+                    const addButton = document.getElementById('btnAddAiNotes');
+                    aiActions.classList.add('hidden');
                     aiDiv.classList.remove('hidden');
                     aiDiv.classList.remove('text-red-500');
                     aiDiv.textContent = 'Generating AI explanation...';
@@ -122,8 +139,17 @@
                             throw new Error(data.message || 'The AI Assistant could not generate an explanation.');
                         }
 
-                        aiDiv.textContent = data.explanation;
-                        document.getElementById('notes').value += (document.getElementById('notes').value ? '\n\n' : '') + 'AI Note: ' + data.explanation;
+                        if (typeof data.explanation_html === 'string') {
+                            // The controller strips raw HTML and unsafe links from Markdown.
+                            aiDiv.innerHTML = data.explanation_html;
+                        } else {
+                            aiDiv.textContent = data.explanation;
+                        }
+                        if (!/^(AI Assistant|Unable to parse)/.test(data.explanation)) {
+                            aiActions.classList.remove('hidden');
+                            addButton.disabled = false;
+                            addButton.textContent = 'Add to lab notes';
+                        }
                     } catch (error) {
                         console.error('AI explanation request failed:', error);
                         aiDiv.textContent = error.message || 'Failed to connect to AI Assistant.';

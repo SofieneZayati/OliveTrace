@@ -20,7 +20,11 @@ return [
 
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
-        'lab_model' => env('LAB_AI_MODEL', 'gemini-3.1-flash-lite'),
+    ],
+
+    'lab_ai' => [
+        'key' => env('GEMINI_API_KEY'),
+        'model' => env('LAB_AI_MODEL', 'gemini-3.1-flash-lite'),
     ],
 
     'ses' => [

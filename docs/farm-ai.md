@@ -48,6 +48,21 @@ For Ollama, set provider `ollama`, the installed model name and
 `OLLAMA_URL=http://127.0.0.1:11434`. These alternatives use the same validated
 response and privacy rules. Farm AI configuration is separate from the lab AI.
 
+## Laboratory configuration
+
+The lab explanation assistant also uses Gemini and shares the private `GEMINI_API_KEY`:
+
+```dotenv
+LAB_AI_MODEL=gemini-3.1-flash-lite
+GEMINI_API_KEY=your_private_gemini_key
+```
+
+Keep exactly one `FARM_AI_PROVIDER` and one `FARM_AI_MODEL` line in `.env`.
+Leave them set to `gemini` and your Gemini model when configuring the lab.
+`LAB_AI_MODEL` selects only the lab model; `FARM_AI_MODEL` selects only the farm model.
+Run `php artisan config:clear` after changing settings. OpenAI credentials are
+only needed if you explicitly select the farm's optional OpenAI provider.
+
 ## Check the installation
 
 ```powershell

@@ -24,6 +24,18 @@
     :focus-visible { outline: 3px solid #738352; outline-offset: 4px; }
 }
 @layer components {
+    .lab-ai-report { color: #444c40; font-size: 0.875rem; line-height: 1.75; overflow-wrap: anywhere; }
+    .lab-ai-report > :first-child { margin-top: 0; }
+    .lab-ai-report > :last-child { margin-bottom: 0; }
+    .lab-ai-report h1, .lab-ai-report h2, .lab-ai-report h3, .lab-ai-report h4 { color: #283e29; font-size: 1rem; font-weight: 700; line-height: 1.4; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+    .lab-ai-report p { margin-block: 0.75rem; }
+    .lab-ai-report ul, .lab-ai-report ol { padding-left: 1.5rem; margin-block: 0.75rem; }
+    .lab-ai-report ul { list-style-type: disc; }
+    .lab-ai-report ol { list-style-type: decimal; }
+    .lab-ai-report li { margin-block: 0.4rem; }
+    .lab-ai-report strong { color: #283e29; font-weight: 650; }
+    .lab-ai-report a { text-decoration: underline; }
+    .lab-ai-report hr { border-color: #dde5d3; margin-block: 1.25rem; }
     .page-width { width: 100%; max-width: 1400px; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 4rem); }
     .eyebrow { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.19em; text-transform: uppercase; }
     .display-title { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.045em; line-height: 1.08; }
