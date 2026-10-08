@@ -2,13 +2,17 @@
 <x-validation-errors class="mb-4" />
 <form method="POST" action="{{ $feedback ? route('feedback.update', $feedback) : route('feedback.store', $productId) }}" class="space-y-5">
     @csrf @if($feedback) @method('PATCH') @endif
-    <div>
-        <x-input-label for="rating" value="Your rating (1–5)" />
-        <select id="rating" name="rating" required class="mt-1 block w-40 rounded-lg border-stone-300">
-            @foreach([5, 4, 3, 2, 1] as $value)
-                <option value="{{ $value }}" @selected((int) old('rating', $feedback?->rating ?? 0) === $value)>{{ $value }} / 5</option>
-            @endforeach
-        </select>
+    <div x-data="{ rating: {{ (int) old('rating', $feedback?->rating ?? 0) }} }">
+        <x-input-label value="Your rating *" />
+        <input type="hidden" name="rating" :value="rating">
+        <div class="mt-2 flex items-center gap-1" role="radiogroup" aria-label="Your rating from 1 to 5">
+            <template x-for="star in [1,2,3,4,5]" :key="star">
+                <button type="button" @click="rating = star" :aria-label="star + ' out of 5 stars'" class="text-4xl leading-none transition-transform hover:scale-110" :class="star <= rating ? 'text-gold' : 'text-stone-300'">
+                    <span aria-hidden="true">★</span>
+                </button>
+            </template>
+        </div>
+        <p class="mt-2 text-sm text-stone-500"><span x-text="rating > 0 ? rating + ' / 5' : 'Tap a star to rate'"></span></p>
         <x-input-error :messages="$errors->get('rating')" class="mt-2" />
     </div>
     <div>

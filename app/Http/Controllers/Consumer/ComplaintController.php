@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Consumer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Consumer\ComplaintRequest;
 use App\Models\Consumer\Complaint;
-use App\Models\Consumer\OilProduct;
+use App\Models\Distribution\OilProduct;
 use App\Services\Consumer\FeedbackClassifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -22,15 +22,18 @@ class ComplaintController extends Controller
 
     public function create()
     {
-        return view('consumer.complaints.form', ['complaint' => null]);
+        $products = Schema::hasTable('oil_products')
+            ? OilProduct::publiclyVisible()->orderBy('name')->get(['id', 'name', 'brand'])
+            : collect();
+
+        return view('consumer.complaints.form', ['complaint' => null, 'products' => $products]);
     }
 
     public function store(ComplaintRequest $request, FeedbackClassifier $classifier)
     {
         $data = $request->validated();
-        if (Schema::hasTable('oil_products')) {
-            OilProduct::findOrFail($data['oil_product_id']);
-        }
+        $product = OilProduct::findOrFail($data['oil_product_id']);
+        abort_unless($product->isPubliclyVisible(), 404);
         $analysis = $classifier->classify($data['subject'].' '.$data['description']);
 
         $complaint = Complaint::create([

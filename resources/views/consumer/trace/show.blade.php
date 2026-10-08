@@ -101,6 +101,7 @@
                     @if($verification && $verification['certificate'])
                         @php $cert = $verification['certificate']; @endphp
                         <p class="flex flex-wrap items-center gap-3"><span class="role-badge">{{ $verificationBadge }}</span><span class="font-display text-2xl">{{ $cert->certificate_number ?? 'Certificate' }}</span></p>
+                        @if(!empty($verification['document_url']))<p class="mt-3 text-sm"><a class="text-link" href="{{ $verification['document_url'] }}" target="_blank" rel="noopener">View certificate document →</a></p>@endif
                         <dl class="mt-4 grid gap-5 text-sm sm:grid-cols-3">
                             <div><dt class="text-stone-500">Type</dt><dd class="mt-1 font-semibold">{{ $cert->type ?? '—' }}</dd></div>
                             <div><dt class="text-stone-500">Issued</dt><dd class="mt-1 font-semibold">{{ $cert->issue_date ?? '—' }}</dd></div>

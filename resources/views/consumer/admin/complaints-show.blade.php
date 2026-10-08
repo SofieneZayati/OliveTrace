@@ -31,7 +31,7 @@
                     <textarea id="admin_response" name="admin_response" rows="4" maxlength="3000" class="mt-1 block w-full rounded-lg border-stone-300">{{ old('admin_response', $complaint->admin_response) }}</textarea>
                     <x-input-error :messages="$errors->get('admin_response')" class="mt-2" />
                 </div>
-                <div class="flex flex-wrap gap-3 border-t border-stone-100 pt-6"><x-primary-button>Save decision</x-primary-button><a class="btn-secondary" href="{{ route('admin.consumer.complaints.index') }}">Back to list</a></div>
+                <div class="flex flex-wrap gap-3 border-t border-stone-100 pt-6"><x-primary-button>Save decision</x-primary-button><a class="btn-secondary" href="{{ route('admin.consumer.complaints.index') }}">Back to list</a><a class="btn-secondary" href="{{ route('trace.show', $complaint->oil_product_id) }}" target="_blank" rel="noopener">View public trace</a></div>
             </form>
         </x-card>
     </div>

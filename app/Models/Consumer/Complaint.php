@@ -6,6 +6,7 @@ use App\Enums\Consumer\ComplaintStatus;
 use App\Enums\Consumer\FeedbackCategory;
 use App\Enums\Consumer\FeedbackPriority;
 use App\Enums\Consumer\FeedbackSentiment;
+use App\Models\Distribution\OilProduct;
 use App\Models\User;
 use Database\Factories\Consumer\ComplaintFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

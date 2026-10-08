@@ -3,7 +3,7 @@
 namespace App\Services\Consumer;
 
 use App\Models\Consumer\Feedback;
-use App\Models\Consumer\OilProduct;
+use App\Models\Distribution\OilProduct;
 use App\Models\Production\Farm;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -45,29 +45,18 @@ class ConsumerTrace
 
     private function findProduct(string $slug): ?OilProduct
     {
-        $query = OilProduct::query();
-
-        $columns = Schema::getColumnListing('oil_products');
-        if (in_array('qr_token', $columns, true)) {
-            $query->where('qr_token', $slug);
-        }
-        if (in_array('slug', $columns, true)) {
-            $query->orWhere('slug', $slug);
-        }
-        if (ctype_digit($slug)) {
-            $query->orWhere('id', (int) $slug);
-        } elseif (! in_array('qr_token', $columns, true) && ! in_array('slug', $columns, true)) {
+        if (! Schema::hasTable('oil_products')) {
             return null;
         }
 
-        $product = $query->first();
+        $product = OilProduct::findBySlug($slug);
+        if (! $product && ctype_digit($slug)) {
+            $product = OilProduct::find((int) $slug);
+        }
 
         // A product hidden or archived by the distribution module must not
         // resolve to a public trace page.
-        if ($product && in_array('public_status', $columns, true) && (string) $product->public_status === 'hidden') {
-            return null;
-        }
-        if ($product && in_array('archived_at', $columns, true) && $product->archived_at !== null) {
+        if (! $product || ! $product->isPubliclyVisible()) {
             return null;
         }
 
@@ -150,7 +139,24 @@ class ConsumerTrace
 
         $expired = $certificate && isset($certificate->expiry_date) && $certificate->expiry_date < now()->toDateString();
 
-        return ['request' => $request, 'certificate' => $certificate, 'expired' => $expired];
+        return ['request' => $request, 'certificate' => $certificate, 'expired' => $expired, 'document_url' => $this->documentUrl($certificate)];
+    }
+
+    // The laboratory module may expose the certificate file under different
+    // column names; link whichever public document reference exists.
+    private function documentUrl(?object $certificate): ?string
+    {
+        if (! $certificate) {
+            return null;
+        }
+
+        foreach (['pdf_url', 'file_path', 'document_url', 'document_path'] as $column) {
+            if (! empty($certificate->{$column})) {
+                return (string) $certificate->{$column};
+            }
+        }
+
+        return null;
     }
 
     /** @return list<object> */

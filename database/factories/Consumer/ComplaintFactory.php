@@ -4,6 +4,7 @@ namespace Database\Factories\Consumer;
 
 use App\Enums\Consumer\ComplaintStatus;
 use App\Models\Consumer\Complaint;
+use App\Models\Distribution\OilProduct;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,7 +18,7 @@ class ComplaintFactory extends Factory
     public function definition(): array
     {
         return [
-            'oil_product_id' => 1,
+            'oil_product_id' => OilProduct::factory(),
             'consumer_user_id' => User::factory(),
             'subject' => fake()->sentence(4),
             'description' => fake()->paragraph(),

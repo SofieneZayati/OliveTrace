@@ -10,7 +10,7 @@
         @forelse($feedback as $item)
             <x-card>
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                    <p class="flex items-center gap-2 text-sm font-semibold"><x-icon name="star" class="h-4 w-4 text-olive-600" />{{ $item->rating }} / 5 <span class="font-normal text-stone-500">· {{ $item->consumer?->name }} ({{ $item->consumer?->email }}) · product #{{ $item->oil_product_id }}</span></p>
+                    <p class="flex items-center gap-2 text-sm font-semibold"><x-icon name="star" class="h-4 w-4 text-olive-600" />{{ $item->rating }} / 5 <span class="font-normal text-stone-500">· {{ $item->consumer?->name }} ({{ $item->consumer?->email }}) · {{ $item->product?->name ?? 'product #'.$item->oil_product_id }}</span></p>
                     <span class="role-badge">{{ $item->status->label() }}</span>
                 </div>
                 @if($item->comment)<p class="mt-3 text-sm leading-6">{{ $item->comment }}</p>@endif

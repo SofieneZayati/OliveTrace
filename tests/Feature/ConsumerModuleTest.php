@@ -11,7 +11,10 @@ use App\Models\Distribution\OilProduct;
 use App\Models\Distribution\Shipment;
 use App\Models\User;
 use App\Services\Consumer\FeedbackRatingSummary;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class ConsumerModuleTest extends TestCase
@@ -89,7 +92,7 @@ class ConsumerModuleTest extends TestCase
     {
         $owner = $this->consumer();
         $other = $this->consumer();
-        $feedback = Feedback::factory()->create(['oil_product_id' => 1, 'consumer_user_id' => $owner->id]);
+        $feedback = Feedback::factory()->for(OilProduct::factory(), 'product')->create(['consumer_user_id' => $owner->id]);
 
         $this->actingAs($other)->get(route('feedback.edit', $feedback))->assertForbidden();
         $this->actingAs($other)->delete(route('feedback.destroy', $feedback))->assertForbidden();
@@ -97,10 +100,10 @@ class ConsumerModuleTest extends TestCase
 
         $this->actingAs($owner)->get(route('feedback.edit', $feedback))->assertOk();
         $this->actingAs($owner)->patch(route('feedback.update', $feedback), ['rating' => 2, 'comment' => 'Changed my mind.'])
-            ->assertRedirect('/trace/1');
+            ->assertRedirect('/trace/'.$feedback->oil_product_id);
         $this->assertDatabaseHas('feedback', ['id' => $feedback->id, 'rating' => 2]);
 
-        $this->actingAs($owner)->delete(route('feedback.destroy', $feedback))->assertRedirect('/trace/1');
+        $this->actingAs($owner)->delete(route('feedback.destroy', $feedback))->assertRedirect('/trace/'.$feedback->oil_product_id);
         $this->assertDatabaseMissing('feedback', ['id' => $feedback->id]);
     }
 
@@ -168,6 +171,60 @@ class ConsumerModuleTest extends TestCase
 
         $this->get('/trace/'.$hidden->slug)->assertNotFound();
         $this->get('/trace/'.$archived->slug)->assertNotFound();
+
+        $consumer = $this->consumer();
+        $this->actingAs($consumer)->post('/products/'.$hidden->id.'/feedback', ['rating' => 5])->assertNotFound();
+        $this->actingAs($consumer)->post(route('complaints.store'), [
+            'oil_product_id' => $hidden->id, 'subject' => 'Hidden product', 'description' => 'Should be rejected.',
+        ])->assertNotFound();
+    }
+
+    public function test_complaint_form_lists_visible_products_and_trace_shows_star_widget(): void
+    {
+        $product = OilProduct::factory()->create(['name' => 'Chemlali Gold 750ml']);
+        $consumer = $this->consumer();
+
+        $this->actingAs($consumer)->get(route('complaints.create'))->assertOk()
+            ->assertSee('Select the product')
+            ->assertSee('Chemlali Gold 750ml');
+
+        $this->actingAs($consumer)->get('/trace/'.$product->slug)->assertOk()
+            ->assertSee('Tap a star to rate', false)
+            ->assertSee('name="rating"', false);
+    }
+
+    public function test_trace_page_links_certificate_document_when_available(): void
+    {
+        Schema::create('certificate_requests', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('oil_lot_id');
+            $table->string('status', 30)->default('approved');
+        });
+        Schema::create('certificates', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('certificate_request_id');
+            $table->string('certificate_number')->nullable();
+            $table->string('type')->nullable();
+            $table->date('issue_date')->nullable();
+            $table->date('expiry_date')->nullable();
+            $table->string('status', 30)->nullable();
+            $table->string('pdf_url')->nullable();
+        });
+
+        $product = OilProduct::factory()->create();
+        $lotId = (int) DB::table('oil_lots')->where('id', $product->oil_lot_id)->value('id');
+        $requestId = DB::table('certificate_requests')->insertGetId(['oil_lot_id' => $lotId, 'status' => 'approved']);
+        DB::table('certificates')->insert([
+            'certificate_request_id' => $requestId, 'certificate_number' => 'CERT-2026-001',
+            'type' => 'Organic', 'issue_date' => now()->toDateString(),
+            'expiry_date' => now()->addYear()->toDateString(), 'status' => 'valid',
+            'pdf_url' => 'https://example.com/certificates/CERT-2026-001.pdf',
+        ]);
+
+        $this->get('/trace/'.$product->slug)->assertOk()
+            ->assertSee('Verified')
+            ->assertSee('View certificate document')
+            ->assertSee('https://example.com/certificates/CERT-2026-001.pdf', false);
     }
 
     public function test_trace_page_shows_transport_footprint_and_product_name_on_complaints(): void

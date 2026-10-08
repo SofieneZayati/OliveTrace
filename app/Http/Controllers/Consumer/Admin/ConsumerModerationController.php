@@ -17,7 +17,7 @@ class ConsumerModerationController extends Controller
     public function feedbackIndex(Request $request)
     {
         $filters = $request->validate(['status' => ['nullable', Rule::enum(FeedbackStatus::class)]]);
-        $feedback = Feedback::with('consumer')->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+        $feedback = Feedback::with(['consumer', 'product'])->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest()->paginate(15);
 
         return view('consumer.admin.feedback-index', ['feedback' => $feedback]);

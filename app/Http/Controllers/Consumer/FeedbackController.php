@@ -5,27 +5,19 @@ namespace App\Http\Controllers\Consumer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Consumer\FeedbackRequest;
 use App\Models\Consumer\Feedback;
-use App\Models\Consumer\OilProduct;
+use App\Models\Distribution\OilProduct;
 use App\Services\Consumer\FeedbackClassifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Schema;
 
 class FeedbackController extends Controller
 {
     private function resolveProduct(int $product): OilProduct
     {
-        // Hana's table has not landed on this branch yet: the id is accepted
-        // as the integration anchor (no FK yet, see migration) so Module 5
-        // stays testable; the row is resolved once the table exists.
-        if (! Schema::hasTable('oil_products')) {
-            $stub = new OilProduct;
-            $stub->id = $product;
+        $record = OilProduct::findOrFail($product);
+        abort_unless($record->isPubliclyVisible(), 404);
 
-            return $stub;
-        }
-
-        return OilProduct::findOrFail($product);
+        return $record;
     }
 
     public function store(int $product, FeedbackRequest $request, FeedbackClassifier $classifier)

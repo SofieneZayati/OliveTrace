@@ -10,9 +10,18 @@
             <form method="POST" action="{{ route('complaints.store') }}" class="space-y-6">
                 @csrf
                 <div>
-                    <x-input-label for="oil_product_id" value="Product number *" />
-                    <x-text-input id="oil_product_id" name="oil_product_id" type="number" min="1" class="mt-1 block w-40" :value="old('oil_product_id', request('product'))" required />
-                    <p class="mt-2 text-xs text-stone-500">The product number shown on the trace page.</p>
+                    <x-input-label for="oil_product_id" value="Concerned product *" />
+                    @if($products->isNotEmpty())
+                        <select id="oil_product_id" name="oil_product_id" required class="mt-1 block w-full rounded-lg border-stone-300">
+                            <option value="">Select the product…</option>
+                            @foreach($products as $product)
+                                <option value="{{ $product->id }}" @selected((int) old('oil_product_id', request('product')) === $product->id)>{{ $product->name }} · {{ $product->brand }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <x-text-input id="oil_product_id" name="oil_product_id" type="number" min="1" class="mt-1 block w-40" :value="old('oil_product_id', request('product'))" required />
+                        <p class="mt-2 text-xs text-stone-500">The product number shown on the trace page.</p>
+                    @endif
                     <x-input-error :messages="$errors->get('oil_product_id')" class="mt-2" />
                 </div>
                 <div>
