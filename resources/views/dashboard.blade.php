@@ -15,12 +15,19 @@
             <p class="eyebrow mb-4 text-olive-100/70">Growing together</p>
             @if(auth()->user()->role === \App\Enums\Role::Producer)
                 <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Your origin starts here.</h2>
-                <p class="mt-4 text-sm leading-7 text-olive-100/80">Build your producer profile, manage your farms and record the land behind every harvest.</p>
-                <a href="{{ route('producer.farms.index') }}" class="btn-secondary mt-6">Explore my farms <x-icon name="arrow" /></a>
+                <p class="mt-4 text-sm leading-7 text-olive-100/80">Build your producer profile, manage your farms, record harvests, and request certifications.</p>
+                <div class="flex flex-wrap gap-4 mt-6">
+                    <a href="{{ route('producer.farms.index') }}" class="btn-secondary">Explore my farms <x-icon name="arrow" /></a>
+                    <a href="{{ route('certification.producer.requests.index') }}" class="btn-secondary">My Certificate Requests <x-icon name="arrow" /></a>
+                </div>
+            @elseif(auth()->user()->role === \App\Enums\Role::Laboratory)
+                <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Verify the origin.</h2>
+                <p class="mt-4 text-sm leading-7 text-olive-100/80">Process certification requests, analyze lab results, and issue official certificates to producers.</p>
+                <a href="{{ route('lab.requests.index') }}" class="btn-secondary mt-6">View Certification Requests <x-icon name="arrow" /></a>
             @elseif(auth()->user()->isAdmin())
                 <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Look after the origin story.</h2>
-                <p class="mt-4 text-sm leading-7 text-olive-100/80">Inspect producer profiles and farms, correct details and keep invalid origin information out of public view.</p>
-                <a href="{{ route('admin.farms.index') }}" class="btn-secondary mt-6">Explore community farms <x-icon name="arrow" /></a>
+                <p class="mt-4 text-sm leading-7 text-olive-100/80">Inspect producer profiles, certificates, and correct details to keep invalid origin information out of public view.</p>
+                <a href="{{ route('admin.users.index') }}" class="btn-secondary mt-6">Manage Users <x-icon name="arrow" /></a>
             @else
                 <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Your workspace is taking root.</h2>
                 <p class="mt-4 text-sm leading-7 text-olive-100/80">The business modules will appear here.</p>

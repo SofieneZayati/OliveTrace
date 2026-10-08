@@ -24,4 +24,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admi
 });
 
 require __DIR__.'/production.php';
+require __DIR__.'/certification.php';
 require __DIR__.'/auth.php';
