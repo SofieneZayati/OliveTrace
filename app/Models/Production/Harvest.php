@@ -64,6 +64,7 @@ class Harvest extends Model
         if ($this->quantity_kg === null) {
             return null;
         }
+
         return max(0, (float) $this->quantity_kg - $this->requestedQuantity());
     }
 

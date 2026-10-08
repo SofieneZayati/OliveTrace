@@ -2,8 +2,9 @@
 
 namespace App\Models\Certification;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class LabAnalysis extends Model
 {
@@ -23,6 +24,6 @@ class LabAnalysis extends Model
 
     public function labUser()
     {
-        return $this->belongsTo(\App\Models\User::class, 'lab_user_id');
+        return $this->belongsTo(User::class, 'lab_user_id');
     }
 }

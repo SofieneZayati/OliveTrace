@@ -30,12 +30,12 @@ class OilLotSeeder extends Seeder
             OilLot::firstOrCreate(
                 ['lot_number' => 'LOT-2026-001'],
                 [
-                    'mill_request_id'  => $completedRequest->id,
+                    'mill_request_id' => $completedRequest->id,
                     'producer_user_id' => $producer->id,
-                    'liters'           => '214.00',
-                    'quality_grade'    => OilQuality::ExtraVirgin,
-                    'production_date'  => '2026-09-28',
-                    'notes'            => 'First press of the Parcel En Nour trunk-shaker harvest. Chemlali variety, low acidity, fruity finish.',
+                    'liters' => '214.00',
+                    'quality_grade' => OilQuality::ExtraVirgin,
+                    'production_date' => '2026-09-28',
+                    'notes' => 'First press of the Parcel En Nour trunk-shaker harvest. Chemlali variety, low acidity, fruity finish.',
                 ]
             );
         }
@@ -44,12 +44,12 @@ class OilLotSeeder extends Seeder
         OilLot::firstOrCreate(
             ['lot_number' => 'LOT-2026-002'],
             [
-                'mill_request_id'  => null, // pending at external mill
+                'mill_request_id' => null, // pending at external mill
                 'producer_user_id' => $producer->id,
-                'liters'           => '118.00',
-                'quality_grade'    => OilQuality::ExtraVirgin,
-                'production_date'  => '2026-10-05',
-                'notes'            => 'Early hand-picked batch from Farm El Baraka, pressed at Huilerie El Molla Menzel. Premium selection, acidity 0.18%.',
+                'liters' => '118.00',
+                'quality_grade' => OilQuality::ExtraVirgin,
+                'production_date' => '2026-10-05',
+                'notes' => 'Early hand-picked batch from Farm El Baraka, pressed at Huilerie El Molla Menzel. Premium selection, acidity 0.18%.',
             ]
         );
     }

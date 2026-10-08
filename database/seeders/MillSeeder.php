@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\{Mill, User};
+use App\Models\Mill;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class MillSeeder extends Seeder

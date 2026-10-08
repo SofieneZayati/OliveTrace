@@ -2,8 +2,10 @@
 
 namespace App\Models\Certification;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Production\OilLot;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class CertificateRequest extends Model
 {
@@ -17,12 +19,12 @@ class CertificateRequest extends Model
 
     public function oilLot()
     {
-        return $this->belongsTo(\App\Models\Production\OilLot::class);
+        return $this->belongsTo(OilLot::class);
     }
 
     public function producer()
     {
-        return $this->belongsTo(\App\Models\User::class, 'producer_user_id');
+        return $this->belongsTo(User::class, 'producer_user_id');
     }
 
     public function labAnalysis()

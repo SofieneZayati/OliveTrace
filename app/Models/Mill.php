@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Production\MillRequest;
+use Database\Factories\MillFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Mill extends Model
 {
-    /** @use HasFactory<\Database\Factories\MillFactory> */
+    /** @use HasFactory<MillFactory> */
     use HasFactory, SoftDeletes;
 
     public const EXTRACTION_TYPES = [

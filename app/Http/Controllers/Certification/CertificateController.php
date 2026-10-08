@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Certification;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Certification\Certificate;
 
 class CertificateController extends Controller
 {
     public function show($certificateNumber)
     {
-        $certificate = \App\Models\Certification\Certificate::where('certificate_number', $certificateNumber)
+        $certificate = Certificate::where('certificate_number', $certificateNumber)
             ->with(['certificateRequest.oilLot', 'certificateRequest.labAnalysis'])
             ->firstOrFail();
 

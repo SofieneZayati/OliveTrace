@@ -21,13 +21,13 @@ class MillFactory extends Factory
     {
         return [
             'user_id' => User::factory()->state(['role' => Role::Miller]),
-            'name' => 'Huilerie ' . fake()->lastName(),
+            'name' => 'Huilerie '.fake()->lastName(),
             'region' => fake()->randomElement([
                 'Sfax', 'Sousse', 'Monastir', 'Mahdia', 'Kairouan', 'Médenine', 'Zaghouan', 'Nabeul',
             ]),
             'extraction_type' => fake()->randomElement(Mill::EXTRACTION_TYPES),
             'capacity' => fake()->numberBetween(500, 5000),
-            'contact' => '+216 ' . fake()->numerify('## ### ###'),
+            'contact' => '+216 '.fake()->numerify('## ### ###'),
         ];
     }
 }
