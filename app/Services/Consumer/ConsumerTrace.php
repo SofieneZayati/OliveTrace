@@ -5,6 +5,7 @@ namespace App\Services\Consumer;
 use App\Models\Consumer\Feedback;
 use App\Models\Distribution\OilProduct;
 use App\Models\Production\Farm;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -69,7 +70,7 @@ class ConsumerTrace
             return null;
         }
 
-        return \DB::table($table)->where('id', $value)->first();
+        return DB::table($table)->where('id', $value)->first();
     }
 
     private function oilLot(OilProduct $product): ?object
