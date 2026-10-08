@@ -8,6 +8,7 @@ use App\Models\Certification\CertificateRequest;
 use App\Models\Certification\LabAnalysis;
 use App\Services\LabResultAIAssistant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LabAnalysisController extends Controller
 {
@@ -37,14 +38,19 @@ class LabAnalysisController extends Controller
             'acidity' => 'required|numeric|min:0',
             'peroxide_value' => 'nullable|numeric|min:0',
             'result' => 'required|boolean', // 1 for approve, 0 for reject
-            'notes' => 'nullable|string',
-            // If approved, we can ask for some cert details, or auto-generate
+            'notes' => 'nullable|string|max:5000',
         ]);
 
-        \DB::transaction(function () use ($validated, $certificateRequest) {
-            $analysis = LabAnalysis::create([
+        $processed = DB::transaction(function () use ($validated, $certificateRequest, $request) {
+            // The route-bound model can be stale by the time another laboratory submits.
+            $certificateRequest = CertificateRequest::whereKey($certificateRequest->id)->lockForUpdate()->firstOrFail();
+            if ($certificateRequest->status !== 'pending') {
+                return false;
+            }
+
+            LabAnalysis::create([
                 'certificate_request_id' => $certificateRequest->id,
-                'lab_user_id' => auth()->id(),
+                'lab_user_id' => $request->user()->id,
                 'analysis_date' => now(),
                 'acidity' => $validated['acidity'],
                 'peroxide_value' => $validated['peroxide_value'] ?? null,
@@ -58,7 +64,7 @@ class LabAnalysisController extends Controller
                 Certificate::create([
                     'certificate_request_id' => $certificateRequest->id,
                     'certificate_number' => 'CERT-'.strtoupper(uniqid()),
-                    'type' => 'Extra Virgin Olive Oil', // hardcoded or input
+                    'type' => ($certificateRequest->oilLot?->quality_grade?->label() ?? 'Unspecified').' Olive Oil',
                     'issue_date' => now(),
                     'expiry_date' => now()->addYear(),
                     'status' => 'active',
@@ -66,7 +72,13 @@ class LabAnalysisController extends Controller
             } else {
                 $certificateRequest->update(['status' => 'rejected']);
             }
+
+            return true;
         });
+
+        if (! $processed) {
+            return back()->with('error', 'This request is already processed.');
+        }
 
         return redirect()->route('lab.requests.index')->with('success', 'Analysis recorded and request updated.');
     }
@@ -74,9 +86,9 @@ class LabAnalysisController extends Controller
     public function aiExplanation(Request $request)
     {
         $validated = $request->validate([
-            'acidity' => 'required|numeric',
-            'peroxide_value' => 'nullable|numeric',
-            'notes' => 'nullable|string',
+            'acidity' => 'required|numeric|min:0',
+            'peroxide_value' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string|max:5000',
         ]);
 
         $explanation = LabResultAIAssistant::generateExplanation(
