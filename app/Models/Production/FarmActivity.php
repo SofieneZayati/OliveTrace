@@ -4,11 +4,16 @@ namespace App\Models\Production;
 
 use App\Enums\FarmActivityStatus;
 use App\Enums\FarmActivityType;
+use Database\Factories\Production\FarmActivityFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FarmActivity extends Model
 {
+    /** @use HasFactory<FarmActivityFactory> */
+    use HasFactory;
+
     protected $attributes = ['status' => 'planned'];
 
     protected $fillable = ['title', 'type', 'planned_on', 'notes'];
@@ -27,6 +32,11 @@ class FarmActivity extends Model
     public function farm(): BelongsTo
     {
         return $this->belongsTo(Farm::class);
+    }
+
+    public function adviceReport(): BelongsTo
+    {
+        return $this->belongsTo(FarmAdviceReport::class, 'advice_report_id');
     }
 
     public function isOverdue(): bool

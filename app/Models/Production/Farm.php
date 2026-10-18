@@ -49,6 +49,11 @@ class Farm extends Model
         return $this->hasMany(FarmActivity::class);
     }
 
+    public function adviceReports(): HasMany
+    {
+        return $this->hasMany(FarmAdviceReport::class);
+    }
+
     public function publicOrigin(): array
     {
         return [

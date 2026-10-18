@@ -1,11 +1,12 @@
 <x-card>
     <p class="eyebrow mb-3 text-olive-600">Sustainability assistant</p>
     <h2 class="font-display text-2xl">A second perspective.</h2>
-    <p class="mt-3 text-sm leading-6 text-stone-500">Ask AI for practical suggestions using region, area, variety and cultivation practices. Contact details, exact coordinates and free-text notes are not sent.</p>
-    <form method="POST" action="{{ route($admin ? 'admin.farms.advice' : 'producer.farms.advice', $farm->id) }}" class="mt-5" x-data="{ loading: false }" @submit="loading = true">
+    <p class="mt-3 text-sm leading-6 text-stone-500">Create a saved action plan using farm facts and selected activity records. Review recommendations, choose your next steps, and follow their completion in the journal. Contact details, exact GPS, titles and free-text notes are excluded.</p>
+    <form method="POST" action="{{ route($admin ? 'admin.farms.reports.store' : 'producer.farms.reports.store', $farm->id) }}" class="mt-5" x-data="{ loading: false }" @submit="loading = true">
         @csrf
-        <button class="btn-secondary" type="submit" :disabled="loading"><span x-show="!loading">Generate suggestions</span><span x-show="loading" x-cloak role="status">Preparing suggestions…</span></button>
+        <button class="btn-secondary" type="submit" :disabled="loading || {{ $farm->status !== \App\Enums\FarmStatus::Active || !$farm->producerProfile->is_active ? 'true' : 'false' }}" @disabled($farm->status !== \App\Enums\FarmStatus::Active || !$farm->producerProfile->is_active)><span x-show="!loading">Generate saved action plan</span><span x-show="loading" x-cloak role="status">Preparing your report…</span></button>
     </form>
+    <a class="text-link mt-4 inline-block" href="{{ route($admin ? 'admin.farms.reports.index' : 'producer.farms.reports.index', $farm->id) }}">View saved reports →</a>
     <p class="mt-4 text-xs leading-5 text-stone-500">Advisory only. Review suggestions with a local agronomist. AI never changes your records or certifies your farm.</p>
     @isset($assistantResult)
         <div class="mt-6 border-t border-stone-100 pt-6" role="status">

@@ -8,8 +8,13 @@ use App\Models\Production\FarmActivity;
 use App\Models\Production\ProducerProfile;
 use App\Models\User;
 use App\Repositories\Production\Farms;
+use App\Services\Production\FarmJournal;
 use App\Services\Production\PublicOrigin;
+use Database\Seeders\DevelopmentUserSeeder;
+use Database\Seeders\FarmJournalDemoSeeder;
+use Database\Seeders\ProductionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class FarmJournalTest extends TestCase
@@ -116,5 +121,30 @@ class FarmJournalTest extends TestCase
         $this->delete(route('producer.farms.destroy', $this->farm))->assertRedirect();
         $this->assertDatabaseHas('farms', ['id' => $this->farm->id, 'status' => 'archived']);
         $this->assertDatabaseCount('farm_activities', 1);
+    }
+
+    public function test_optional_demo_seeder_is_repeatable_and_preserves_edits(): void
+    {
+        $this->seed([DevelopmentUserSeeder::class, ProductionSeeder::class, FarmJournalDemoSeeder::class]);
+        $entry = FarmActivity::where('title', 'Demo: review soil cover')->sole();
+        $entry->forceFill(['notes' => 'Keep my edit', 'status' => 'cancelled'])->save();
+        $this->seed(FarmJournalDemoSeeder::class);
+        $this->assertDatabaseCount('farm_activities', 2);
+        $this->assertSame('Keep my edit', $entry->fresh()->notes);
+        $this->assertSame('cancelled', $entry->fresh()->status->value);
+        $this->assertSame('planned', FarmActivity::factory()->for($this->farm)->create()->status->value);
+    }
+
+    public function test_stale_farm_object_cannot_allow_work_after_archival(): void
+    {
+        $stale = $this->farm->fresh();
+        $this->farm->forceFill(['status' => 'archived'])->save();
+        try {
+            app(FarmJournal::class)->create(auth()->user(), $stale, $this->data());
+            $this->fail('Archived farm accepted work through a stale object.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('farm', $exception->errors());
+        }
+        $this->assertDatabaseCount('farm_activities', 0);
     }
 }

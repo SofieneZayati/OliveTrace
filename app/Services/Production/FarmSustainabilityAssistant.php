@@ -2,11 +2,13 @@
 
 namespace App\Services\Production;
 
+use App\Enums\FarmActivityType;
 use App\Models\Production\Farm;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use JsonException;
 use RuntimeException;
@@ -21,7 +23,7 @@ class FarmSustainabilityAssistant
         .'Never change farm records or make an official decision. Return concise English text matching the JSON schema. '
         .'Explain that suggestions require producer review and local agronomic advice.';
 
-    public function advise(Farm $farm): array
+    public function advise(Farm $farm, bool $actionPlan = false): array
     {
         $provider = config('farm-assistant.provider');
         $model = config('farm-assistant.model');
@@ -37,17 +39,30 @@ class FarmSustainabilityAssistant
             'has_coordinates' => $farm->gps_lat !== null && $farm->gps_lng !== null,
             'has_farm_notes' => filled($farm->description),
         ];
+        if ($actionPlan) {
+            $facts['journal'] = app(FarmAdviceContext::class)->snapshot($farm);
+        }
+        $instructions = self::INSTRUCTIONS;
+        if ($actionPlan) {
+            $instructions .= ' Also propose one to four reviewable farm-care actions in recommendations. '
+                .'Each needs title, type (irrigation/pruning/soil_care/inspection), priority (high/medium/low), reason and evidence_activity_ids. '
+                .'Evidence IDs must refer only to supplied activities; use an empty list for advice based on farm characteristics or missing information. '
+                .'Explain which supplied facts support each recommendation and distinguish recorded declarations from measured outcomes. '
+                .'Missing journal entries do not prove that an activity did not happen. Never invent irrigation requirements, weather, soil readings or disease diagnoses. '
+                .'Suggest inspections or seeking local guidance where data is insufficient. Do not suggest chemical doses or automatic physical interventions. '
+                .'Priorities concern follow-up, not scientific risk scores. No action is executed until the producer reviews it.';
+        }
         try {
             $input = json_encode($facts, JSON_THROW_ON_ERROR);
             if ($provider === 'gemini') {
-                $generation = ['responseMimeType' => 'application/json', 'responseJsonSchema' => $this->schema(), 'maxOutputTokens' => 4096, 'temperature' => 0.2];
+                $generation = ['responseMimeType' => 'application/json', 'responseJsonSchema' => $this->schema($actionPlan), 'maxOutputTokens' => 4096, 'temperature' => 0.2];
                 if (str_starts_with($model, 'gemini-2.5-flash')) {
                     $generation['thinkingConfig'] = ['thinkingBudget' => 0];
                 }
                 $response = Http::withHeaders(['x-goog-api-key' => config('farm-assistant.gemini_key')])->acceptJson()
                     ->connectTimeout(5)->timeout(config('farm-assistant.timeout'))
                     ->post('https://generativelanguage.googleapis.com/v1beta/models/'.rawurlencode($model).':generateContent', [
-                        'systemInstruction' => ['parts' => [['text' => self::INSTRUCTIONS]]],
+                        'systemInstruction' => ['parts' => [['text' => $instructions]]],
                         'contents' => [['role' => 'user', 'parts' => [['text' => $input]]]],
                         'generationConfig' => $generation,
                     ]);
@@ -68,9 +83,9 @@ class FarmSustainabilityAssistant
                 $response = Http::withToken(config('farm-assistant.openai_key'))->acceptJson()
                     ->connectTimeout(5)->timeout(config('farm-assistant.timeout'))
                     ->post('https://api.openai.com/v1/responses', [
-                        'model' => $model, 'store' => false, 'instructions' => self::INSTRUCTIONS,
-                        'input' => $input, 'max_output_tokens' => 1800,
-                        'text' => ['format' => ['type' => 'json_schema', 'name' => 'farm_advice', 'strict' => true, 'schema' => $this->schema()]],
+                        'model' => $model, 'store' => false, 'instructions' => $instructions,
+                        'input' => $input, 'max_output_tokens' => $actionPlan ? 3500 : 1800,
+                        'text' => ['format' => ['type' => 'json_schema', 'name' => 'farm_advice', 'strict' => true, 'schema' => $this->schema($actionPlan)]],
                     ])->throw();
                 if ($response->json('status') !== 'completed') {
                     throw new RuntimeException('Incomplete AI response.');
@@ -86,8 +101,8 @@ class FarmSustainabilityAssistant
             } else {
                 $response = Http::acceptJson()->connectTimeout(5)->timeout(config('farm-assistant.timeout'))
                     ->post(rtrim(config('farm-assistant.ollama_url'), '/').'/api/chat', [
-                        'model' => $model, 'stream' => false, 'format' => $this->schema(),
-                        'messages' => [['role' => 'system', 'content' => self::INSTRUCTIONS], ['role' => 'user', 'content' => $input]],
+                        'model' => $model, 'stream' => false, 'format' => $this->schema($actionPlan),
+                        'messages' => [['role' => 'system', 'content' => $instructions], ['role' => 'user', 'content' => $input]],
                     ])->throw();
                 if ($response->json('done') !== true) {
                     throw new RuntimeException('Incomplete AI response.');
@@ -101,23 +116,36 @@ class FarmSustainabilityAssistant
             if (! is_array($advice)) {
                 throw new RuntimeException('Invalid AI response.');
             }
-            $validated = Validator::make($advice, [
+            $rules = [
                 'summary' => ['required', 'string', 'max:1200'],
                 'suggestions' => ['present', 'array', 'max:6'], 'suggestions.*' => ['required', 'string', 'max:500'],
                 'flags' => ['present', 'array', 'max:6'], 'flags.*' => ['required', 'string', 'max:500'],
                 'limitations' => ['required', 'string', 'max:1200'],
-            ])->validate();
+            ];
+            if ($actionPlan) {
+                $rules += [
+                    'recommendations' => ['required', 'array', 'list', 'min:1', 'max:4'],
+                    'recommendations.*' => ['required', 'array:title,type,priority,reason,evidence_activity_ids'],
+                    'recommendations.*.title' => ['required', 'string', 'max:150'],
+                    'recommendations.*.type' => ['required', Rule::enum(FarmActivityType::class)],
+                    'recommendations.*.priority' => ['required', Rule::in(['high', 'medium', 'low'])],
+                    'recommendations.*.reason' => ['required', 'string', 'max:700'],
+                    'recommendations.*.evidence_activity_ids' => ['present', 'array', 'list', 'max:30'],
+                    'recommendations.*.evidence_activity_ids.*' => ['integer', Rule::in(array_column($facts['journal']['activities'], 'id'))],
+                ];
+            }
+            $validated = Validator::make($advice, $rules)->validate();
 
-            return ['available' => true, 'provider' => $provider, 'model' => $model, 'advice' => $validated];
+            return ['available' => true, 'provider' => $provider, 'model' => $model, 'advice' => $validated, 'facts' => $facts];
         } catch (ConnectionException|RequestException|JsonException|ValidationException|RuntimeException) {
             // Do not expose/log provider bodies, request payloads or API credentials.
             return ['available' => false, 'message' => 'AI suggestions are temporarily unavailable. Your farm data is unchanged; please try again later.'];
         }
     }
 
-    private function schema(): array
+    private function schema(bool $actionPlan = false): array
     {
-        return [
+        $schema = [
             'type' => 'object', 'additionalProperties' => false,
             'properties' => [
                 'summary' => ['type' => 'string'], 'suggestions' => ['type' => 'array', 'items' => ['type' => 'string']],
@@ -125,5 +153,23 @@ class FarmSustainabilityAssistant
             ],
             'required' => ['summary', 'suggestions', 'flags', 'limitations'],
         ];
+        if ($actionPlan) {
+            $schema['properties']['recommendations'] = [
+                'type' => 'array', 'items' => [
+                    'type' => 'object', 'additionalProperties' => false,
+                    'properties' => [
+                        'title' => ['type' => 'string'],
+                        'type' => ['type' => 'string', 'enum' => array_column(FarmActivityType::cases(), 'value')],
+                        'priority' => ['type' => 'string', 'enum' => ['high', 'medium', 'low']],
+                        'reason' => ['type' => 'string'],
+                        'evidence_activity_ids' => ['type' => 'array', 'items' => ['type' => 'integer']],
+                    ],
+                    'required' => ['title', 'type', 'priority', 'reason', 'evidence_activity_ids'],
+                ],
+            ];
+            $schema['required'][] = 'recommendations';
+        }
+
+        return $schema;
     }
 }

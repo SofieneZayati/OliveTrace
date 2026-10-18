@@ -28,16 +28,14 @@ class FarmJournal
 
     public function create(User $actor, Farm $farm, array $data): FarmActivity
     {
-        $this->authorizeWrite($actor, $farm);
-
-        return $farm->activities()->create($data);
+        return DB::transaction(fn () => $this->currentWritableFarm($actor, $farm)->activities()->create($data));
     }
 
     public function update(User $actor, Farm $farm, int $activityId, array $data): FarmActivity
     {
         return DB::transaction(function () use ($actor, $farm, $activityId, $data) {
-            $this->authorizeWrite($actor, $farm);
-            $activity = $farm->activities()->lockForUpdate()->findOrFail($activityId);
+            $current = $this->currentWritableFarm($actor, $farm);
+            $activity = $current->activities()->lockForUpdate()->findOrFail($activityId);
             $this->requirePlanned($activity);
             $activity->update($data);
 
@@ -48,8 +46,8 @@ class FarmJournal
     public function transition(User $actor, Farm $farm, int $activityId, array $data): void
     {
         DB::transaction(function () use ($actor, $farm, $activityId, $data) {
-            $this->authorizeWrite($actor, $farm);
-            $activity = $farm->activities()->lockForUpdate()->findOrFail($activityId);
+            $current = $this->currentWritableFarm($actor, $farm);
+            $activity = $current->activities()->lockForUpdate()->findOrFail($activityId);
             $this->requirePlanned($activity);
             $completing = ($data['status'] ?? null) === FarmActivityStatus::Completed->value;
             $irrigating = $activity->type === FarmActivityType::Irrigation;
@@ -63,6 +61,14 @@ class FarmJournal
             $activity->water_m3 = $completing && $irrigating ? $validated['water_m3'] : null;
             $activity->save();
         });
+    }
+
+    private function currentWritableFarm(User $actor, Farm $farm): Farm
+    {
+        $current = Farm::with('producerProfile')->lockForUpdate()->findOrFail($farm->id);
+        $this->authorizeWrite($actor, $current);
+
+        return $current;
     }
 
     private function requirePlanned(FarmActivity $activity): void
