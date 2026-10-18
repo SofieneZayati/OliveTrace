@@ -135,7 +135,8 @@ class ProductionManagement
         try {
             return DB::transaction(function () use ($actor, $farm) {
                 $record = Farm::whereKey($farm->id)->lockForUpdate()->firstOrFail();
-                if (Schema::hasTable('harvests') && DB::table('harvests')->where('farm_id', $record->id)->exists()) {
+                if ((Schema::hasTable('harvests') && DB::table('harvests')->where('farm_id', $record->id)->exists())
+                    || $record->activities()->exists()) {
                     $this->archiveFarm($actor, $record);
 
                     return true;

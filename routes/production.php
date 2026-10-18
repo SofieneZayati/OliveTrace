@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Production\FarmActivityController;
 use App\Http\Controllers\Production\FarmAssistantController;
 use App\Http\Controllers\Production\FarmController;
 use App\Http\Controllers\Production\HarvestController;
@@ -19,6 +20,8 @@ Route::prefix('producer')->name('producer.')->middleware(['auth', 'active', 'rol
     Route::patch('profile', [ProducerProfileController::class, 'update'])->name('profile.update');
     Route::delete('profile', [ProducerProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('farms', FarmController::class)->whereNumber('farm');
+    Route::resource('farms.activities', FarmActivityController::class)->except(['show', 'destroy'])->whereNumber(['farm', 'activity']);
+    Route::patch('farms/{farm}/activities/{activity}/status', [FarmActivityController::class, 'status'])->whereNumber(['farm', 'activity'])->name('farms.activities.status');
     Route::patch('farms/{farm}/archive', [FarmController::class, 'archive'])->whereNumber('farm')->name('farms.archive');
     Route::post('farms/{farm}/advice', FarmAssistantController::class)->whereNumber('farm')->middleware('throttle:5,1')->name('farms.advice');
     Route::resource('harvests', HarvestController::class)->whereNumber('harvest');
@@ -38,6 +41,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admi
     Route::get('producers/{profile}/edit', [ProducerProfileController::class, 'edit'])->whereNumber('profile')->name('producers.edit');
     Route::patch('producers/{profile}', [ProducerProfileController::class, 'update'])->whereNumber('profile')->name('producers.update');
     Route::resource('farms', FarmController::class)->only(['index', 'show', 'edit', 'update'])->whereNumber('farm');
+    Route::get('farms/{farm}/activities', [FarmActivityController::class, 'index'])->whereNumber('farm')->name('farms.activities.index');
     Route::resource('harvests', HarvestController::class)->only(['index', 'show', 'destroy'])->whereNumber('harvest');
     Route::post('harvests/{harvest}/estimate', [HarvestController::class, 'estimate'])->whereNumber('harvest')->middleware('throttle:5,1')->name('harvests.estimate');
     Route::patch('farms/{farm}/status', [FarmController::class, 'status'])->whereNumber('farm')->name('farms.status');

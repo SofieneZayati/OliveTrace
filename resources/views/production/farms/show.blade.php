@@ -2,6 +2,7 @@
 @section('title', 'Farm details')
 @section('content')
     <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow mb-4 text-olive-600">{{ $farm->governorate }} / Farm #{{ $farm->id }}</p><h1 class="display-title text-4xl sm:text-5xl">{{ $farm->name }}</h1><p class="mt-4 text-sm text-stone-500">Managed by {{ $farm->producerProfile->display_name }}</p></div><div class="flex flex-wrap gap-3">@can('create', [\App\Models\Production\Harvest::class, $farm])<a class="btn-primary" href="{{ route('producer.harvests.create', ['farm' => $farm->id]) }}">Add a harvest <x-icon name="arrow" /></a>@endcan<a class="btn-secondary" href="{{ route($admin ? 'admin.farms.edit' : 'producer.farms.edit', $farm->id) }}">Edit farm <x-icon name="arrow" /></a></div></div>
+    <x-card class="mb-7"><div class="flex flex-wrap items-center justify-between gap-5"><div><p class="eyebrow text-olive-600">Farm activity journal</p><h2 class="mt-3 font-display text-2xl">Care for the land, one step at a time.</h2><p class="mt-3 text-sm text-stone-500">Plan irrigation, pruning, soil care and inspections. Record completion and review the history.</p></div><a class="btn-primary" href="{{ route($admin ? 'admin.farms.activities.index' : 'producer.farms.activities.index', $farm->id) }}">Open activity journal <x-icon name="arrow" /></a></div></x-card>
     <div class="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <x-card>
             <span class="role-badge">{{ $farm->status->label() }}</span>
@@ -27,10 +28,10 @@
             <h2 class="font-display text-2xl">Farm moderation</h2><p class="my-4 text-sm text-stone-500">Disabling a farm removes it from public display and future harvest selection. Existing history stays intact.</p>
             <form method="POST" action="{{ route('admin.farms.status', $farm->id) }}" class="flex flex-wrap items-end gap-4">@csrf @method('PATCH')<x-production-field name="status" label="Farm status" :value="$farm->status->value" :options="collect(\App\Enums\FarmStatus::cases())->mapWithKeys(fn($status) => [$status->value => $status->label()])->all()" :required="true" /><button class="btn-primary" type="submit">Update status</button></form>
         @else
-            <h2 class="font-display text-2xl">Preserve the origin history</h2><p class="my-4 max-w-3xl text-sm leading-6 text-stone-500">Archive a parcel when it is no longer used. Deletion removes an unlinked farm; if harvest history exists, the farm is archived instead.</p>
+            <h2 class="font-display text-2xl">Preserve the origin history</h2><p class="my-4 max-w-3xl text-sm leading-6 text-stone-500">Archive a parcel when it is no longer used. Deletion removes an unlinked farm; if linked history exists, the farm is archived instead.</p>
             <div class="flex flex-wrap gap-3">
                 <form method="POST" action="{{ route('producer.farms.archive', $farm->id) }}">@csrf @method('PATCH')<button type="submit" class="btn-secondary">Archive farm</button></form>
-                <form method="POST" action="{{ route('producer.farms.destroy', $farm->id) }}" x-data @submit="if (!confirm('Delete this farm if unlinked, or archive it if harvest history exists?')) $event.preventDefault()">@csrf @method('DELETE')<button class="btn-danger" type="submit">Delete farm</button></form>
+                <form method="POST" action="{{ route('producer.farms.destroy', $farm->id) }}" x-data @submit="if (!confirm('Delete this farm if unlinked, or archive it if linked history exists?')) $event.preventDefault()">@csrf @method('DELETE')<button class="btn-danger" type="submit">Delete farm</button></form>
             </div>
         @endif
     </x-card>

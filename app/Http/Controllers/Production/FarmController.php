@@ -87,7 +87,7 @@ class FarmController extends Controller
     {
         $archived = $management->deleteFarm($request->user(), $this->farms->find($farm));
 
-        return redirect()->route('producer.farms.index')->with('success', $archived ? 'Farm archived: its harvest history was preserved.' : 'Farm deleted.');
+        return redirect()->route('producer.farms.index')->with('success', $archived ? 'Farm archived: its linked history was preserved.' : 'Farm deleted.');
     }
 
     public function archive(Request $request, ProductionManagement $management, int $farm)
