@@ -2,7 +2,7 @@
 
 The final specification supplied by Sofiene supersedes the older ownership swap
 in the shared-base notes. Sofiene owns `producer_profiles` and `farms`; Mariem
-owns the future Harvest/Mill/Oil Lot module. Branch: `feature/sofiene-production`.
+owns the Harvest/Mill/Oil Lot module. Branch: `feature/sofiene-production`.
 
 ## Assignment evidence
 
@@ -14,7 +14,8 @@ owns the future Harvest/Mill/Oil Lot module. Branch: `feature/sofiene-production
 | Authorization | Role middleware, ownership policy and service checks; owner cannot reassign profile IDs or bypass admin-disabled status. |
 | Blade Front / Back Office | Management pages use `layouts.admin`; public origin uses `layouts.front`; inherited templates, field components and reusable `x-origin-card`. |
 | Factories and seeders | Laravel Eloquent factories and idempotent `ProductionSeeder`, with two Sfax/Chemlali demo farms. |
-| AI advanced feature | Sustainability assistant with OpenAI Responses / local Ollama adapters, validated structured output and graceful outages; advisory only. |
+| Advanced farm workflow | Private journal: plan/edit, overdue work, complete/cancel, conditional water/date validation, recorded-water totals and retained history. |
+| AI advanced feature | Gemini / OpenAI / Ollama; saved fact snapshots, validated recommendations with evidence IDs, explicit producer review, idempotent adoption into the journal and completion tracking. Advisory only. |
 | Integration | Stable `farm_id`, `Farms::selectableForUser()` for Mariem, `PublicOrigin::forFarm()` and origin card for Aymen. |
 | Git | Dedicated feature branch and meaningful local commits; review/integration into `develop` remains the team workflow. |
 
@@ -110,15 +111,25 @@ FARM_AI_MODEL=your_installed_model_name
 OLLAMA_URL=http://127.0.0.1:11434
 ```
 
-Run `php artisan config:clear`, open a farm and click **Generate suggestions**.
-There is no automatic AI request. Inputs are region/delegation, area, variety,
-farming/irrigation practice and boolean indicators of missing notes/coordinates.
-No personal/contact fields, precise coordinates or free-text notes are sent.
-OpenAI requests set `store=false`. Output is escaped, validated and ephemeral;
-it never edits records or certifies sustainability/organic status. The producer
-must review advice, with local agronomic guidance. Missing configuration,
-refusals, invalid output and service outages leave normal CRUD available.
-No rule-based fallback is represented as AI.
+Run `php artisan migrate` and `php artisan config:clear`, open a farm and click
+**Generate saved action plan**. There is no automatic AI request. Inputs are
+region/delegation, area, variety, farming/irrigation practice, presence indicators
+for notes/coordinates, and up to 30 structured activities in the documented date
+window. No personal/contact fields, precise coordinates, activity titles or
+free-text notes are sent. OpenAI requests set `store=false`.
+
+Successful reports retain their input snapshot and validated, escaped advice in
+the private `farm_advice_reports` table. A producer must explicitly review an
+action and choose a date before it is added to `farm_activities`; repeat clicks
+cannot duplicate that recommendation. Generating a report never changes farm
+records or creates work automatically. Admins inspect reports/journals but do
+not accept work for the producer. Missing configuration, refusals, invalid output
+and service outages leave the journal/CRUD and earlier reports available. No
+rule-based fallback is represented as AI. The original `/advice` endpoints remain
+compatible and temporary; the UI now uses the saved-report workflow.
+
+See [farm care and validation demo](farm-care.md) for the new routes, exact code
+paths, validation examples, privacy boundaries and optional journal demo seeder.
 
 Adapter references: [Gemini structured outputs](https://ai.google.dev/gemini-api/docs/structured-output),
 [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
@@ -139,6 +150,7 @@ testing schema. Users, profiles and farms share one Laravel connection and
 transaction boundary. Tests never touch development farm data. Integration tests
 now use the real harvest, milling, certification and distribution tables.
 
-Live Gemini generation was verified on Sofiene's machine on 8 October 2026.
+Live Gemini saved-report generation and reviewed activity adoption were verified
+on Sofiene's machine on 18 October 2026.
 Every teammate needs their own private configuration to reproduce it. The five
 modules are now integrated, including the consumer trace page's public-origin checks.

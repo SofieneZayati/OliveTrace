@@ -20,7 +20,8 @@ shared work; they do not count as an individual student's module.
 
 - Sofiene's Eloquent ProducerProfile / Farm relationship, ownership-protected CRUD,
   validated forms, private logo uploads, admin correction/moderation, demo factories
-  and seeders, a public origin card and an advisory sustainability AI integration.
+  and seeders, a public origin card, a private farm activity journal, and saved AI
+  action plans with producer-reviewed follow-up activities.
 
 The integrated modules are Sofiene's Producer/Farm, Mariem's Harvest/Mill/Oil Lot,
 Oussema's Laboratory/Certification, Hana's Product/Distribution, and Aymen's
@@ -29,6 +30,8 @@ Consumer Traceability/Feedback/Complaints. See
 The farm sustainability assistant supports Gemini, OpenAI and local Ollama.
 Normal CRUD works without an AI provider. Credentials stay in your local `.env`.
 Gemini setup and demonstration steps are in [the farm AI guide](docs/farm-ai.md).
+The journal workflow, server validation paths and professor demonstration are in
+[the farm care guide](docs/farm-care.md).
 Certification and product integration rules are in [the module workflow guide](docs/module-workflows.md).
 
 ## Software required
