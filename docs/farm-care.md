@@ -37,6 +37,27 @@ This seeder adds two clearly named demo plans to Farm El Baraka for
 `producer@test.com`. Rerunning it preserves existing entries and edits. It is
 not part of the default shared seeding and never inserts simulated AI reports.
 
+For a larger optional dataset covering maps, irrigation totals and journal states:
+
+```powershell
+php artisan db:seed --class=FarmCareDemoSeeder
+```
+
+This inserts four private `[Demo]` farms under `producer@test.com`, with
+illustrative regional coordinates in Sfax, Zaghouan, Beja and Kairouan. Two are
+active, one archived and one disabled. They contain 16 clearly labelled fictional
+activities: completed, upcoming, overdue and cancelled. The Sfax farm includes a
+completed declaration of 24.50 m³ irrigation water. Archived/disabled farms help
+demonstrate read-only history and filtering. They are not real farms or measured
+environmental outcomes.
+
+The seeder inserts missing records by demo farm name and activity title. It
+preserves existing records and edits; renaming a demo farm/title allows a fresh
+copy under its original name on the next run. It does not reset user accounts,
+change other module records, or fabricate AI reports. Generate a genuine saved
+action plan from an active demo farm to test the AI workflow. This optional
+seeder refuses production and is separate from the shared default seed.
+
 ## Professor demonstration
 
 Use a local development installation and `producer@test.com` / `OliveTrace123!`.
