@@ -24,6 +24,11 @@
         </div>
     </div>
     <x-card class="mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-4"><div><p class="eyebrow text-olive-600">Private location</p><h2 class="mt-3 font-display text-2xl">A point on the map.</h2></div><a class="text-link" href="{{ route($admin ? 'admin.farms.map' : 'producer.farms.map') }}">View farm map →</a></div>
+        @if($farm->gps_lat === null || $farm->gps_lng === null)<p class="mt-4 text-sm text-stone-500">No coordinates saved. Use Edit farm to choose a location.</p>@endif
+        <x-farm-map :points="$farm->gps_lat !== null && $farm->gps_lng !== null ? [['lat' => (float) $farm->gps_lat, 'lng' => (float) $farm->gps_lng, 'name' => $farm->name, 'region' => $farm->governorate, 'status' => $farm->status->label(), 'url' => route($admin ? 'admin.farms.show' : 'producer.farms.show', $farm->id)]] : []" />
+    </x-card>
+    <x-card class="mt-8">
         @if($admin)
             <h2 class="font-display text-2xl">Farm moderation</h2><p class="my-4 text-sm text-stone-500">Disabling a farm removes it from public display and future harvest selection. Existing history stays intact.</p>
             <form method="POST" action="{{ route('admin.farms.status', $farm->id) }}" class="flex flex-wrap items-end gap-4">@csrf @method('PATCH')<x-production-field name="status" label="Farm status" :value="$farm->status->value" :options="collect(\App\Enums\FarmStatus::cases())->mapWithKeys(fn($status) => [$status->value => $status->label()])->all()" :required="true" /><button class="btn-primary" type="submit">Update status</button></form>

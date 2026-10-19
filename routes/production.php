@@ -4,6 +4,7 @@ use App\Http\Controllers\Production\FarmActivityController;
 use App\Http\Controllers\Production\FarmAdviceReportController;
 use App\Http\Controllers\Production\FarmAssistantController;
 use App\Http\Controllers\Production\FarmController;
+use App\Http\Controllers\Production\FarmMapController;
 use App\Http\Controllers\Production\HarvestController;
 use App\Http\Controllers\Production\MillRequestController;
 use App\Http\Controllers\Production\OilLotController;
@@ -20,6 +21,7 @@ Route::prefix('producer')->name('producer.')->middleware(['auth', 'active', 'rol
     Route::get('profile/edit', [ProducerProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('profile', [ProducerProfileController::class, 'update'])->name('profile.update');
     Route::delete('profile', [ProducerProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('farms/map', FarmMapController::class)->name('farms.map');
     Route::resource('farms', FarmController::class)->whereNumber('farm');
     Route::resource('farms.activities', FarmActivityController::class)->except(['show', 'destroy'])->whereNumber(['farm', 'activity']);
     Route::patch('farms/{farm}/activities/{activity}/status', [FarmActivityController::class, 'status'])->whereNumber(['farm', 'activity'])->name('farms.activities.status');
@@ -45,6 +47,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admi
     Route::get('producers/{profile}', [ProducerProfileController::class, 'show'])->whereNumber('profile')->name('producers.show');
     Route::get('producers/{profile}/edit', [ProducerProfileController::class, 'edit'])->whereNumber('profile')->name('producers.edit');
     Route::patch('producers/{profile}', [ProducerProfileController::class, 'update'])->whereNumber('profile')->name('producers.update');
+    Route::get('farms/map', FarmMapController::class)->name('farms.map');
     Route::resource('farms', FarmController::class)->only(['index', 'show', 'edit', 'update'])->whereNumber('farm');
     Route::get('farms/{farm}/activities', [FarmActivityController::class, 'index'])->whereNumber('farm')->name('farms.activities.index');
     Route::get('farms/{farm}/reports', [FarmAdviceReportController::class, 'index'])->whereNumber('farm')->name('farms.reports.index');

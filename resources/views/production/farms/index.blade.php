@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 @section('title', $admin ? 'All farms' : 'My farms')
 @section('content')
+    <div class="mb-5"><a class="text-link" href="{{ route($admin ? 'admin.farms.map' : 'producer.farms.map', request()->only('search', 'governorate', 'status')) }}">Explore farms on the private map →</a></div>
     <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow mb-4 text-olive-600">Where the story takes root</p><h1 class="display-title text-4xl">{{ $admin ? 'Farms across the community.' : 'Your land. Your origin.' }}</h1><p class="mt-4 text-sm text-stone-500">{{ $farms->total() }} farms and parcels {{ $admin ? 'across all producers' : 'in your workspace' }}.</p></div>@unless($admin)<a class="btn-primary" href="{{ route('producer.farms.create') }}">Add a farm <x-icon name="arrow" /></a>@endunless</div>
     <x-card class="mb-7"><form method="GET" class="grid items-end gap-4 sm:grid-cols-2 xl:grid-cols-[1.4fr_1fr_1fr_auto]">
         <x-production-field name="search" label="Search farm or producer" :value="request('search')" maxlength="100" />

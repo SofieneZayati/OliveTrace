@@ -10,6 +10,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class Farms
 {
+    public const MAP_LIMIT = 500;
+
     public function find(int $id): Farm
     {
         return Farm::with('producerProfile.user')->findOrFail($id);
@@ -30,6 +32,24 @@ class Farms
 
     public function paginate(array $filters, int $page, ?int $userId = null): LengthAwarePaginator
     {
+        return $this->filteredQuery($filters, $userId)->orderBy('name')->orderBy('id')->paginate(12, ['*'], 'page', $page)->withQueryString();
+    }
+
+    public function mapData(array $filters, ?int $userId = null): array
+    {
+        $query = $this->filteredQuery($filters, $userId);
+        $total = (clone $query)->count();
+        $located = $query->whereNotNull('gps_lat')->whereNotNull('gps_lng')
+            ->whereBetween('gps_lat', [-90, 90])->whereBetween('gps_lng', [-180, 180]);
+
+        return [
+            'total' => $total, 'located' => (clone $located)->count(),
+            'farms' => $located->orderBy('name')->orderBy('id')->limit(self::MAP_LIMIT)->get(),
+        ];
+    }
+
+    private function filteredQuery(array $filters, ?int $userId): Builder
+    {
         $query = Farm::with('producerProfile');
         if ($userId !== null) {
             $query->whereHas('producerProfile', fn (Builder $profiles) => $profiles->where('user_id', $userId));
@@ -45,6 +65,6 @@ class Farms
             }
         }
 
-        return $query->orderBy('name')->orderBy('id')->paginate(12, ['*'], 'page', $page)->withQueryString();
+        return $query;
     }
 }
