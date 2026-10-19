@@ -15,6 +15,7 @@ owns the Harvest/Mill/Oil Lot module. Branch: `feature/sofiene-production`.
 | Blade Front / Back Office | Management pages use `layouts.admin`; public origin uses `layouts.front`; inherited templates, field components and reusable `x-origin-card`. |
 | Factories and seeders | Laravel Eloquent factories and idempotent `ProductionSeeder`, with two Sfax/Chemlali demo farms. |
 | Advanced farm workflow | Private journal: plan/edit, overdue work, complete/cancel, conditional water/date validation, recorded-water totals and retained history. |
+| Farm location maps | Private Leaflet/OpenStreetMap picker, draggable marker, typed/cleared GPS, detail map and owner/admin overview; existing GPS validation and public privacy remain in place. |
 | AI advanced feature | Gemini / OpenAI / Ollama; saved fact snapshots, validated recommendations with evidence IDs, explicit producer review, idempotent adoption into the journal and completion tracking. Advisory only. |
 | Integration | Stable `farm_id`, `Farms::selectableForUser()` for Mariem, `PublicOrigin::forFarm()` and origin card for Aymen. |
 | Git | Dedicated feature branch and meaningful local commits; review/integration into `develop` remains the team workflow. |

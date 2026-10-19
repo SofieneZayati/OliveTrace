@@ -22,6 +22,8 @@ shared work; they do not count as an individual student's module.
   validated forms, private logo uploads, admin correction/moderation, demo factories
   and seeders, a public origin card, a private farm activity journal, and saved AI
   action plans with producer-reviewed follow-up activities.
+- Private farm maps with a location picker, draggable markers, manual coordinate
+  entry and an owner/admin overview. Leaflet and OpenStreetMap need no API key.
 
 The integrated modules are Sofiene's Producer/Farm, Mariem's Harvest/Mill/Oil Lot,
 Oussema's Laboratory/Certification, Hana's Product/Distribution, and Aymen's

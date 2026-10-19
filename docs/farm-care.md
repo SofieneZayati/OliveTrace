@@ -21,8 +21,9 @@ php artisan serve
 ```
 
 Keep the existing private `.env`, app key and local MySQL credentials. The new
-workflow uses the existing `FARM_AI_PROVIDER`, `FARM_AI_MODEL` and
-`GEMINI_API_KEY` settings; no additional subscription, package or key is needed.
+AI workflow uses the existing `FARM_AI_PROVIDER`, `FARM_AI_MODEL` and
+`GEMINI_API_KEY` settings; no additional AI subscription or key is needed.
+The map uses Leaflet from the npm lock file, installed by `npm.cmd ci`.
 Environment URLs must be plain URLs, not Markdown links. Normal farm care and
 saved reports work without making an AI request.
 
@@ -69,6 +70,56 @@ The advanced feature is a stateful planning/completion workflow with validated
 quantities and dates. The AI feature is contextual decision support followed by
 human review and tracked work. Recorded completion is not proof of sustainability
 improvement; declared farming practices do not establish certification.
+
+## Private farm maps
+
+1. Open **My farms**, then **Explore farms on the private map**. Admins have
+   the equivalent link from **Farms**. Filter by name/producer, governorate or
+   status. Producers see only their own farms; admins can inspect all farms.
+2. Open a farm and choose **Edit farm**. In **Optional private coordinates**,
+   click **Load private map**. Click a point or drag the marker to update both
+   fields. Manual latitude/longitude entry stays available.
+3. Use **Center on coordinates** to bring a typed location into view, or
+   **Show Tunisia** to return to the default country view. Recentring does not
+   assign a farm location. **Clear coordinates** empties both fields.
+4. Click **Save farm** to persist changes. Map interactions alone do not save.
+5. Farm details include a private map; the overview shows saved markers with
+   links to farm details. Farms without coordinates receive no invented pin.
+
+Leaflet 1.9.4 is bundled locally through Vite and loaded on demand. OpenStreetMap
+tiles load only after the user presses the map button. No new API key, browser
+location permission, address search or geocoding service is required. Tile access
+needs an Internet connection; coordinate inputs and normal farm forms still work
+when JavaScript or the tile service is unavailable.
+
+Loading a map sends browser requests to OpenStreetMap, including the viewer's IP
+and viewed tile area. The UI explains this before loading. Farm names, notes and
+coordinates are not posted to a geocoding API. Exact GPS stays restricted in
+OliveTrace; it is excluded from public origin/consumer output and Gemini input.
+The overview uses authenticated role middleware and an owner-scoped query. It
+returns at most 500 locations, with a notice to narrow filters if more match.
+
+Markers are producer-declared points, not cadastral boundaries, verified areas
+or proof of ownership/certification. Existing paired/ranged server validation
+continues to apply, including clearing both fields and valid zero coordinates.
+No migration, new farm column or change to another member's module is required.
+
+Map configuration is in `config/farm-map.php`; the reusable Blade component is
+`resources/views/components/farm-map.blade.php`; picker, markers and safe text
+popups are in `resources/js/farm-map.js`. `FarmMapController` supplies only
+authorized map data through `Farms::mapData()`. The same filter query still
+powers the existing paginated farm list. Provider URL/attribution can be changed
+in the configuration together if hosting requirements change.
+
+Attribution stays visible. Browser HTTP caching is respected; there is no
+prefetch, offline download, tile proxy or automated background map fetching.
+See [Leaflet's stable release](https://leafletjs.com/download.html) and the
+[OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
+
+Browser checks on 19 October 2026 used a clearly labelled temporary farm with an
+illustrative public Sfax location. Selecting, dragging, clearing, typing, saving,
+detail maps and overview marker links were checked. The test farm was removed;
+the original farm/profile/user records were preserved.
 
 ## Server validation and code paths
 
@@ -144,3 +195,8 @@ private AI inputs, provider failures, duplicate adoption, admin inspection,
 archival and compatibility with public origin/harvest selection. Provider tests
 mock HTTP; live Gemini report generation and reviewed adoption were checked in
 the local browser on 18 October 2026.
+
+`FarmMapTest` covers private map scoping, roles, filters, escaped farm names,
+public-coordinate exclusion, paired/ranged validation, valid zero coordinates
+and clearing saved coordinates. Interactive rendering and field synchronization
+are also checked in the local browser.
