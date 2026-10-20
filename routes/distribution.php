@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Distribution\DistributorProfileController;
 use App\Http\Controllers\Distribution\DistributorDashboardController;
+use App\Http\Controllers\Distribution\DistributorProfileController;
 use App\Http\Controllers\Distribution\OilProductController;
 use App\Http\Controllers\Distribution\PublicCatalogController;
 use App\Http\Controllers\Distribution\ShipmentController;
