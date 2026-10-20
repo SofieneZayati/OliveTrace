@@ -27,6 +27,12 @@ return [
         'model' => env('LAB_AI_MODEL', 'gemini-3.1-flash-lite'),
     ],
 
+    'product_description' => [
+        'key' => env('PRODUCT_DESCRIPTION_API_KEY'),
+        'model' => env('PRODUCT_DESCRIPTION_MODEL', 'gemini-2.0-flash'),
+        'endpoint' => env('PRODUCT_DESCRIPTION_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

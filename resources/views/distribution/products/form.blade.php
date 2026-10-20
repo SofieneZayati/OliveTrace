@@ -20,6 +20,13 @@
                 <x-production-field name="public_status" label="Public status" :value="$product?->public_status?->value ?? 'visible'" :options="collect(\App\Enums\OilProductPublicStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()])->all()" />
             </div>
             <div>
+                <x-production-field name="description" label="Product description" type="textarea" :value="$product?->description" maxlength="5000" help="Optional public text. Review any generated draft before saving." />
+                <div class="mt-3 flex flex-wrap items-center gap-3" data-description-generator data-endpoint="{{ $product ? route($admin ? 'admin.products.description.generate' : 'producer.products.description.generate', $product) : route('producer.products.description.generate-new') }}" data-new-product="{{ $product ? 'false' : 'true' }}">
+                    <button type="button" class="btn-secondary" data-generate-description>Générer la description</button>
+                    <span class="text-sm text-olive-700" data-description-status role="status" aria-live="polite"></span>
+                </div>
+            </div>
+            <div>
                 <label for="image" class="form-label">Product image (optional)</label>
                 <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" class="mt-3 block w-full text-sm">
                 <p class="mt-2 text-xs text-stone-500">JPG, PNG, or WebP, up to 2 MB.</p>
@@ -32,4 +39,37 @@
             </div>
         </form>
     </x-card>
+    @if($product)
+        <script>
+            document.querySelector('[data-generate-description]')?.addEventListener('click', async (event) => {
+                const button = event.currentTarget;
+                const container = button.closest('[data-description-generator]');
+                const status = container.querySelector('[data-description-status]');
+                const field = document.getElementById('description');
+                button.disabled = true;
+                status.textContent = 'Génération en cours…';
+                try {
+                    const request = {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                    };
+                    if (container.dataset.newProduct === 'true') {
+                        request.body = new FormData(document.querySelector('form'));
+                    }
+                    const response = await fetch(container.dataset.endpoint, request);
+                    const payload = await response.json();
+                    if (!response.ok) throw new Error(payload.message || 'La génération a échoué.');
+                    field.value = payload.description;
+                    status.textContent = 'Brouillon à relire avant d’enregistrer.';
+                } catch (error) {
+                    status.textContent = error.message;
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        </script>
+    @endif
 @endsection

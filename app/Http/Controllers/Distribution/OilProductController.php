@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Distribution;
 use App\Contracts\OilLotLookup;
 use App\Enums\OilProductPublicStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Distribution\GenerateProductDescriptionDraftRequest;
+use App\Http\Requests\Distribution\GenerateProductDescriptionRequest;
 use App\Http\Requests\Distribution\ListOilProductFiltersRequest;
 use App\Http\Requests\Distribution\StoreOilProductRequest;
 use App\Http\Requests\Distribution\UpdateOilProductRequest;
 use App\Models\Distribution\OilProduct;
+use App\Services\ProductDescriptionGenerator;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -107,6 +110,21 @@ class OilProductController extends Controller
 
         return redirect()->route($request->user()->isAdmin() ? 'admin.products.show' : 'producer.products.show', $product)
             ->with('success', 'Product updated.');
+    }
+
+    public function generateDescription(
+        GenerateProductDescriptionRequest $request,
+        OilProduct $product,
+        ProductDescriptionGenerator $generator
+    ) {
+        return response()->json(['description' => $generator->generate($product)]);
+    }
+
+    public function generateDescriptionDraft(
+        GenerateProductDescriptionDraftRequest $request,
+        ProductDescriptionGenerator $generator
+    ) {
+        return response()->json(['description' => $generator->generateFromData($request->validated())]);
     }
 
     public function archive(OilProduct $product): RedirectResponse

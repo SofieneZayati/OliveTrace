@@ -162,7 +162,7 @@ class DistributionCrudTest extends TestCase
         $this->assertSame(1, DB::table('oil_lots')->where('lot_number', 'LOT-2026-001')->count());
         $this->assertSame(1, DistributorProfile::query()->where('user_id', $distributor->id)->count());
         $this->assertSame(1, OilProduct::query()->where('created_by_user_id', $producer->id)->where('name', "Huile d'olive extra vierge — El Baraka")->count());
-        $this->assertSame(5, Shipment::query()->count());
+        $this->assertSame(6, Shipment::query()->count());
         $this->assertSame(4, OilProduct::query()->publiclyVisible()->count());
         $this->assertSame(1, OilProduct::query()->where('public_status', OilProductPublicStatus::Hidden)->whereNull('archived_at')->count());
         $this->assertSame(1, OilProduct::query()->whereNotNull('archived_at')->count());

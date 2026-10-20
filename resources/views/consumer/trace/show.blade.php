@@ -37,6 +37,9 @@
                     <span class="role-badge shrink-0">{{ $bottle }}</span>
                 </div>
                 <h2 class="font-display mt-3 text-3xl sm:text-4xl">{{ $product->name ?? 'Olive oil product #'.$product->id }}</h2>
+                @if($product->description)
+                    <p class="mt-4 max-w-2xl text-sm leading-7 text-stone-600">{{ $product->description }}</p>
+                @endif
                 <dl class="mt-6 grid gap-5 border-t border-stone-100 pt-6 text-sm sm:grid-cols-3">
                     <div><dt class="text-stone-500">Packaged</dt><dd class="mt-1 font-semibold">{{ $packaged }}</dd></div>
                     <div><dt class="text-stone-500">Oil lot</dt><dd class="mt-1 font-semibold">{{ $oilLot->lot_number ?? '—' }}</dd></div>

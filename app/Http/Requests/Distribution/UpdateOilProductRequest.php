@@ -34,6 +34,7 @@ class UpdateOilProductRequest extends FormRequest
             'brand' => ['required', 'string', 'max:120'],
             'bottle_volume_ml' => ['required', 'integer', 'between:100,5000'],
             'packaging_date' => ['required', 'date', 'before_or_equal:today'],
+            'description' => ['nullable', 'string', 'max:5000'],
             'oil_lot_id' => array_merge(['required', 'integer', app(OilLotExists::class)], $lotOwnershipRules),
             'image' => ['nullable', File::image()->types(['jpg', 'png', 'webp'])->max('2mb')],
             'public_status' => ['sometimes', Rule::enum(OilProductPublicStatus::class)],

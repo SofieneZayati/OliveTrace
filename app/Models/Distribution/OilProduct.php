@@ -30,7 +30,7 @@ class OilProduct extends Model
     ];
 
     protected $fillable = [
-        'oil_lot_id', 'name', 'brand', 'bottle_volume_ml', 'packaging_date', 'image', 'public_status',
+        'oil_lot_id', 'name', 'brand', 'bottle_volume_ml', 'packaging_date', 'description', 'image', 'public_status',
     ];
 
     protected static function booted(): void
@@ -70,6 +70,18 @@ class OilProduct extends Model
     public function oilLot(): ?OilLotSummary
     {
         return app(OilLotLookup::class)->find((int) $this->oil_lot_id);
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function updateDescription(?string $description): bool
+    {
+        $this->description = $description;
+
+        return $this->save();
     }
 
     public function traceUrl(): string

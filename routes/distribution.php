@@ -13,9 +13,11 @@ Route::prefix('products')->name('producer.products.')->middleware(['auth', 'acti
     Route::get('/', [OilProductController::class, 'index'])->name('index');
     Route::get('/create', [OilProductController::class, 'create'])->name('create');
     Route::post('/', [OilProductController::class, 'store'])->name('store');
+    Route::post('/description', [OilProductController::class, 'generateDescriptionDraft'])->middleware('throttle:5,1')->name('description.generate-new');
     Route::get('/{product}', [OilProductController::class, 'show'])->whereNumber('product')->name('show');
     Route::get('/{product}/edit', [OilProductController::class, 'edit'])->whereNumber('product')->name('edit');
     Route::patch('/{product}', [OilProductController::class, 'update'])->whereNumber('product')->name('update');
+    Route::post('/{product}/description', [OilProductController::class, 'generateDescription'])->whereNumber('product')->middleware('throttle:5,1')->name('description.generate');
     Route::patch('/{product}/archive', [OilProductController::class, 'archive'])->whereNumber('product')->name('archive');
     Route::patch('/{product}/visibility', [OilProductController::class, 'toggleVisibility'])->whereNumber('product')->name('visibility');
 });
@@ -44,6 +46,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admi
     Route::get('/products/{product}', [OilProductController::class, 'show'])->whereNumber('product')->name('products.show');
     Route::get('/products/{product}/edit', [OilProductController::class, 'edit'])->whereNumber('product')->name('products.edit');
     Route::patch('/products/{product}', [OilProductController::class, 'update'])->whereNumber('product')->name('products.update');
+    Route::post('/products/{product}/description', [OilProductController::class, 'generateDescription'])->whereNumber('product')->middleware('throttle:5,1')->name('products.description.generate');
     Route::patch('/products/{product}/archive', [OilProductController::class, 'archive'])->whereNumber('product')->name('products.archive');
     Route::patch('/products/{product}/visibility', [OilProductController::class, 'moderateVisibility'])->whereNumber('product')->name('products.visibility');
 

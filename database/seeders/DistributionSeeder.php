@@ -60,6 +60,7 @@ class DistributionSeeder extends Seeder
                 'brand' => 'El Baraka',
                 'bottle_volume_ml' => 750,
                 'packaging_date' => '2026-10-03',
+                'description' => 'Une huile d’olive présentée dans un format de 750 ml, conditionnée le 03/10/2026. Cette présentation reprend les informations enregistrées pour le produit et invite à suivre son parcours dans OliveTrace.',
                 'public_status' => OilProductPublicStatus::Visible,
                 'archived_at' => null,
             ]);
@@ -70,6 +71,7 @@ class DistributionSeeder extends Seeder
                 'brand' => 'Sfax Harvest',
                 'bottle_volume_ml' => 250,
                 'packaging_date' => '2026-10-03',
+                'description' => 'Une huile d’olive proposée en bouteille de 250 ml et conditionnée le 03/10/2026. Une présentation compacte qui permet de découvrir le produit à partir des informations déclarées dans OliveTrace.',
                 'public_status' => OilProductPublicStatus::Visible,
                 'archived_at' => null,
             ]);
@@ -80,6 +82,7 @@ class DistributionSeeder extends Seeder
                 'brand' => 'Domaine En Nour',
                 'bottle_volume_ml' => 500,
                 'packaging_date' => '2026-10-06',
+                'description' => 'Une huile d’olive présentée dans un format de 500 ml, conditionnée le 06/10/2026. Son identité et son conditionnement sont documentés dans OliveTrace pour une découverte simple et transparente.',
                 'public_status' => OilProductPublicStatus::Visible,
                 'archived_at' => null,
             ]);
@@ -90,6 +93,7 @@ class DistributionSeeder extends Seeder
                 'brand' => 'Zitouna Select',
                 'bottle_volume_ml' => 1000,
                 'packaging_date' => '2026-10-06',
+                'description' => 'Une huile d’olive proposée en format de 1000 ml, conditionnée le 06/10/2026. Cette description s’appuie uniquement sur les informations enregistrées pour le produit dans OliveTrace.',
                 'public_status' => OilProductPublicStatus::Visible,
                 'archived_at' => null,
             ]);
@@ -100,6 +104,7 @@ class DistributionSeeder extends Seeder
                 'brand' => 'OliveTrace Test',
                 'bottle_volume_ml' => 500,
                 'packaging_date' => $now->copy()->subDays(5)->toDateString(),
+                'description' => 'Une présentation d’essai en bouteille de 500 ml, conditionnée récemment. Les informations affichées restent limitées aux données enregistrées pour ce produit dans OliveTrace.',
                 'public_status' => OilProductPublicStatus::Hidden,
                 'archived_at' => null,
             ]);
@@ -209,6 +214,7 @@ class DistributionSeeder extends Seeder
             'bottle_volume_ml' => $attrs['bottle_volume_ml'],
             'packaging_date' => $attrs['packaging_date'],
             'public_status' => $attrs['public_status'],
+            'description' => $attrs['description'] ?? null,
         ]);
         $product->archived_at = $attrs['archived_at'] ?? null;
         $product->save();
