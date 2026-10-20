@@ -174,6 +174,18 @@ class DistributionSeeder extends Seeder
                 'transport_type' => TransportType::Truck,
                 'status' => ShipmentStatus::Planned,
             ]);
+
+            // 6. Product C → Gabès (in transit and overdue, for dashboard demo)
+            $this->upsertShipment($productC, $profile, [
+                'departure_location' => 'Sfax, Tunisie',
+                'destination' => 'Gabès, Tunisie',
+                'departure_date' => $now->copy()->subDays(6)->toDateString(),
+                'arrival_date' => null,
+                'distance_km' => '155.00',
+                'quantity_bottles' => 60,
+                'transport_type' => TransportType::Truck,
+                'status' => ShipmentStatus::InTransit,
+            ]);
         });
     }
 
