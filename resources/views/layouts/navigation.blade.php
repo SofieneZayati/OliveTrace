@@ -22,10 +22,44 @@
                     <a href="{{ route('admin.users.index') }}" @if(request()->routeIs('admin.users.*')) aria-current="page" @endif class="nav-link">Users</a>
                 @endcan
                 <a href="{{ route('profile.edit') }}" @if(request()->routeIs('profile.*')) aria-current="page" @endif class="nav-link">Profile</a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="btn-secondary py-2">Logout <x-icon name="logout" class="h-4 w-4" /></button>
-                </form>
+                
+                @auth
+                    @if(auth()->user()->role === \App\Enums\Role::Consumer)
+                        <div class="relative" x-data="{ notifOpen: false, unreadCount: @js(\App\Models\Consumer\ConsumerNotification::unreadCount(auth()->id())) }" @keydown.escape.window="notifOpen = false" @click.outside="notifOpen = false">
+                            <button type="button" class="btn-secondary p-2 relative" aria-label="Notifications" @click="notifOpen = !notifOpen" aria-expanded="false" aria-controls="notifications-dropdown">
+                                <x-icon name="bell" class="h-5 w-5" />
+                                <span x-show="unreadCount > 0" class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center" x-text="unreadCount"></span>
+                            </button>
+                            <div id="notifications-dropdown" x-show="notifOpen" x-transition:enter="transition ease-out duration-100" x-transition:leave="transition ease-in duration-75" class="absolute right-0 mt-2 w-80 bg-white border border-stone-200 rounded-xl shadow-lg py-2 z-50" x-cloak>
+                                <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
+                                    <h3 class="font-semibold text-sm">Notifications</h3>
+                                    <form method="POST" action="{{ route('my-trace.notifications.read-all') }}" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-xs text-olive-600 hover:underline">Tout marquer comme lu</button>
+                                    </form>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    @php $notifications = \App\Models\Consumer\ConsumerNotification::where('consumer_user_id', auth()->id())->latest()->take(10)->get(); @endphp
+                                    @forelse($notifications as $notification)
+                                        <div class="px-4 py-3 border-b border-stone-100 hover:bg-stone-50 {{ $notification->read ? 'opacity-60' : 'bg-olive-50/50' }}">
+                                            <p class="font-semibold text-sm">{{ $notification->title }}</p>
+                                            <p class="mt-1 text-sm text-stone-500 line-clamp-2">{{ $notification->message }}</p>
+                                            <p class="mt-1 text-xs text-stone-400">{{ $notification->created_at->diffForHumans() }}</p>
+                                            @unless($notification->read)
+                                                <form method="POST" action="{{ route('my-trace.notifications.read', $notification) }}" class="inline mt-2">
+                                                    @csrf @method('PATCH')
+                                                    <button type="submit" class="text-xs text-olive-600 hover:underline">Marquer comme lu</button>
+                                                </form>
+                                            @endunless
+                                        </div>
+                                    @empty
+                                        <p class="px-4 py-4 text-sm text-stone-500 text-center">Aucune notification.</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    @endauth
+                @endauth
             @endguest
         </div>
     </div>
