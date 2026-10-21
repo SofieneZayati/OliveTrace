@@ -17,9 +17,9 @@ class CheckDatabase extends Command
     {
         try {
             DB::select('SELECT 1');
-            foreach (['users', 'producer_profiles', 'farms'] as $table) {
+            foreach (['users', 'producer_profiles', 'farms', 'farm_activities', 'farm_advice_reports'] as $table) {
                 if (! Schema::hasTable($table)) {
-                    $this->error('Required tables are missing. Run php artisan migrate.');
+                    $this->error("Required table {$table} is missing. Run php artisan migrate.");
 
                     return self::FAILURE;
                 }

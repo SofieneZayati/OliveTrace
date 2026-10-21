@@ -163,6 +163,12 @@ non-irrigation activity. A recommendation date must be today or later. Planned
 manual entries may be retrospective (from 2000 onward). Checks run on the server,
 even when browser HTML validation is bypassed.
 
+Management forms use `novalidate` so invalid submissions reach Laravel and show
+the server-rendered error summary rather than a browser validation popup. Form
+Requests and services remain authoritative; HTML attributes are only metadata.
+See [the module update checklist](sofiene-module-checks.md) for teammate setup,
+missing-table diagnostics and a short server-validation demonstration.
+
 Completed/cancelled entries cannot be edited, reopened or deleted through the
 application. Cancel a mistaken plan instead of removing its history. Activities
 and reports have restricted foreign keys: deleting a farm with this history
