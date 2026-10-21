@@ -15,10 +15,21 @@
                 </div>
                 @if($item->comment)<p class="mt-3 text-sm leading-6">{{ $item->comment }}</p>@endif
                 <p class="mt-3 text-xs text-stone-500">Assistant suggestion: {{ $item->ai_category?->label() ?? '—' }} · {{ $item->ai_sentiment?->label() ?? '—' }} · {{ $item->ai_priority?->label() ?? '—' }} priority (advisory only).</p>
-                <form method="POST" action="{{ route('admin.consumer.feedback.update', $item) }}" class="mt-4 flex items-center gap-3">@csrf @method('PATCH')
-                    <input type="hidden" name="status" value="{{ $item->status === \App\Enums\Consumer\FeedbackStatus::Visible ? 'hidden' : 'visible' }}">
-                    <button type="submit" class="btn-secondary py-2">{{ $item->status === \App\Enums\Consumer\FeedbackStatus::Visible ? 'Hide review' : 'Show review' }}</button>
-                </form>
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <form method="POST" action="{{ route('admin.consumer.feedback.update', $item) }}" class="flex items-center gap-3">@csrf @method('PATCH')
+                        <input type="hidden" name="status" value="{{ $item->status === \App\Enums\Consumer\FeedbackStatus::Visible ? 'hidden' : 'visible' }}">
+                        <button type="submit" class="btn-secondary py-2">{{ $item->status === \App\Enums\Consumer\FeedbackStatus::Visible ? 'Hide review' : 'Show review' }}</button>
+                    </form>
+                    <form method="POST" action="{{ route('admin.consumer.feedback.ai-response', $item) }}" class="flex items-center gap-2">@csrf
+                        <select name="tone" class="rounded-lg border-stone-300 text-sm">
+                            <option value="professional">Professionnel</option>
+                            <option value="empathetic">Empathique</option>
+                            <option value="formal">Formel</option>
+                            <option value="friendly">Amical</option>
+                        </select>
+                        <button type="submit" class="btn-primary text-sm">Réponse IA</button>
+                    </form>
+                </div>
             </x-card>
         @empty
             <x-card><p class="text-sm text-stone-500">No reviews to moderate.</p></x-card>

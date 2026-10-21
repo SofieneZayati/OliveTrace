@@ -18,11 +18,12 @@ class Complaint extends Model
     /** @use HasFactory<ComplaintFactory> */
     use HasFactory;
 
-    protected $attributes = ['status' => 'open'];
+    protected $attributes = ['status' => 'open', 'reopen_count' => 0];
 
     protected $fillable = [
         'oil_product_id', 'consumer_user_id', 'subject', 'description', 'status',
         'admin_response', 'ai_category', 'ai_sentiment', 'ai_priority', 'resolved_at',
+        'sla_deadline', 'reopen_count',
     ];
 
     protected function casts(): array
@@ -33,6 +34,7 @@ class Complaint extends Model
             'ai_sentiment' => FeedbackSentiment::class,
             'ai_priority' => FeedbackPriority::class,
             'resolved_at' => 'datetime',
+            'sla_deadline' => 'datetime',
         ];
     }
 
@@ -49,5 +51,15 @@ class Complaint extends Model
     public function isOwnedBy(User $user): bool
     {
         return $this->consumer_user_id === $user->id;
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->sla_deadline && $this->sla_deadline->isPast() && ! $this->status->isClosed();
+    }
+
+    public function isSlaBreached(): bool
+    {
+        return $this->isOverdue();
     }
 }

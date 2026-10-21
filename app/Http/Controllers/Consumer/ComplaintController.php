@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Consumer;
 
+use App\Events\ComplaintCreated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Consumer\ComplaintRequest;
 use App\Models\Consumer\Complaint;
@@ -41,6 +42,9 @@ class ComplaintController extends Controller
             'subject' => $data['subject'], 'description' => $data['description'], 'status' => 'open',
             'ai_category' => $analysis['category'], 'ai_sentiment' => $analysis['sentiment'], 'ai_priority' => $analysis['priority'],
         ]);
+
+        // Fire event for notifications
+        event(new ComplaintCreated($complaint));
 
         return redirect()->route('complaints.show', $complaint)->with('success', 'Your complaint was submitted. You can follow its status here.');
     }

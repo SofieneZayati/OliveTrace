@@ -1,14 +1,20 @@
 <?php
 
 use App\Http\Controllers\Consumer\Admin\ConsumerModerationController;
+use App\Http\Controllers\Consumer\Admin\SlaDashboardController;
 use App\Http\Controllers\Consumer\ComplaintController;
 use App\Http\Controllers\Consumer\FeedbackController;
+use App\Http\Controllers\Consumer\MyTraceController;
 use App\Http\Controllers\Consumer\TraceController;
 use Illuminate\Support\Facades\Route;
 
 // Module 5 (Aymen) — Consumer Traceability, Feedback & Complaints.
 Route::get('/trace/{slug}', [TraceController::class, 'show'])->name('trace.show');
 Route::redirect('/my-complaints', '/complaints')->name('my-complaints');
+
+// Public share card
+Route::get('/trace/{slug}/share', [TraceController::class, 'shareProduct'])->name('trace.share');
+Route::get('/api/trace/{slug}/share', [TraceController::class, 'shareCardApi'])->name('trace.share.api');
 
 Route::middleware(['auth', 'active', 'role:consumer'])->group(function () {
     Route::post('/products/{product}/feedback', [FeedbackController::class, 'store'])->whereNumber('product')->name('feedback.store');
@@ -20,12 +26,33 @@ Route::middleware(['auth', 'active', 'role:consumer'])->group(function () {
     Route::get('/complaints/create', [ComplaintController::class, 'create'])->name('complaints.create');
     Route::post('/complaints', [ComplaintController::class, 'store'])->name('complaints.store');
     Route::get('/complaints/{complaint}', [ComplaintController::class, 'show'])->whereNumber('complaint')->name('complaints.show');
+
+    // My OliveTrace dashboard
+    Route::get('/my-trace', [MyTraceController::class, 'index'])->name('my-trace.index');
+    Route::get('/my-trace/notifications', [MyTraceController::class, 'notifications'])->name('my-trace.notifications');
+    Route::patch('/my-trace/notifications/{notification}', [MyTraceController::class, 'markNotificationRead'])->whereNumber('notification')->name('my-trace.notifications.read');
+    Route::patch('/my-trace/notifications/read-all', [MyTraceController::class, 'markAllNotificationsRead'])->name('my-trace.notifications.read-all');
+
+    // Verified purchase proof upload
+    Route::post('/products/{product}/proof', [MyTraceController::class, 'uploadProof'])->whereNumber('product')->name('products.proof.upload');
+
+    // Share product
+    Route::get('/products/{product}/share', [MyTraceController::class, 'shareProduct'])->whereNumber('product')->name('products.share');
+    Route::get('/api/products/{product}/share', [MyTraceController::class, 'shareCardApi'])->whereNumber('product')->name('products.share.api');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admin', 'can:access-admin'])->group(function () {
     Route::get('consumer/feedback', [ConsumerModerationController::class, 'feedbackIndex'])->name('consumer.feedback.index');
     Route::patch('consumer/feedback/{feedback}', [ConsumerModerationController::class, 'feedbackUpdate'])->whereNumber('feedback')->name('consumer.feedback.update');
+
+    // AI suggested responses for feedback
+    Route::post('consumer/feedback/{feedback}/ai-response', [SlaDashboardController::class, 'getSuggestedResponse'])->whereNumber('feedback')->name('consumer.feedback.ai-response');
+    Route::post('consumer/feedback/{feedback}/ai-response/multi', [SlaDashboardController::class, 'getMultipleTones'])->whereNumber('feedback')->name('consumer.feedback.ai-response.multi');
+
     Route::get('consumer/complaints', [ConsumerModerationController::class, 'complaintsIndex'])->name('consumer.complaints.index');
     Route::get('consumer/complaints/{complaint}', [ConsumerModerationController::class, 'complaintsShow'])->whereNumber('complaint')->name('consumer.complaints.show');
     Route::patch('consumer/complaints/{complaint}', [ConsumerModerationController::class, 'complaintsUpdate'])->whereNumber('complaint')->name('consumer.complaints.update');
+
+    // SLA Dashboard
+    Route::get('consumer/sla', [SlaDashboardController::class, 'index'])->name('consumer.sla.index');
 });
