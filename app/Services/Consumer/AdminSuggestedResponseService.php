@@ -36,9 +36,13 @@ Generate a response in {tone} tone. Maximum 150 words.';
 
         $provider = config('admin-ai.provider', 'openai');
         $model = config('admin-ai.model', 'gpt-4o-mini');
-        $key = config('admin-ai.openai_key');
+        $key = match ($provider) {
+            'openai' => config('admin-ai.openai_key'),
+            'groq' => config('admin-ai.groq_key'),
+            default => null,
+        };
 
-        if (! in_array($provider, ['openai', 'ollama'], true) || $provider === 'openai' && ! $key) {
+        if (! in_array($provider, ['openai', 'groq', 'ollama'], true) || in_array($provider, ['openai', 'groq']) && ! $key) {
             return $this->fallback($feedback, $tone);
         }
 
@@ -111,6 +115,26 @@ Generate a response in {tone} tone. Maximum 150 words.';
 
             if (! isset($response['choices'][0]['message']['content'])) {
                 throw new RuntimeException('Invalid OpenAI response format.');
+            }
+
+            return trim($response['choices'][0]['message']['content']);
+        }
+
+        if ($provider === 'groq') {
+            $response = Http::withToken($key)->acceptJson()
+                ->connectTimeout(10)->timeout(30)
+                ->post('https://api.groq.com/openai/v1/chat/completions', [
+                    'model' => $model,
+                    'messages' => [
+                        ['role' => 'system', 'content' => self::SYSTEM_PROMPT],
+                        ['role' => 'user', 'content' => $prompt],
+                    ],
+                    'max_tokens' => 300,
+                    'temperature' => 0.7,
+                ])->throw();
+
+            if (! isset($response['choices'][0]['message']['content'])) {
+                throw new RuntimeException('Invalid Groq response format.');
             }
 
             return trim($response['choices'][0]['message']['content']);

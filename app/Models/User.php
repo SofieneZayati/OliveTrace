@@ -87,6 +87,11 @@ class User extends Authenticatable
         return $this->hasMany(Complaint::class, 'consumer_user_id');
     }
 
+    public function complaintsAdmin(): HasMany
+    {
+        return $this->hasMany(Complaint::class, 'admin_user_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *

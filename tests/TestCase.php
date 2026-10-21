@@ -8,6 +8,13 @@ abstract class TestCase extends BaseTestCase
 {
     public function createApplication()
     {
+        // Ensure testing environment is set before bootstrapping
+        if (!isset($_ENV['APP_ENV']) && !isset($_SERVER['APP_ENV'])) {
+            $_ENV['APP_ENV'] = 'testing';
+            $_SERVER['APP_ENV'] = 'testing';
+            putenv('APP_ENV=testing');
+        }
+
         $app = parent::createApplication();
         $connection = $app['config']['database.default'];
         $database = $app['config']["database.connections.{$connection}.database"];

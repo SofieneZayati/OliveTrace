@@ -11,17 +11,7 @@
                 <a href="{{ route('home') }}" @if(request()->routeIs('home')) aria-current="page" @endif class="nav-link">Home</a>
                 <a href="{{ route('login') }}" @if(request()->routeIs('login')) aria-current="page" @endif class="nav-link">Login</a>
                 <x-button-link href="{{ route('register') }}">Register <x-icon name="arrow" class="h-4 w-4" /></x-button-link>
-            @else
-                @if (auth()->user()->role === \App\Enums\Role::Consumer)
-                    <a href="{{ route('home') }}" @if(request()->routeIs('home')) aria-current="page" @endif class="nav-link">Home</a>
-                    <a href="{{ route('my-trace.index') }}" @if(request()->routeIs('my-trace.*')) aria-current="page" @endif class="nav-link">Mon OliveTrace</a>
-                    <a href="{{ route('complaints.index') }}" @if(request()->routeIs('complaints.*')) aria-current="page" @endif class="nav-link">My complaints</a>
-                @endif
-                <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('dashboard') }}" @if(request()->routeIs('dashboard', 'admin.dashboard')) aria-current="page" @endif class="nav-link">Dashboard</a>
-                @can('access-admin')
-                    <a href="{{ route('admin.users.index') }}" @if(request()->routeIs('admin.users.*')) aria-current="page" @endif class="nav-link">Users</a>
-                @endcan
-                <a href="{{ route('profile.edit') }}" @if(request()->routeIs('profile.*')) aria-current="page" @endif class="nav-link">Profile</a>
+            <a href="{{ route('profile.edit') }}" @if(request()->routeIs('profile.*')) aria-current="page" @endif class="nav-link">Profile</a>
                 
                 @auth
                     @if(auth()->user()->role === \App\Enums\Role::Consumer)
@@ -60,6 +50,11 @@
                         </div>
                     @endauth
                 @endauth
+                
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="btn-secondary py-2">Logout <x-icon name="logout" class="h-4 w-4" /></button>
+                </form>
             @endguest
         </div>
     </div>

@@ -41,7 +41,7 @@ class SlaDashboardController extends Controller
         Gate::authorize('access-admin');
 
         $tone = request('tone', 'professional');
-        $result = $this->aiService->generate($feedback, $tone);
+        $result = $aiService->generate($feedback, $tone);
 
         if (request()->wantsJson()) {
             return response()->json($result);
@@ -54,7 +54,7 @@ class SlaDashboardController extends Controller
     {
         Gate::authorize('access-admin');
 
-        $results = $this->aiService->generateMultipleTones($feedback);
+        $results = $aiService->generateMultipleTones($feedback);
 
         return response()->json($results);
     }
