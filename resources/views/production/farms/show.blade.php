@@ -31,7 +31,7 @@
     <x-card class="mt-8">
         @if($admin)
             <h2 class="font-display text-2xl">Farm moderation</h2><p class="my-4 text-sm text-stone-500">Disabling a farm removes it from public display and future harvest selection. Existing history stays intact.</p>
-            <form method="POST" action="{{ route('admin.farms.status', $farm->id) }}" class="flex flex-wrap items-end gap-4">@csrf @method('PATCH')<x-production-field name="status" label="Farm status" :value="$farm->status->value" :options="collect(\App\Enums\FarmStatus::cases())->mapWithKeys(fn($status) => [$status->value => $status->label()])->all()" :required="true" /><button class="btn-primary" type="submit">Update status</button></form>
+            <form method="POST" action="{{ route('admin.farms.status', $farm->id) }}" class="flex flex-wrap items-end gap-4" novalidate>@csrf @method('PATCH')<x-production-field name="status" label="Farm status" :value="$farm->status->value" :options="collect(\App\Enums\FarmStatus::cases())->mapWithKeys(fn($status) => [$status->value => $status->label()])->all()" :required="true" /><button class="btn-primary" type="submit">Update status</button></form>
         @else
             <h2 class="font-display text-2xl">Preserve the origin history</h2><p class="my-4 max-w-3xl text-sm leading-6 text-stone-500">Archive a parcel when it is no longer used. Deletion removes an unlinked farm; if linked history exists, the farm is archived instead.</p>
             <div class="flex flex-wrap gap-3">

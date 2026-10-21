@@ -40,7 +40,7 @@
                     <p class="mt-5 rounded-xl bg-olive-50 p-4 text-sm font-medium">Added to the journal · {{ $adopted[$index]->status->label() }} · Planned {{ $adopted[$index]->planned_on->format('d M Y') }}</p>
                 @elseif($writable)
                     <details class="print-hide mt-5 border-t border-stone-100 pt-5"><summary class="text-link cursor-pointer">Review and add to my plan</summary>
-                        <form method="POST" action="{{ route('producer.farms.reports.adopt', [$farm->id, $report->id, $index]) }}" class="mt-5 space-y-4">
+                        <form method="POST" action="{{ route('producer.farms.reports.adopt', [$farm->id, $report->id, $index]) }}" class="mt-5 space-y-4" novalidate>
                             @csrf
                             <div class="grid gap-4 sm:grid-cols-[2fr_1fr]"><div><label for="action-title-{{ $index }}" class="form-label">Your activity title</label><input class="form-input mt-2 w-full" id="action-title-{{ $index }}" name="title" value="{{ $recommendation['title'] }}" maxlength="150" required /></div><div><label for="action-date-{{ $index }}" class="form-label">Planned date</label><input class="form-input mt-2 w-full" id="action-date-{{ $index }}" name="planned_on" type="date" value="{{ today()->toDateString() }}" min="{{ today()->toDateString() }}" max="{{ today()->addYear()->toDateString() }}" required /></div></div>
                             <div><label for="action-notes-{{ $index }}" class="form-label">Your private notes (optional)</label><textarea class="form-input mt-2 w-full rounded-xl border-stone-300 text-sm" id="action-notes-{{ $index }}" name="notes" rows="2" maxlength="2000"></textarea></div>

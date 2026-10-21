@@ -7,7 +7,7 @@
         <p class="mt-4 text-sm leading-6 text-stone-500">Set up the business profile that connects your farms to the traceability chain. Fields marked * are required.</p>
     </div>
     <x-card class="max-w-3xl">
-        <form method="POST" enctype="multipart/form-data" action="{{ $admin ? route('admin.producers.update', $profile->id) : route($profile ? 'producer.profile.update' : 'producer.profile.store') }}" class="space-y-6">
+        <form method="POST" enctype="multipart/form-data" action="{{ $admin ? route('admin.producers.update', $profile->id) : route($profile ? 'producer.profile.update' : 'producer.profile.store') }}" class="space-y-6" novalidate>
             @csrf
             @if($profile) @method('PATCH') @endif
             <div class="grid gap-6 sm:grid-cols-2">

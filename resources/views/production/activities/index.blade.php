@@ -16,8 +16,8 @@
     </div>
     @unless($writable)<p class="mb-6 rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">This journal is read-only{{ $admin ? ' for administrator inspection' : ' while the farm or producer profile is inactive' }}. Existing history remains available.</p>@endunless
     <x-card class="mb-7"><form method="GET" class="grid items-end gap-4 sm:grid-cols-3">
-        <x-production-field name="status" label="Status" :value="request('status')" :options="['planned' => 'Planned', 'overdue' => 'Overdue', 'completed' => 'Completed', 'cancelled' => 'Cancelled']" />
-        <x-production-field name="type" label="Activity type" :value="request('type')" :options="collect(\App\Enums\FarmActivityType::cases())->mapWithKeys(fn($type) => [$type->value => $type->label()])->all()" />
+        <x-production-field name="status" label="Status" :value="request('status')" :preserve-input="false" :options="['planned' => 'Planned', 'overdue' => 'Overdue', 'completed' => 'Completed', 'cancelled' => 'Cancelled']" />
+        <x-production-field name="type" label="Activity type" :value="request('type')" :preserve-input="false" :options="collect(\App\Enums\FarmActivityType::cases())->mapWithKeys(fn($type) => [$type->value => $type->label()])->all()" />
         <div class="flex items-center gap-3"><button class="btn-primary" type="submit">Filter</button><a class="text-link" href="{{ route($prefix.'.farms.activities.index', $farm->id) }}">Reset</a></div>
     </form></x-card>
     <div class="space-y-5">
@@ -32,7 +32,7 @@
                 @if($entry->advice_report_id ?? null)<a class="text-link mt-4 inline-block" href="{{ route($prefix.'.farms.reports.show', [$farm->id, $entry->advice_report_id]) }}">View the AI report behind this activity</a>@endif
                 @if($writable && $entry->status === \App\Enums\FarmActivityStatus::Planned)
                     <div class="mt-6 border-t border-stone-100 pt-5">
-                        <form method="POST" action="{{ route('producer.farms.activities.status', [$farm->id, $entry->id]) }}" class="flex flex-wrap items-end gap-4">
+                        <form method="POST" action="{{ route('producer.farms.activities.status', [$farm->id, $entry->id]) }}" class="flex flex-wrap items-end gap-4" novalidate>
                             @csrf @method('PATCH')<input type="hidden" name="status" value="completed" />
                             <div><label class="form-label" for="completed-{{ $entry->id }}">Completion date</label><input class="form-input mt-2" type="date" id="completed-{{ $entry->id }}" name="completed_on" min="{{ $entry->planned_on->toDateString() }}" max="{{ today()->toDateString() }}" value="{{ today()->toDateString() }}" required /></div>
                             @if($entry->type === \App\Enums\FarmActivityType::Irrigation)<div><label class="form-label" for="water-{{ $entry->id }}">Actual water used (m³)</label><input class="form-input mt-2 w-44" type="number" id="water-{{ $entry->id }}" name="water_m3" min="0.01" max="9999999999.99" step="0.01" required /></div>@endif

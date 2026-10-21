@@ -3,7 +3,7 @@
 @section('content')
     <div class="mb-8"><p class="eyebrow mb-4 text-olive-600">{{ $farm->name }} / Activity journal</p><h1 class="display-title text-4xl">{{ $activity ? 'Adjust the plan.' : 'Plan the next step.' }}</h1><p class="mt-4 max-w-2xl text-sm leading-6 text-stone-500">Record farm care here. Complete the activity afterwards to record what happened. Harvests stay in the harvest workspace.</p></div>
     <x-card class="max-w-3xl">
-        <form method="POST" action="{{ $activity ? route('producer.farms.activities.update', [$farm->id, $activity->id]) : route('producer.farms.activities.store', $farm->id) }}" class="space-y-6">
+        <form method="POST" action="{{ $activity ? route('producer.farms.activities.update', [$farm->id, $activity->id]) : route('producer.farms.activities.store', $farm->id) }}" class="space-y-6" novalidate>
             @csrf
             @if($activity) @method('PATCH') @endif
             <x-production-field name="title" label="Activity title" :value="$activity?->title" :required="true" maxlength="150" help="For example: inspect the drip lines on the north parcel." />

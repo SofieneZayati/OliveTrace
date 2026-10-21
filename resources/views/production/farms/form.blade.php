@@ -3,7 +3,7 @@
 @section('content')
     <div class="mb-8 max-w-2xl"><p class="eyebrow mb-4 text-olive-600">Record the origin</p><h1 class="display-title text-4xl">{{ $farm ? 'Keep your farm story accurate.' : 'A new parcel. A new beginning.' }}</h1><p class="mt-4 text-sm leading-6 text-stone-500">Describe the land and cultivation practices. Fields marked * are required.</p></div>
     <x-card class="max-w-4xl">
-        <form method="POST" action="{{ $farm ? route($admin ? 'admin.farms.update' : 'producer.farms.update', $farm->id) : route('producer.farms.store') }}" class="space-y-7">
+        <form method="POST" action="{{ $farm ? route($admin ? 'admin.farms.update' : 'producer.farms.update', $farm->id) : route('producer.farms.store') }}" class="space-y-7" novalidate>
             @csrf @if($farm) @method('PATCH') @endif
             <div class="grid gap-6 sm:grid-cols-2">
                 <x-production-field name="name" label="Farm or parcel name" :value="$farm?->name" :required="true" maxlength="150" />
