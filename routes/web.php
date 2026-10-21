@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\MillController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Miller\MillRequestController;
 use App\Http\Controllers\Miller\MyMillController;
 use App\Http\Controllers\Miller\OilLotController;
@@ -12,9 +13,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'active'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'active'])->name('dashboard');
 
 Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -23,7 +22,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admin', 'can:access-admin'])->group(function () {
-    Route::view('/dashboard', 'dashboard')->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::resource('users', UserController::class)->only(['index', 'show', 'edit', 'update', 'destroy']);
     Route::resource('mills', MillController::class)->only(['index', 'show', 'edit', 'update', 'destroy']);
 });

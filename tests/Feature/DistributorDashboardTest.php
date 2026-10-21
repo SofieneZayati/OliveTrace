@@ -25,7 +25,7 @@ class DistributorDashboardTest extends TestCase
         $this->shipment($profileB, ShipmentStatus::Planned, TransportType::Rail, -10, null, 500, 4.00);
 
         $this->actingAs($profileA->user)
-            ->get(route('distributor.dashboard'))
+            ->get(route('dashboard'))
             ->assertOk()
             ->assertViewHas('metrics', function (array $metrics): bool {
                 return $metrics['status_counts'][ShipmentStatus::Delivered->value] === 1
@@ -36,7 +36,7 @@ class DistributorDashboardTest extends TestCase
             ->assertSee('Only shipments linked to your distributor profile.');
 
         $admin = User::factory()->state(['role' => Role::Admin])->create();
-        $this->actingAs($admin)->get(route('admin.distributor.dashboard'))
+        $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertOk()
             ->assertViewHas('metrics.total_distance', 960.0);
     }
@@ -49,7 +49,7 @@ class DistributorDashboardTest extends TestCase
         $this->shipment($profile, ShipmentStatus::Planned, TransportType::Van, 2, null, 300, 9.00);
 
         $this->actingAs($profile->user)
-            ->get(route('distributor.dashboard', ['date_from' => now()->subDays(7)->toDateString(), 'date_to' => now()->subDay()->toDateString()]))
+            ->get(route('dashboard', ['date_from' => now()->subDays(7)->toDateString(), 'date_to' => now()->subDay()->toDateString()]))
             ->assertOk()
             ->assertViewHas('metrics', function (array $metrics): bool {
                 return $metrics['average_delivery_days'] === 3.0
@@ -59,15 +59,17 @@ class DistributorDashboardTest extends TestCase
             });
 
         $this->actingAs($profile->user)
-            ->get(route('distributor.dashboard', ['date_from' => now()->toDateString(), 'date_to' => now()->subDay()->toDateString()]))
+            ->get(route('dashboard', ['date_from' => now()->toDateString(), 'date_to' => now()->subDay()->toDateString()]))
             ->assertSessionHasErrors('date_to');
     }
 
     public function test_dashboard_is_restricted_to_distributors_and_admins(): void
     {
-        $this->get(route('distributor.dashboard'))->assertRedirect(route('login'));
+        $this->get(route('dashboard'))->assertRedirect(route('login'));
         $consumer = User::factory()->state(['role' => Role::Consumer])->create();
-        $this->actingAs($consumer)->get(route('distributor.dashboard'))->assertForbidden();
+        $this->actingAs($consumer)->get(route('dashboard'))
+            ->assertOk()
+            ->assertViewHas('metrics', null);
     }
 
     private function shipment(

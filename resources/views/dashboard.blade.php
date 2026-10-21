@@ -49,6 +49,68 @@
         </div>
     </section>
     <div class="grid gap-5 md:grid-cols-2">
+        @if($metrics !== null)
+            <x-card class="md:col-span-2">
+                <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+                    <div>
+                        <p class="eyebrow text-olive-600">Distribution overview</p>
+                        <h2 class="mt-2 font-display text-3xl">Your distribution at a glance.</h2>
+                        <p class="mt-3 text-sm leading-6 text-stone-500">
+                            {{ auth()->user()->isAdmin() ? 'All distributor shipments across OliveTrace.' : 'Only shipments linked to your distributor profile.' }}
+                        </p>
+                    </div>
+                    <a class="btn-secondary" href="{{ route(auth()->user()->isAdmin() ? 'admin.shipments.index' : 'distributor.shipments.index') }}">View shipments</a>
+                </div>
+                <form method="GET" action="{{ route(auth()->user()->isAdmin() ? 'admin.dashboard' : 'dashboard') }}" class="mb-6 grid items-end gap-4 sm:grid-cols-2 xl:grid-cols-[1fr_1fr_auto]">
+                    <div>
+                        <x-input-label for="date_from" value="Departure from" />
+                        <x-text-input id="date_from" name="date_from" type="date" class="mt-2 w-full" :value="$filters['date_from'] ?? ''" />
+                    </div>
+                    <div>
+                        <x-input-label for="date_to" value="Departure to" />
+                        <x-text-input id="date_to" name="date_to" type="date" class="mt-2 w-full" :value="$filters['date_to'] ?? ''" />
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <x-primary-button>Filter</x-primary-button>
+                        <a class="text-link" href="{{ route(auth()->user()->isAdmin() ? 'admin.dashboard' : 'dashboard') }}">Reset</a>
+                    </div>
+                </form>
+                @php($hasShipments = array_sum($metrics['status_counts']) > 0)
+                @if(! $hasShipments)
+                    <p class="mb-6 rounded-xl bg-olive-50 p-4 text-sm text-stone-600">No shipments in this period.</p>
+                @endif
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div class="rounded-xl border border-stone-100 p-4"><p class="text-sm text-stone-500">Total distance</p><p class="mt-2 font-display text-2xl">{{ number_format($metrics['total_distance'], 0) }} km</p></div>
+                    <div class="rounded-xl border border-stone-100 p-4"><p class="text-sm text-stone-500">Estimated CO₂</p><p class="mt-2 font-display text-2xl">{{ number_format($metrics['total_co2'], 2) }} kg</p></div>
+                    <div class="rounded-xl border border-stone-100 p-4"><p class="text-sm text-stone-500">Average delivery</p><p class="mt-2 font-display text-2xl">{{ $metrics['average_delivery_days'] === null ? '—' : number_format($metrics['average_delivery_days'], 1).' days' }}</p></div>
+                    <div class="rounded-xl border border-stone-100 p-4"><p class="text-sm text-stone-500">Overdue shipments</p><p class="mt-2 font-display text-2xl">{{ $metrics['overdue_count'] }}</p></div>
+                </div>
+                <div class="mt-6 grid gap-6 lg:grid-cols-2">
+                    <div>
+                        <h3 class="font-display text-2xl">Shipment status</h3>
+                        <div class="mt-4 space-y-3">
+                            @foreach(['planned' => 'Planned', 'in_transit' => 'In transit', 'delivered' => 'Delivered'] as $status => $label)
+                                @php($count = $metrics['status_counts'][$status] ?? 0)
+                                <div>
+                                    <div class="flex justify-between text-sm"><span>{{ $label }}</span><strong>{{ $count }}</strong></div>
+                                    <div class="mt-1 h-2 rounded-full bg-olive-100"><div class="h-2 rounded-full bg-olive-600" style="width: {{ $hasShipments ? ($count / array_sum($metrics['status_counts'])) * 100 : 0 }}%" role="img" aria-label="{{ $label }}: {{ $count }}"></div></div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-display text-2xl">Transport types</h3>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            @forelse($metrics['transport_counts'] as $type => $count)
+                                <span class="role-badge">{{ ucfirst(str_replace('_', ' ', $type)) }}: {{ $count }}</span>
+                            @empty
+                                <span class="text-sm text-stone-500">No transport data.</span>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </x-card>
+        @endif
         <x-card>
             <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon
                     name="user" /></div>

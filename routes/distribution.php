@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Distribution\DistributorDashboardController;
 use App\Http\Controllers\Distribution\DistributorProfileController;
 use App\Http\Controllers\Distribution\OilProductController;
 use App\Http\Controllers\Distribution\PublicCatalogController;
@@ -23,7 +22,6 @@ Route::prefix('products')->name('producer.products.')->middleware(['auth', 'acti
 });
 
 Route::prefix('distributor')->name('distributor.')->middleware(['auth', 'active', 'role:distributor'])->group(function (): void {
-    Route::get('/dashboard', DistributorDashboardController::class)->name('dashboard');
     Route::get('/profile', [DistributorProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/create', [DistributorProfileController::class, 'create'])->name('profile.create');
     Route::post('/profile', [DistributorProfileController::class, 'store'])->name('profile.store');
@@ -41,7 +39,6 @@ Route::prefix('distributor')->name('distributor.')->middleware(['auth', 'active'
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admin', 'can:access-admin'])->group(function (): void {
-    Route::get('/distribution-dashboard', DistributorDashboardController::class)->name('distributor.dashboard');
     Route::get('/products', [OilProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product}', [OilProductController::class, 'show'])->whereNumber('product')->name('products.show');
     Route::get('/products/{product}/edit', [OilProductController::class, 'edit'])->whereNumber('product')->name('products.edit');

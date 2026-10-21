@@ -26,7 +26,6 @@
                 <a href="{{ route('producer.products.index') }}" class="sidebar-link" @if(request()->routeIs('producer.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
             @endif
             @if(auth()->user()->role === \App\Enums\Role::Distributor)
-                <a href="{{ route('distributor.dashboard') }}" class="sidebar-link" @if(request()->routeIs('distributor.dashboard')) aria-current="page" @endif><x-icon name="grid" />Tableau de bord</a>
                 <a href="{{ route('distributor.profile.show') }}" class="sidebar-link" @if(request()->routeIs('distributor.profile.*')) aria-current="page" @endif><x-icon name="user" />My profile</a>
                 <a href="{{ route('distributor.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('distributor.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
             @endif
@@ -37,7 +36,6 @@
                 <a href="{{ route('admin.mills.index') }}" class="sidebar-link" @if(request()->routeIs('admin.mills.*')) aria-current="page" @endif><x-icon name="drop" />Mills</a>
                 <a href="{{ route('admin.products.index') }}" class="sidebar-link" @if(request()->routeIs('admin.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
                 <a href="{{ route('admin.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('admin.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
-                <a href="{{ route('admin.distributor.dashboard') }}" class="sidebar-link" @if(request()->routeIs('admin.distributor.dashboard')) aria-current="page" @endif><x-icon name="grid" />Tableau de bord distribution</a>
                 <a href="{{ route('admin.consumer.feedback.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.feedback.*')) aria-current="page" @endif><x-icon name="chat" />Reviews</a>
                 <a href="{{ route('admin.consumer.complaints.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.complaints.*')) aria-current="page" @endif><x-icon name="flag" />Complaints</a>
             @endcan
