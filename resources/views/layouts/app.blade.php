@@ -1,3 +1,5 @@
+@props(['title' => 'Workspace'])
+
 @extends(auth()->user()->role === \App\Enums\Role::Consumer ? 'layouts.front' : 'layouts.admin')
 @section('title', $title)
 @section('content')

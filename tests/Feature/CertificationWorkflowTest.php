@@ -167,6 +167,109 @@ class CertificationWorkflowTest extends TestCase
         $this->assertDatabaseCount('certificates', 0);
     }
 
+    public function test_producer_and_lab_sidebar_navigation(): void
+    {
+        $producer = User::factory()->create(['role' => Role::Producer]);
+        $this->actingAs($producer)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('My Certificate Requests')
+            ->assertSee(route('certification.producer.requests.index'));
+
+        $lab = User::factory()->create(['role' => Role::Laboratory]);
+        $this->actingAs($lab)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('View Certification Requests')
+            ->assertSee(route('lab.requests.index'));
+    }
+
+    public function test_laboratory_can_modify_existing_request(): void
+    {
+        $lot = OilLot::factory()->create(['quality_grade' => OilQuality::ExtraVirgin]);
+        $certificateRequest = $this->requestFor($lot);
+        $lab = User::factory()->create(['role' => Role::Laboratory]);
+        $this->actingAs($lab);
+
+        // First analysis approved
+        $this->post(route('lab.requests.analyze', $certificateRequest), [
+            'acidity' => 0.45,
+            'peroxide_value' => 8.5,
+            'result' => 1,
+            'notes' => 'Initial approved analysis',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('approved', $certificateRequest->fresh()->status);
+        $certificate = Certificate::where('certificate_request_id', $certificateRequest->id)->first();
+        $this->assertNotNull($certificate);
+        $this->assertSame('active', $certificate->status);
+
+        // Lab can open edit view
+        $this->get(route('lab.requests.edit', $certificateRequest))
+            ->assertOk()
+            ->assertSee('Modify Certificate Request')
+            ->assertSee('0.45');
+
+        // Lab modifies request to rejected
+        $this->put(route('lab.requests.update', $certificateRequest), [
+            'acidity' => 1.5,
+            'peroxide_value' => 25.0,
+            'result' => 0,
+            'notes' => 'Correction: exceeded acidity limit upon re-testing.',
+        ])->assertRedirect(route('lab.requests.index'))->assertSessionHas('success');
+
+        $certificateRequest->refresh();
+        $this->assertSame('rejected', $certificateRequest->status);
+        $this->assertEquals(1.5, $certificateRequest->labAnalysis->acidity);
+        $this->assertSame('Correction: exceeded acidity limit upon re-testing.', $certificateRequest->labAnalysis->notes);
+        $this->assertSame('revoked', $certificate->fresh()->status);
+
+        // Lab re-modifies back to approved
+        $this->put(route('lab.requests.update', $certificateRequest), [
+            'acidity' => 0.35,
+            'peroxide_value' => 6.2,
+            'result' => 1,
+            'notes' => 'Final confirmed analysis',
+        ])->assertRedirect(route('lab.requests.index'))->assertSessionHas('success');
+
+        $this->assertSame('approved', $certificateRequest->fresh()->status);
+        $this->assertSame('active', $certificate->fresh()->status);
+    }
+
+    public function test_certificate_can_be_downloaded_as_pdf(): void
+    {
+        $lot = OilLot::factory()->create();
+        $certificateRequest = $this->requestFor($lot, 'approved');
+        $lab = User::factory()->create(['role' => Role::Laboratory]);
+        LabAnalysis::create([
+            'certificate_request_id' => $certificateRequest->id,
+            'lab_user_id' => $lab->id,
+            'analysis_date' => now(),
+            'acidity' => 0.28,
+            'peroxide_value' => 7.5,
+            'result' => true,
+            'notes' => 'Excellent quality',
+        ]);
+        $certificate = Certificate::create([
+            'certificate_request_id' => $certificateRequest->id,
+            'certificate_number' => 'CERT-PDF-TEST-123',
+            'type' => 'Extra Virgin Olive Oil',
+            'issue_date' => today(),
+            'expiry_date' => today()->addYear(),
+            'status' => 'active',
+        ]);
+
+        // Public page has download link
+        $this->get(route('certificates.show', $certificate->certificate_number))
+            ->assertOk()
+            ->assertSee(route('certificates.pdf', $certificate->certificate_number));
+
+        // PDF download route delivers PDF
+        $response = $this->get(route('certificates.pdf', $certificate->certificate_number));
+        $response->assertOk();
+        $this->assertStringContainsString('application/pdf', $response->headers->get('content-type'));
+        $this->assertStringContainsString('Certificate-CERT-PDF-TEST-123.pdf', $response->headers->get('content-disposition'));
+        $this->assertNotEmpty($response->getContent());
+    }
+
     private function requestFor(OilLot $lot, string $status = 'pending'): CertificateRequest
     {
         return CertificateRequest::create([

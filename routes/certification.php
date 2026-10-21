@@ -16,6 +16,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::middleware('role:laboratory')->prefix('lab')->name('lab.')->group(function () {
         Route::get('requests', [LabAnalysisController::class, 'index'])->name('requests.index');
         Route::get('requests/{certificateRequest}', [LabAnalysisController::class, 'show'])->name('requests.show');
+        Route::get('requests/{certificateRequest}/edit', [LabAnalysisController::class, 'edit'])->name('requests.edit');
+        Route::match(['put', 'patch'], 'requests/{certificateRequest}', [LabAnalysisController::class, 'update'])->name('requests.update');
         Route::post('requests/{certificateRequest}/analyze', [LabAnalysisController::class, 'analyze'])->name('requests.analyze');
 
         // AI Assistant Endpoint
@@ -25,3 +27,4 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 // Admin & Public (Consumers)
 Route::get('/certificates/{certificateNumber}', [CertificateController::class, 'show'])->name('certificates.show');
+Route::get('/certificates/{certificateNumber}/pdf', [CertificateController::class, 'downloadPdf'])->name('certificates.pdf');

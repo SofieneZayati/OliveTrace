@@ -59,7 +59,7 @@
                                         @endif
                                     </td>
                                     <td class="py-4 px-6 text-right">
-                                        <div class="flex items-center justify-end gap-3">
+                                        <div class="flex items-center justify-end gap-2">
                                             @if($req->status === 'pending')
                                                 <a href="{{ route('lab.requests.show', $req) }}" class="btn-primary text-xs py-1.5 px-3">
                                                     Analyze <x-icon name="arrow" class="h-3 w-3 inline ml-1" />
@@ -70,10 +70,13 @@
                                                 </a>
                                                 @if($req->status === 'approved' && $req->certificate)
                                                     <a href="{{ route('certificates.show', $req->certificate->certificate_number) }}" target="_blank" class="text-link text-xs inline-flex items-center gap-1 font-medium">
-                                                        <x-icon name="document" class="h-3.5 w-3.5" /> View Certificate
+                                                        <x-icon name="document" class="h-3.5 w-3.5" /> Certificate
                                                     </a>
                                                 @endif
                                             @endif
+                                            <a href="{{ route('lab.requests.edit', $req) }}" class="btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1">
+                                                Modify
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
