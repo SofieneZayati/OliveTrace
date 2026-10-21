@@ -13,8 +13,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Feedback extends Model
 {
@@ -23,12 +21,11 @@ class Feedback extends Model
 
     protected $table = 'feedback';
 
-    protected $attributes = ['status' => 'visible', 'verified_purchase' => false];
+    protected $attributes = ['status' => 'visible'];
 
     protected $fillable = [
         'oil_product_id', 'consumer_user_id', 'rating', 'comment', 'status',
         'ai_category', 'ai_sentiment', 'ai_priority',
-        'verified_purchase', 'last_edited_at',
     ];
 
     protected function casts(): array
@@ -39,8 +36,6 @@ class Feedback extends Model
             'ai_category' => FeedbackCategory::class,
             'ai_sentiment' => FeedbackSentiment::class,
             'ai_priority' => FeedbackPriority::class,
-            'verified_purchase' => 'boolean',
-            'last_edited_at' => 'datetime',
         ];
     }
 
@@ -54,17 +49,6 @@ class Feedback extends Model
         return $this->belongsTo(OilProduct::class, 'oil_product_id');
     }
 
-    public function edits(): HasMany
-    {
-        return $this->hasMany(FeedbackEdit::class);
-    }
-
-    public function verifiedPurchase(): HasOne
-    {
-        return $this->hasOne(VerifiedPurchase::class, 'consumer_user_id', 'consumer_user_id')
-            ->where('oil_product_id', $this->oil_product_id);
-    }
-
     /** @param Builder<Feedback> $query */
     public function scopeVisible($query)
     {
@@ -74,10 +58,5 @@ class Feedback extends Model
     public function isOwnedBy(User $user): bool
     {
         return $this->consumer_user_id === $user->id;
-    }
-
-    public function hasVerifiedPurchase(): bool
-    {
-        return $this->verified_purchase || $this->verifiedPurchase()->exists();
     }
 }

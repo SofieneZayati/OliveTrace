@@ -24,9 +24,72 @@ class LabAnalysisController extends Controller
 
     public function show(CertificateRequest $certificateRequest)
     {
-        $certificateRequest->load(['oilLot', 'labAnalysis', 'certificate']);
+        $certificateRequest->load(['oilLot', 'labAnalysis.labUser', 'certificate', 'producer']);
 
         return view('certification.lab.show', compact('certificateRequest'));
+    }
+
+    public function edit(CertificateRequest $certificateRequest)
+    {
+        $certificateRequest->load(['oilLot', 'labAnalysis.labUser', 'certificate', 'producer']);
+
+        return view('certification.lab.edit', compact('certificateRequest'));
+    }
+
+    public function update(Request $request, CertificateRequest $certificateRequest)
+    {
+        $validated = $request->validate([
+            'acidity' => 'required|numeric|min:0',
+            'peroxide_value' => 'nullable|numeric|min:0',
+            'result' => 'required|boolean', // 1 for approve, 0 for reject
+            'notes' => 'nullable|string|max:5000',
+        ]);
+
+        DB::transaction(function () use ($validated, $certificateRequest, $request) {
+            $lockedRequest = CertificateRequest::whereKey($certificateRequest->id)->lockForUpdate()->firstOrFail();
+
+            LabAnalysis::updateOrCreate(
+                ['certificate_request_id' => $lockedRequest->id],
+                [
+                    'lab_user_id' => $request->user()->id,
+                    'analysis_date' => $lockedRequest->labAnalysis?->analysis_date ?? now(),
+                    'acidity' => $validated['acidity'],
+                    'peroxide_value' => $validated['peroxide_value'] ?? null,
+                    'result' => (bool) $validated['result'],
+                    'notes' => $validated['notes'] ?? null,
+                ]
+            );
+
+            if ($validated['result']) {
+                $lockedRequest->update(['status' => 'approved']);
+
+                $certificate = Certificate::where('certificate_request_id', $lockedRequest->id)->first();
+                if ($certificate) {
+                    $certificate->update([
+                        'status' => 'active',
+                        'type' => ($lockedRequest->oilLot?->quality_grade?->label() ?? 'Unspecified').' Olive Oil',
+                    ]);
+                } else {
+                    Certificate::create([
+                        'certificate_request_id' => $lockedRequest->id,
+                        'certificate_number' => 'CERT-'.strtoupper(uniqid()),
+                        'type' => ($lockedRequest->oilLot?->quality_grade?->label() ?? 'Unspecified').' Olive Oil',
+                        'issue_date' => now(),
+                        'expiry_date' => now()->addYear(),
+                        'status' => 'active',
+                    ]);
+                }
+            } else {
+                $lockedRequest->update(['status' => 'rejected']);
+
+                $certificate = Certificate::where('certificate_request_id', $lockedRequest->id)->first();
+                if ($certificate) {
+                    $certificate->update(['status' => 'revoked']);
+                }
+            }
+        });
+
+        return redirect()->route('lab.requests.index')->with('success', "Request #{$certificateRequest->id} was modified successfully.");
     }
 
     public function analyze(Request $request, CertificateRequest $certificateRequest)

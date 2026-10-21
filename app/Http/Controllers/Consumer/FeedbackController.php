@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Consumer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Consumer\FeedbackRequest;
 use App\Models\Consumer\Feedback;
-use App\Models\Consumer\FeedbackEdit;
 use App\Models\Distribution\OilProduct;
 use App\Services\Consumer\FeedbackClassifier;
 use Illuminate\Http\Request;
@@ -51,33 +50,11 @@ class FeedbackController extends Controller
     public function update(FeedbackRequest $request, Feedback $feedback, FeedbackClassifier $classifier)
     {
         Gate::authorize('update', $feedback);
-
-        // Log the edit before updating
-        $oldData = [
-            'old_rating' => $feedback->rating,
-            'old_comment' => $feedback->comment,
-        ];
-
         $data = $request->validated();
         $analysis = $classifier->classify($data['comment'] ?? '', $data['rating']);
-
         $feedback->update([
-            'rating' => $data['rating'],
-            'comment' => $data['comment'] ?? null,
-            'ai_category' => $analysis['category'],
-            'ai_sentiment' => $analysis['sentiment'],
-            'ai_priority' => $analysis['priority'],
-            'last_edited_at' => now(),
-        ]);
-
-        // Log the edit
-        FeedbackEdit::create([
-            'feedback_id' => $feedback->id,
-            'old_rating' => $oldData['old_rating'],
-            'old_comment' => $oldData['old_comment'],
-            'new_rating' => $feedback->rating,
-            'new_comment' => $feedback->comment,
-            'edited_by' => $request->user()->id,
+            'rating' => $data['rating'], 'comment' => $data['comment'] ?? null,
+            'ai_category' => $analysis['category'], 'ai_sentiment' => $analysis['sentiment'], 'ai_priority' => $analysis['priority'],
         ]);
 
         return redirect()->route('trace.show', $feedback->oil_product_id)->with('success', 'Your review was updated.');

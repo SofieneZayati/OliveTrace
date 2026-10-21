@@ -160,12 +160,80 @@
                 });
             </script>
             @else
-            <x-card class="bg-stone-50 text-center py-10">
-                <x-icon name="check" class="h-12 w-12 text-stone-300 mx-auto mb-3" />
-                <p class="text-lg font-medium text-stone-600 mb-2">Request Processed</p>
-                <p class="text-stone-500">This request has already been analyzed and its status is <strong>{{ $certificateRequest->status }}</strong>.</p>
-                <a href="{{ route('lab.requests.index') }}" class="btn-secondary mt-6 inline-flex">Back to list</a>
+            <x-card class="mb-6">
+                <div class="flex items-center justify-between border-b border-olive-100 pb-3 mb-4">
+                    <h3 class="text-lg font-bold text-olive-800">Recorded Laboratory Analysis</h3>
+                    <a href="{{ route('lab.requests.edit', $certificateRequest) }}" class="btn-primary text-xs py-1.5 px-3 inline-flex items-center gap-1.5">
+                        Modify Request
+                    </a>
+                </div>
+                <div class="grid grid-cols-2 gap-4 text-sm text-stone-600">
+                    <div>
+                        <p class="font-semibold text-stone-800">Analysis Date</p>
+                        <p class="mt-1">{{ $certificateRequest->labAnalysis?->analysis_date?->format('M d, Y') ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-stone-800">Decision / Status</p>
+                        <p class="mt-1 font-medium">
+                            @if($certificateRequest->status === 'approved')
+                                <span class="inline-flex items-center gap-1 text-green-700 font-semibold">
+                                    <x-icon name="check" class="h-4 w-4 text-green-600" /> Approved
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 text-red-600 font-semibold">
+                                    Rejected
+                                </span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-stone-800">Acidity</p>
+                        <p class="mt-1">{{ $certificateRequest->labAnalysis?->acidity ?? 'N/A' }} %</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-stone-800">Peroxide Value</p>
+                        <p class="mt-1">{{ $certificateRequest->labAnalysis?->peroxide_value !== null ? $certificateRequest->labAnalysis->peroxide_value . ' meq O2/kg' : 'N/A' }}</p>
+                    </div>
+                    @if($certificateRequest->labAnalysis?->notes)
+                        <div class="col-span-2 mt-2">
+                            <p class="font-semibold text-stone-800">Lab Notes</p>
+                            <p class="mt-1 bg-stone-50 p-3 rounded border border-stone-100 whitespace-pre-wrap">{{ $certificateRequest->labAnalysis->notes }}</p>
+                        </div>
+                    @endif
+                </div>
             </x-card>
+
+            @if($certificateRequest->certificate)
+            <x-card class="border-l-4 border-l-green-500 mb-6">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-olive-800 mb-2">Certificate Issued</h3>
+                        <div class="text-sm text-stone-600 mb-4">
+                            <p class="mb-1"><strong>Certificate Number:</strong> <span class="font-mono bg-stone-100 px-1 rounded">{{ $certificateRequest->certificate->certificate_number }}</span></p>
+                            <p class="mb-1"><strong>Type:</strong> {{ $certificateRequest->certificate->type }}</p>
+                            <p class="mb-1"><strong>Status:</strong> <span class="font-semibold {{ $certificateRequest->certificate->isCurrentlyValid() ? 'text-green-700' : 'text-red-600' }}">{{ strtoupper($certificateRequest->certificate->status) }}</span></p>
+                            <p><strong>Valid Until:</strong> {{ $certificateRequest->certificate->expiry_date?->format('M d, Y') ?? 'N/A' }}</p>
+                        </div>
+                    </div>
+                    <x-icon name="document" class="h-12 w-12 text-green-200" />
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="{{ route('certificates.show', $certificateRequest->certificate->certificate_number) }}" target="_blank" class="btn-primary inline-flex items-center gap-2 text-xs py-2 px-3">
+                        <x-icon name="document" class="h-4 w-4" /> View Public Certificate
+                    </a>
+                    <a href="{{ route('certificates.pdf', $certificateRequest->certificate->certificate_number) }}" class="btn-secondary inline-flex items-center gap-2 text-xs py-2 px-3">
+                        Download PDF
+                    </a>
+                </div>
+            </x-card>
+            @endif
+
+            <div class="flex items-center justify-between">
+                <a href="{{ route('lab.requests.index') }}" class="btn-secondary inline-flex">Back to list</a>
+                <a href="{{ route('lab.requests.edit', $certificateRequest) }}" class="btn-primary inline-flex items-center gap-1.5">
+                    Modify Request
+                </a>
+            </div>
             @endif
         </div>
     </div>

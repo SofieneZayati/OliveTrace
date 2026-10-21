@@ -32,7 +32,7 @@ class ConsumerModuleTest extends TestCase
 
     public function test_guest_gets_friendly_page_for_unknown_trace(): void
     {
-        $this->get('/trace/unknown-slug-123')->assertNotFound()->assertSee('not available yet');
+        $this->get('/trace/unknown-slug-123')->assertNotFound()->assertSee('Aucun produit trouvé');
     }
 
     public function test_trace_page_composes_product_feedback_and_graceful_missing_sections(): void

@@ -45,15 +45,9 @@
                     <div><dt class="text-stone-500">Oil lot</dt><dd class="mt-1 font-semibold">{{ $oilLot->lot_number ?? '—' }}</dd></div>
                     <div><dt class="text-stone-500">Olive variety</dt><dd class="mt-1 font-semibold">{{ $origin['olive_variety'] ?? '—' }}</dd></div>
                 </dl>
-                <div class="mt-6 flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="role-badge">{{ $verificationBadge }}</span>
-                        @if($delivered)<span class="role-badge">Delivered to {{ $delivered->destination }}</span>@endif
-                    </div>
-                    <a href="{{ route('trace.share', $product->slug) }}" class="btn-secondary text-sm flex items-center gap-1">
-                        <x-icon name="share" class="h-4 w-4" />
-                        Partager
-                    </a>
+                <div class="mt-6 flex flex-wrap items-center gap-2">
+                    <span class="role-badge">{{ $verificationBadge }}</span>
+                    @if($delivered)<span class="role-badge">Delivered to {{ $delivered->destination }}</span>@endif
                 </div>
                 @if($feedback['average'])
                     <div class="mt-4 border-t border-stone-100 pt-4"><x-rating-stars :value="$feedback['average']" :count="$feedback['count']" /></div>
@@ -170,56 +164,6 @@
                     </div>
                 </x-card>
             </section>
-
-            @auth
-                @if(auth()->user()->role === \App\Enums\Role::Consumer)
-                    <section aria-label="Verified purchase proof">
-                        <div class="mb-4 flex items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-olive-800 font-display text-base text-cream">+</span><p class="eyebrow text-olive-600">Proof of purchase</p></div>
-                        <x-card>
-                            @php
-                                $verified = \App\Models\Consumer\VerifiedPurchase::where('consumer_user_id', auth()->id())
-                                    ->where('oil_product_id', $product->id)
-                                    ->first();
-                            @endphp
-                            @if($verified)
-                                <div class="flex flex-wrap items-center justify-between gap-3 p-4 bg-olive-50 rounded-xl">
-                                    <div class="flex items-center gap-3">
-                                        <x-icon name="shield" class="h-6 w-6 text-olive-600" />
-                                        <div>
-                                            <p class="font-semibold text-olive-700">Achat vérifié ✓</p>
-                                            <p class="text-sm text-stone-500">Type : {{ $verified->proof_type }} · Vérifié le {{ $verified->verified_at->toDateString() }}</p>
-                                        </div>
-                                    </div>
-                                    @if($verified->proof_path)
-                                        <a href="{{ Storage::url($verified->proof_path) }}" target="_blank" class="text-link text-sm">Voir la preuve</a>
-                                    @endif
-                                </div>
-                            @else
-                                <h3 class="font-display mb-4 text-2xl">Prouvez votre achat</h3>
-                                <p class="mb-6 text-sm leading-6 text-stone-500">Ajoutez une preuve d'achat (ticket, QR code, facture) pour obtenir le badge <span class="font-semibold text-olive-700">Achat vérifié</span> sur votre avis.</p>
-                                <form method="POST" action="{{ route('products.proof.upload', $product) }}" enctype="multipart/form-data" class="space-y-4">
-                                    @csrf
-                                    <div>
-                                        <x-input-label for="proof_type" value="Type de preuve *" />
-                                        <select id="proof_type" name="proof_type" required class="mt-1 block w-full max-w-xs rounded-lg border-stone-300">
-                                            <option value="receipt">Ticket de caisse</option>
-                                            <option value="qr_code">QR code produit</option>
-                                            <option value="invoice">Facture</option>
-                                        </select>
-                                        <x-input-error :messages="$errors->get('proof_type')" class="mt-2" />
-                                    </div>
-                                    <div>
-                                        <x-input-label for="proof_file" value="Fichier (JPG, PNG, PDF - max 5MB) *" />
-                                        <input type="file" id="proof_file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" max="5242880" required class="mt-1 block w-full rounded-lg border-stone-300" />
-                                        <x-input-error :messages="$errors->get('proof_file')" class="mt-2" />
-                                    </div>
-                                    <x-primary-button>Enregistrer la preuve</x-primary-button>
-                                </form>
-                            @endif
-                        </x-card>
-                    </section>
-                @endif
-            @endauth
         </div>
     </div>
 @endsection

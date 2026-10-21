@@ -15,6 +15,9 @@
         <p class="eyebrow mt-10 hidden px-4 text-olive-100/50 lg:block">Your workspace</p>
         <nav aria-label="Main navigation" class="mt-5 flex flex-wrap gap-2 lg:flex-col lg:gap-1">
             <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('dashboard') }}" class="sidebar-link" @if(request()->routeIs('dashboard', 'admin.dashboard')) aria-current="page" @endif><x-icon name="grid" />Dashboard</a>
+            @if(auth()->user()->role === \App\Enums\Role::Laboratory)
+                <a href="{{ route('lab.requests.index') }}" class="sidebar-link" @if(request()->routeIs('lab.*')) aria-current="page" @endif><x-icon name="shield" />View Certification Requests</a>
+            @endif
             @can('access-admin')
                 <a href="{{ route('admin.users.index') }}" class="sidebar-link" @if(request()->routeIs('admin.users.*')) aria-current="page" @endif><x-icon name="users" />Users</a>
             @endcan
@@ -23,6 +26,7 @@
                 <a href="{{ route('producer.farms.index') }}" class="sidebar-link" @if(request()->routeIs('producer.farms.*')) aria-current="page" @endif><x-icon name="leaf" />My farms</a>
                 <a href="{{ route('producer.harvests.index') }}" class="sidebar-link" @if(request()->routeIs('producer.harvests.*')) aria-current="page" @endif><x-icon name="harvest" />My harvests</a>
                 <a href="{{ route('producer.oil-lots.index') }}" class="sidebar-link" @if(request()->routeIs('producer.oil-lots.*')) aria-current="page" @endif><x-icon name="drop" />My oil lots</a>
+                <a href="{{ route('certification.producer.requests.index') }}" class="sidebar-link" @if(request()->routeIs('certification.producer.*')) aria-current="page" @endif><x-icon name="shield" />My Certificate Requests</a>
                 <a href="{{ route('producer.products.index') }}" class="sidebar-link" @if(request()->routeIs('producer.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
             @endif
             @if(auth()->user()->role === \App\Enums\Role::Distributor)
@@ -38,7 +42,6 @@
                 <a href="{{ route('admin.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('admin.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
                 <a href="{{ route('admin.consumer.feedback.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.feedback.*')) aria-current="page" @endif><x-icon name="chat" />Reviews</a>
                 <a href="{{ route('admin.consumer.complaints.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.complaints.*')) aria-current="page" @endif><x-icon name="flag" />Complaints</a>
-                <a href="{{ route('admin.consumer.sla.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.sla.*')) aria-current="page" @endif><x-icon name="chart" />SLA Dashboard</a>
             @endcan
             @if(auth()->user()->role === \App\Enums\Role::Miller)
                 <a href="{{ route('mill.show') }}" class="sidebar-link" @if(request()->routeIs('mill.*')) aria-current="page" @endif><x-icon name="drop" />My mill</a>

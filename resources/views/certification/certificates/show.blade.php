@@ -3,6 +3,16 @@
 @section('content')
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-olive-600 font-semibold">OliveTrace Verification</p>
+                    <h1 class="text-2xl font-bold text-stone-800">Certificate Verification</h1>
+                </div>
+                <a href="{{ route('certificates.pdf', $certificate->certificate_number) }}" class="btn-primary inline-flex items-center gap-2 shadow-sm">
+                    <x-icon name="document" class="h-4 w-4" /> Download Certificate (PDF)
+                </a>
+            </div>
+
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border-t-8 {{ $valid ? 'border-green-500' : 'border-red-500' }}">
                 <div class="p-8 text-center border-b">
                     <h2 class="text-3xl font-bold text-gray-800 mb-2">Official Certificate of Analysis</h2>
@@ -56,8 +66,11 @@
                         </div>
                     </div>
                     
-                    <div class="mt-8 text-center text-sm text-gray-500 border-t pt-4">
-                        This document is digitally verifiable via the OliveTrace platform.
+                    <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6 text-sm text-gray-500">
+                        <p>This document is digitally verifiable via the OliveTrace platform.</p>
+                        <a href="{{ route('certificates.pdf', $certificate->certificate_number) }}" class="btn-primary inline-flex items-center gap-2 text-xs py-2 px-3">
+                            <x-icon name="document" class="h-3.5 w-3.5" /> Download PDF
+                        </a>
                     </div>
                 </div>
             </div>

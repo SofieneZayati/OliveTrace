@@ -18,6 +18,7 @@ class ComplaintRequest extends FormRequest
             'oil_product_id' => ['required', 'integer', 'min:1'],
             'subject' => ['required', 'string', 'max:150'],
             'description' => ['required', 'string', 'max:3000'],
+            'evidence_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'consumer_user_id' => ['prohibited'],
             'status' => ['prohibited'],
             'admin_response' => ['prohibited'],

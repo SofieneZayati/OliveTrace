@@ -11,6 +11,11 @@ use App\Models\Consumer\Feedback;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use App\Mail\ComplaintStatusUpdated;
+use App\Services\Consumer\ComplaintReplyAssistant;
+use App\Services\Consumer\ReviewSummaryGenerator;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class ConsumerModerationController extends Controller
 {
@@ -59,6 +64,43 @@ class ConsumerModerationController extends Controller
             'resolved_at' => $status->isClosed() ? ($complaint->resolved_at ?? now()) : null,
         ]);
 
+        // Feature 6: Send email notification to the consumer.
+        try {
+            if ($complaint->consumer?->email) {
+                Mail::to($complaint->consumer->email)->send(new ComplaintStatusUpdated($complaint, $status->value));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('ComplaintStatusUpdated mail failed', ['complaint' => $complaint->id, 'error' => $e->getMessage()]);
+        }
+
         return redirect()->route('admin.consumer.complaints.show', $complaint)->with('success', 'Complaint '.$status->label().' registered.');
+    }
+
+    // Feature 1: Generate an AI draft reply for a complaint.
+    public function generateAiReply(Complaint $complaint, ComplaintReplyAssistant $assistant)
+    {
+        $complaint->load('product');
+        $draft = $assistant->generateDraft($complaint);
+
+        if ($draft === null) {
+            return response()->json(['error' => 'Le service IA est indisponible. Rédigez la réponse manuellement.'], 503);
+        }
+
+        // Cache the draft on the complaint for reference.
+        $complaint->update(['ai_draft_reply' => $draft]);
+
+        return response()->json(['draft' => $draft]);
+    }
+
+    // Feature 2: Generate an AI summary of all reviews.
+    public function generateSummary(ReviewSummaryGenerator $generator)
+    {
+        $summary = $generator->generate();
+
+        if ($summary === null) {
+            return response()->json(['error' => 'Le service IA est indisponible.'], 503);
+        }
+
+        return response()->json(['summary' => $summary]);
     }
 }
