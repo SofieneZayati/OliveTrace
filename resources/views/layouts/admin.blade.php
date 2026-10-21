@@ -38,6 +38,7 @@
                 <a href="{{ route('admin.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('admin.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
                 <a href="{{ route('admin.consumer.feedback.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.feedback.*')) aria-current="page" @endif><x-icon name="chat" />Reviews</a>
                 <a href="{{ route('admin.consumer.complaints.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.complaints.*')) aria-current="page" @endif><x-icon name="flag" />Complaints</a>
+                <a href="{{ route('admin.consumer.sla.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.sla.*')) aria-current="page" @endif><x-icon name="chart" />SLA Dashboard</a>
             @endcan
             @if(auth()->user()->role === \App\Enums\Role::Miller)
                 <a href="{{ route('mill.show') }}" class="sidebar-link" @if(request()->routeIs('mill.*')) aria-current="page" @endif><x-icon name="drop" />My mill</a>

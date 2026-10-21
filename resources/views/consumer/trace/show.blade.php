@@ -45,9 +45,15 @@
                     <div><dt class="text-stone-500">Oil lot</dt><dd class="mt-1 font-semibold">{{ $oilLot->lot_number ?? '—' }}</dd></div>
                     <div><dt class="text-stone-500">Olive variety</dt><dd class="mt-1 font-semibold">{{ $origin['olive_variety'] ?? '—' }}</dd></div>
                 </dl>
-                <div class="mt-6 flex flex-wrap items-center gap-2">
-                    <span class="role-badge">{{ $verificationBadge }}</span>
-                    @if($delivered)<span class="role-badge">Delivered to {{ $delivered->destination }}</span>@endif
+                <div class="mt-6 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="role-badge">{{ $verificationBadge }}</span>
+                        @if($delivered)<span class="role-badge">Delivered to {{ $delivered->destination }}</span>@endif
+                    </div>
+                    <a href="{{ route('trace.share', $product->slug) }}" class="btn-secondary text-sm flex items-center gap-1">
+                        <x-icon name="share" class="h-4 w-4" />
+                        Partager
+                    </a>
                 </div>
                 @if($feedback['average'])
                     <div class="mt-4 border-t border-stone-100 pt-4"><x-rating-stars :value="$feedback['average']" :count="$feedback['count']" /></div>

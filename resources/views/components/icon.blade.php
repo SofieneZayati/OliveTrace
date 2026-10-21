@@ -16,6 +16,7 @@
         @case('flag')<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22v-7" />@break
         @case('star')<path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01Z" />@break
         @case('shield')<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />@break
+        @case('share')<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />@break
         @default<path d="M20 3C10 2 3 6 3 13a7 7 0 0 0 7 7c7 0 10-7 10-17Z" /><path d="M4 21 16 9m-8 8v-5m0 5h5" />
     @endswitch
 </svg>
