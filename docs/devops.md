@@ -97,14 +97,21 @@ container environment's data. It does not share the Windows/XAMPP database.
 
 ### Verified handover status - 22 October 2026
 
-The full DevOps PR passed [Project checks](https://github.com/SofieneZayati/OliveTrace/actions/runs/39722756555)
-and is merged into main. The local Docker application and MySQL were built,
+The integrated DevOps pipeline runs [Project checks](https://github.com/SofieneZayati/OliveTrace/actions/runs/39761614610)
+on main. The local Docker application and MySQL were built,
 migrated and checked, including login and upload-volume persistence.
 SonarQube measures new code on main against the integrated pre-DevOps revision
 `284042c` (analysis `2f6a1b63-ae3e-453b-9333-c53787550d88`). This is a fixed
 initial baseline, not a baseline moved after every push. The gate thresholds
 remain unchanged: at least 80% new-code coverage and at most 3% new duplication.
-Overall project coverage is 68.0%, separate from new-code coverage.
+Whole-project coverage is 75.2% in the measured `5e84736` analysis, with 2.0%
+overall duplication. The Clover source filter includes database code as well
+as app, bootstrap, config and routes; the earlier 68% figure used a report
+that did not collect database coverage. Whole-project measures are reported
+separately from the incremental conditions of the built-in Sonar quality gate.
+Sonar excludes test-data factories from its source scope. Clover now lists
+those files too, so Sonar reports an import warning for the 17 excluded
+factory paths; they do not contribute to the published Sonar coverage measure.
 
 Hosted CD is **not yet verified**. Railway's New button returned
 "Deploys have been paused temporarily" during its
