@@ -1,7 +1,8 @@
 # OliveTrace
 
 OliveTrace is a university web project for tracing Tunisian olive oil from farm
-to consumer. The team is Sofiene, Mariem, Oussema, Hana and Aymen.
+to consumer. The team is Sofiene Zayati, Mariem Ammari, Oussema Benjemia,
+Hana Fkiri and Aymen Jenhani.
 
 **This repository contains the shared foundation and all five team modules.**
 Authentication, roles, common user management, layouts and infrastructure are
