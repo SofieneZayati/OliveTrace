@@ -17,6 +17,9 @@ use App\Policies\MillingOperationPolicy;
 use App\Policies\MillRequestPolicy;
 use App\Policies\OilLotPolicy;
 use App\Policies\ProductionPolicy;
+use Illuminate\Foundation\Events\DiagnosingHealth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -35,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(DiagnosingHealth::class, fn () => DB::select('SELECT 1'));
         Gate::policy(ProducerProfile::class, ProductionPolicy::class);
         Gate::policy(Farm::class, ProductionPolicy::class);
         Gate::policy(Harvest::class, HarvestPolicy::class);

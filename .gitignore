@@ -41,3 +41,5 @@ opencode.txt
 *.md
 
 for_mariem.md
+/build/
+/.scannerwork/

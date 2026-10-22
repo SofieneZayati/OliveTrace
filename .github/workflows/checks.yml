@@ -10,9 +10,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   check:
+    name: Tests and code quality
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     services:
       mysql:
         image: mysql:8.4
@@ -27,14 +33,17 @@ jobs:
           --health-timeout=5s
           --health-retries=10
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          php-version: '8.3'
-          extensions: mbstring, pdo_mysql, pdo_sqlite, xml, curl, zip, intl
-          coverage: none
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql, pdo_sqlite, xml, curl, zip, intl, gd
+          coverage: pcov
+          ini-values: pcov.directory=${{ github.workspace }}
           tools: composer:v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           cache: npm
@@ -46,8 +55,75 @@ jobs:
       - run: mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE olivetrace_testing CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
       - run: php artisan migrate --seed --no-interaction
       - run: php artisan olivetrace:check-database
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run build
       - run: php vendor/bin/pint --test
-      - run: php artisan test
+      - name: Run SQLite tests and collect coverage
+        run: php vendor/bin/phpunit --coverage-clover=build/coverage.xml --log-junit=build/junit.xml
       - run: php scripts/test-mysql.php
+      - name: SonarQube analysis and quality gate
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: -Dsonar.qualitygate.wait=true
+      - name: Save test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: |
+            build/coverage.xml
+            build/junit.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+  container:
+    name: Docker build and HTTP smoke check
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: olivetrace
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Build the deployment image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          load: true
+          tags: olivetrace:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Migrate and start the container
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "APP_KEY=base64:$(openssl rand -base64 32)" > "$RUNNER_TEMP/container.env"
+          printf '%s\n' 'DB_CONNECTION=mysql' 'DB_HOST=host.docker.internal' 'DB_PORT=3306' 'DB_DATABASE=olivetrace' 'DB_USERNAME=root' 'DB_PASSWORD=' 'SESSION_DRIVER=database' 'CACHE_STORE=database' 'QUEUE_CONNECTION=sync' 'MAIL_MAILER=log' >> "$RUNNER_TEMP/container.env"
+          docker run --rm --add-host host.docker.internal:host-gateway --env-file "$RUNNER_TEMP/container.env" olivetrace:ci php artisan migrate --force --no-interaction
+          docker run --detach --name olivetrace-ci --add-host host.docker.internal:host-gateway --env-file "$RUNNER_TEMP/container.env" -p 127.0.0.1:8080:8080 olivetrace:ci
+      - name: Check health and public pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --retry 30 --retry-delay 2 --retry-all-errors --retry-max-time 90 http://127.0.0.1:8080/up
+          for path in / /login /catalog; do curl --fail --silent --output /dev/null "http://127.0.0.1:8080$path"; done
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/.env)" = '404'
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/storage/private/proof.pdf)" = '404'
+      - name: Container logs
+        if: always()
+        run: docker logs olivetrace-ci 2>&1 || true
