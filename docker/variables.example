@@ -1,0 +1,6 @@
+# Copy to .env.docker and fill the three values. This file has no real credentials.
+# Generate APP_KEY with php artisan key:generate --show; keep it stable.
+DOCKER_APP_KEY=
+DOCKER_DB_PASSWORD=
+DOCKER_ROOT_PASSWORD=
+DOCKER_HTTP_PORT=8080

@@ -1,0 +1,31 @@
+# Paste into Railway's variable editor, then fill the blank values privately.
+# The database service is assumed to be named MySQL.
+APP_NAME=OliveTrace
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=
+APP_URL=https://YOUR-APP.up.railway.app
+TRUSTED_PROXIES=*
+DB_CONNECTION=mysql
+DB_HOST=${{MySQL.MYSQLHOST}}
+DB_PORT=${{MySQL.MYSQLPORT}}
+DB_DATABASE=${{MySQL.MYSQLDATABASE}}
+DB_USERNAME=${{MySQL.MYSQLUSER}}
+DB_PASSWORD=${{MySQL.MYSQLPASSWORD}}
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
+SESSION_COOKIE=olivetrace_railway_session
+CACHE_STORE=database
+QUEUE_CONNECTION=sync
+FILESYSTEM_DISK=local
+LOG_CHANNEL=stderr
+LOG_LEVEL=info
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS=hello@example.com
+MAIL_FROM_NAME=OliveTrace
+GEMINI_API_KEY=
+GROQ_API_KEY=
+FARM_AI_PROVIDER=gemini
+FARM_AI_MODEL=gemini-3.1-flash-lite
+LAB_AI_MODEL=gemini-3.1-flash-lite
+CONSUMER_AI_MODEL=openai/gpt-oss-120b
