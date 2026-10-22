@@ -17,6 +17,7 @@
             <directory>app</directory>
             <directory>bootstrap</directory>
             <directory>config</directory>
+            <directory>database</directory>
             <directory>routes</directory>
         </include>
         <exclude>
