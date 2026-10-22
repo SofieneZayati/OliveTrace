@@ -18,6 +18,25 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Feedback extends Model
 {
+    protected static function booted(): void
+    {
+        static::updating(function (Feedback $feedback): void {
+            if ($feedback->isDirty(['rating', 'comment'])) {
+                $feedback->last_edited_at = now();
+            }
+        });
+        static::updated(function (Feedback $feedback): void {
+            if ($feedback->wasChanged(['rating', 'comment'])) {
+                FeedbackEdit::create([
+                    'feedback_id' => $feedback->id,
+                    'old_rating' => $feedback->getOriginal('rating'), 'old_comment' => $feedback->getOriginal('comment'),
+                    'new_rating' => $feedback->rating, 'new_comment' => $feedback->comment,
+                    'edited_by' => auth()->id() ?? $feedback->consumer_user_id,
+                ]);
+            }
+        });
+    }
+
     /** @use HasFactory<FeedbackFactory> */
     use HasFactory;
 
@@ -78,6 +97,7 @@ class Feedback extends Model
 
     public function hasVerifiedPurchase(): bool
     {
-        return $this->verified_purchase || $this->verifiedPurchase()->exists();
+        return VerifiedPurchase::where('consumer_user_id', $this->consumer_user_id)
+            ->where('oil_product_id', $this->oil_product_id)->whereNotNull('approved_at')->exists();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Consumer;
 
+use App\Events\ComplaintCreated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Consumer\ComplaintRequest;
 use App\Models\Consumer\Complaint;
@@ -56,6 +57,8 @@ class ComplaintController extends Controller
             }
             throw $exception;
         }
+
+        event(new ComplaintCreated($complaint));
 
         return redirect()->route('complaints.show', $complaint)->with('success', 'Your complaint was submitted. You can follow its status here.');
     }

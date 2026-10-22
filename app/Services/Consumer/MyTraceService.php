@@ -40,15 +40,15 @@ class MyTraceService
             'feedbacks' => $feedbacks,
             'complaints' => $complaints,
             'notifications' => $notifications,
-            'unread_notifications' => $notifications->where('read', false)->count(),
+            'unread_notifications' => ConsumerNotification::unreadCount($consumerId),
             'verified_purchases' => $verifiedPurchases,
             'scanned_products' => $scannedProducts,
             'stats' => [
                 'total_reviews' => $feedbacks->count(),
                 'avg_rating' => $feedbacks->isNotEmpty() ? round($feedbacks->avg('rating'), 1) : 0,
                 'total_complaints' => $complaints->count(),
-                'open_complaints' => $complaints->where('status', 'open')->count(),
-                'verified_purchases' => $verifiedPurchases->count(),
+                'open_complaints' => $complaints->filter(fn ($complaint) => ! $complaint->status->isClosed())->count(),
+                'verified_purchases' => $verifiedPurchases->whereNotNull('approved_at')->count(),
                 'scanned_products' => $scannedProducts->count(),
             ],
         ];
@@ -58,33 +58,35 @@ class MyTraceService
     {
         // In a real app, this would track QR scans
         // For now, return products with feedback or complaints
-        $feedbackProducts = Feedback::where('consumer_user_id', request()->user()?->id ?? 0)
+        $feedbackProducts = Feedback::where('consumer_user_id', $consumerId)
             ->pluck('oil_product_id');
-        $complaintProducts = Complaint::where('consumer_user_id', request()->user()?->id ?? 0)
+        $complaintProducts = Complaint::where('consumer_user_id', $consumerId)
             ->pluck('oil_product_id');
 
         $productIds = $feedbackProducts->merge($complaintProducts)->unique();
 
         return OilProduct::with(['shipments' => fn ($q) => $q->where('status', 'delivered')])
+            ->publiclyVisible()
             ->whereIn('id', $productIds)
             ->get();
     }
 
     public function generateShareCard(int $productId, string $slug): array
     {
-        $product = OilProduct::with('shipments')->findOrFail($productId);
-        $traceUrl = route('trace.show', $slug);
+        $product = OilProduct::publiclyVisible()->findOrFail($productId);
+        $timeline = app(ConsumerTrace::class)->forSlug($product->slug);
+        $traceUrl = route('trace.show', $product->slug);
 
         return [
             'product_name' => $product->name,
             'brand' => $product->brand,
             'bottle_volume' => $product->bottle_volume_ml,
-            'image_url' => $product->image ? \Storage::disk('public')->url($product->image) : null,
+            'image_url' => $timeline['image_url'],
             'trace_url' => $traceUrl,
-            'qr_code_url' => route('trace.qr', $slug), // will create this route
+            'qr_svg' => $product->qrSvg(),
             'avg_rating' => Feedback::where('oil_product_id', $product->id)->visible()->avg('rating'),
             'review_count' => Feedback::where('oil_product_id', $product->id)->visible()->count(),
-            'verified' => true, // would check if product has valid cert
+            'verified' => $timeline['verification']['verified'] ?? false,
         ];
     }
 }

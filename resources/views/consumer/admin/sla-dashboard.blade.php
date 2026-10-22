@@ -11,12 +11,21 @@
         <form method="GET" class="flex items-center gap-3">
             <label for="period" class="text-sm font-medium text-stone-600">Période :</label>
             <select id="period" name="period" onchange="this.form.submit()" class="ml-2 rounded-lg border-stone-300">
-                <option value="7d" {{ request('period') === '7d' ? 'selected' : '' }}>7 jours</option>
-                <option value="30d" {{ request('period') === '30d' ? 'selected' : '' }}>30 jours</option>
-                <option value="90d" {{ request('period') === '90d' ? 'selected' : '' }}>90 jours</option>
+                <option value="7d" @selected($period === '7d')>7 jours</option>
+                <option value="30d" @selected($period === '30d')>30 jours</option>
+                <option value="90d" @selected($period === '90d')>90 jours</option>
             </select>
         </form>
     </div>
+
+    @if($urgentNotifications->isNotEmpty())
+        <x-card class="mb-8">
+            <h2 class="font-display mb-4 text-2xl">Alertes prioritaires</h2>
+            @foreach($urgentNotifications as $alert)
+                <p class="mt-3 text-sm"><a class="text-link" href="{{ route('admin.consumer.complaints.show', $alert->related_complaint_id) }}">{{ $alert->title }}</a></p>
+            @endforeach
+        </x-card>
+    @endif
 
     <!-- KPI Cards -->
     <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-10">
@@ -100,32 +109,22 @@
     </div>
 
     <x-card>
-        <p class="eyebrow mb-4 text-olive-600">Tendance sur 30 jours</p>
+        <p class="eyebrow mb-4 text-olive-600">Tendance · {{ count($metrics['trend']['labels']) }} jours</p>
         @if(isset($metrics['trend']['labels']) && count($metrics['trend']['labels']))
-            <canvas id="trendChart" height="100"></canvas>
-            <script>
-                new Chart(document.getElementById('trendChart'), {
-                    type: 'line',
-                    data: {
-                        labels: @json($metrics['trend']['labels']),
-                        datasets: [{
-                            label: 'Réclamations créées',
-                            data: @json($metrics['trend']['data']),
-                            borderColor: '#586a3d',
-                            backgroundColor: 'rgba(88, 106, 61, 0.1)',
-                            tension: 0.3,
-                            fill: true
-                        }]
-                    },
-                    options: { responsive: true, plugins: { legend: { display: false } } }
-                });
-            </script>
+            <div class="flex h-32 items-end gap-1" role="img" aria-label="Nombre de réclamations créées par jour">
+                @foreach($metrics['trend']['data'] as $index => $count)
+                    <div class="min-w-0 flex-1 rounded-t bg-olive-600" style="height: {{ max(2, $count / max(1, max($metrics['trend']['data'])) * 100) }}%" title="{{ $metrics['trend']['labels'][$index] }} : {{ $count }}"></div>
+                @endforeach
+            </div>
+            <details class="mt-5 text-sm"><summary>Voir les valeurs quotidiennes</summary>
+                <dl class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    @foreach($metrics['trend']['labels'] as $index => $label)
+                        <div><dt>{{ $label }}</dt><dd>{{ $metrics['trend']['data'][$index] }}</dd></div>
+                    @endforeach
+                </dl>
+            </details>
         @else
             <p class="text-sm text-stone-500">Aucune donnée de tendance.</p>
         @endif
     </x-card>
 @endsection
-
-@push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-@endpush

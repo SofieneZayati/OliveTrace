@@ -14,6 +14,7 @@
                 <x-button-link href="{{ route('register') }}">Register <x-icon name="arrow" class="h-4 w-4" /></x-button-link>
             @else
                 @if (auth()->user()->role === \App\Enums\Role::Consumer)
+                    <a href="{{ route('my-trace.index') }}" @if(request()->routeIs('my-trace.*')) aria-current="page" @endif class="nav-link">My OliveTrace</a>
                     <a href="{{ route('home') }}" @if(request()->routeIs('home')) aria-current="page" @endif class="nav-link">Home</a>
                     <a href="{{ route('complaints.index') }}" @if(request()->routeIs('complaints.*')) aria-current="page" @endif class="nav-link">My complaints</a>
                 @endif

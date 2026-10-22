@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Consumer\Admin;
 
 use App\Enums\Consumer\ComplaintStatus;
 use App\Enums\Consumer\FeedbackStatus;
+use App\Events\ComplaintStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Consumer\ComplaintModerationRequest;
 use App\Mail\ComplaintStatusUpdated;
@@ -22,7 +23,7 @@ class ConsumerModerationController extends Controller
     public function feedbackIndex(Request $request)
     {
         $filters = $request->validate(['status' => ['nullable', Rule::enum(FeedbackStatus::class)]]);
-        $feedback = Feedback::with(['consumer', 'product'])->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+        $feedback = Feedback::with(['consumer', 'product', 'edits.editor'])->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest()->paginate(15);
 
         return view('consumer.admin.feedback-index', ['feedback' => $feedback]);
@@ -58,11 +59,20 @@ class ConsumerModerationController extends Controller
     {
         $data = $request->validated();
         $status = ComplaintStatus::from($data['status']);
+        $oldStatus = $complaint->status;
+        $reopening = $oldStatus->isClosed() && $status === ComplaintStatus::InReview;
         $complaint->update([
             'status' => $status,
             'admin_response' => $data['admin_response'] ?? null,
             'resolved_at' => $status->isClosed() ? ($complaint->resolved_at ?? now()) : null,
+            'admin_user_id' => $request->user()->id,
+            'reopen_count' => ($complaint->reopen_count ?? 0) + ($reopening ? 1 : 0),
+            'sla_deadline' => $reopening ? now()->addHours(48) : ($complaint->sla_deadline ?? now()->addHours(48)),
         ]);
+
+        if ($complaint->wasChanged('status')) {
+            event(new ComplaintStatusChanged($complaint, $oldStatus->value));
+        }
 
         // Notify on a changed decision/response, rather than every repeated save.
         try {

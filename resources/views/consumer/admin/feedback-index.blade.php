@@ -43,6 +43,25 @@
                     <span class="role-badge">{{ $item->status->label() }}</span>
                 </div>
                 @if($item->comment)<p class="mt-3 text-sm leading-6">{{ $item->comment }}</p>@endif
+                <div class="mt-4 space-y-3" x-data="{ tone: 'professional', loading: false, draft: '', error: '' }">
+                    <label for="tone-{{ $item->id }}" class="block text-sm">AI reply tone (draft only)</label>
+                    <select id="tone-{{ $item->id }}" x-model="tone" class="rounded-lg border-stone-300">
+                        @foreach(\App\Services\Consumer\AdminSuggestedResponseService::TONES as $tone)
+                            <option value="{{ $tone }}">{{ ucfirst($tone) }}</option>
+                        @endforeach
+                    </select>
+                    <button type="button" class="btn-secondary" :disabled="loading" @click="loading = true; error = ''; fetch('{{ route('admin.consumer.feedback.ai-response', $item) }}', {method: 'POST', headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json'}, body: JSON.stringify({tone})}).then(r => r.json()).then(data => { if (data.success) { draft = data.suggestion.suggested_response; } else { error = data.error || data.message || 'AI unavailable'; } }).catch(() => error = 'AI unavailable').finally(() => loading = false)">Suggest a reply</button>
+                    <p class="text-sm text-red-700" x-text="error"></p>
+                    <p class="whitespace-pre-line text-sm" x-text="draft"></p>
+                    <p class="text-xs text-stone-500">The review text is sent to Groq. The draft is saved for admin review and is not published or sent automatically.</p>
+                </div>
+                @if($item->edits->isNotEmpty())
+                    <details class="mt-4 text-sm"><summary>Review edit history</summary>
+                        @foreach($item->edits->sortByDesc('id')->take(5) as $edit)
+                            <p class="mt-2">{{ $edit->created_at?->toDateString() }} · {{ $edit->old_rating }} → {{ $edit->new_rating }}/5 · {{ $edit->old_comment }} → {{ $edit->new_comment }}</p>
+                        @endforeach
+                    </details>
+                @endif
                 <p class="mt-3 text-xs text-stone-500">Assistant suggestion: {{ $item->ai_category?->label() ?? '—' }} · {{ $item->ai_sentiment?->label() ?? '—' }} · {{ $item->ai_priority?->label() ?? '—' }} priority (advisory only).</p>
                 <form method="POST" action="{{ route('admin.consumer.feedback.update', $item) }}" class="mt-4 flex items-center gap-3">@csrf @method('PATCH')
                     <input type="hidden" name="status" value="{{ $item->status === \App\Enums\Consumer\FeedbackStatus::Visible ? 'hidden' : 'visible' }}">

@@ -17,13 +17,14 @@ class VerifiedPurchase extends Model
 
     protected $fillable = [
         'consumer_user_id', 'oil_product_id', 'shipment_id',
-        'proof_type', 'proof_path', 'verified_at',
+        'proof_type', 'proof_path', 'verified_at', 'approved_at', 'approved_by_user_id',
     ];
 
     protected function casts(): array
     {
         return [
             'verified_at' => 'datetime',
+            'approved_at' => 'datetime',
         ];
     }
 

@@ -2,12 +2,12 @@
 
 namespace App\Services\Consumer;
 
-use App\Mail\ComplaintStatusNotification;
 use App\Mail\UrgentComplaintNotification;
 use App\Models\Consumer\Complaint;
 use App\Models\Consumer\ConsumerNotification;
 use App\Models\Consumer\Feedback;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class NotificationService
@@ -33,7 +33,11 @@ class NotificationService
 
             // Send email if admin has email
             if ($admin->email) {
-                Mail::to($admin->email)->queue(new UrgentComplaintNotification($complaint, $admin));
+                try {
+                    Mail::to($admin->email)->send(new UrgentComplaintNotification($complaint, $admin));
+                } catch (\Throwable $exception) {
+                    Log::warning('Urgent complaint mail failed', ['complaint' => $complaint->id, 'exception' => $exception::class]);
+                }
             }
         }
     }
@@ -55,18 +59,19 @@ class NotificationService
         $this->createNotification($consumer->id, [
             'type' => 'complaint_status',
             'title' => 'Mise à jour de votre réclamation : '.$complaint->subject,
-            'message' => "Le statut de votre réclamation a changé : {$statusLabels[$oldStatus]} → {$statusLabels[$complaint->status]}\n\n".
+            'message' => 'Le statut de votre réclamation a changé : '.$statusLabels[$oldStatus].' → '.$statusLabels[$complaint->status->value]."\n\n".
                 ($complaint->admin_response ? "Réponse de l'équipe : {$complaint->admin_response}" : ''),
             'related_complaint_id' => $complaint->id,
             'related_oil_product_id' => $complaint->oil_product_id,
         ]);
 
-        Mail::to($consumer->email)->queue(new ComplaintStatusNotification($complaint, $oldStatus));
+        // The moderation controller sends the reviewed status email once.
     }
 
     public function notifyNewCertificate(int $productId): void
     {
         $consumers = Feedback::where('oil_product_id', $productId)
+            ->whereHas('consumer', fn ($query) => $query->where('is_active', true))
             ->visible()
             ->distinct('consumer_user_id')
             ->pluck('consumer_user_id');

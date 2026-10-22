@@ -8,6 +8,7 @@ use App\Models\Consumer\Feedback;
 use App\Models\Distribution\OilProduct;
 use App\Services\Consumer\FeedbackClassifier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class FeedbackController extends Controller
@@ -28,13 +29,13 @@ class FeedbackController extends Controller
         $analysis = $classifier->classify($data['comment'] ?? '', $data['rating']);
 
         // One active feedback per consumer per product: submit again to update.
-        $feedback = Feedback::updateOrCreate(
+        $feedback = DB::transaction(fn () => Feedback::updateOrCreate(
             ['oil_product_id' => $product, 'consumer_user_id' => $user->id],
             [
                 'rating' => $data['rating'], 'comment' => $data['comment'] ?? null, 'status' => 'visible',
                 'ai_category' => $analysis['category'], 'ai_sentiment' => $analysis['sentiment'], 'ai_priority' => $analysis['priority'],
             ]
-        );
+        ));
 
         return redirect()->route('trace.show', $product)
             ->with('success', $feedback->wasRecentlyCreated ? 'Thank you! Your review was recorded.' : 'Your review was updated.');
@@ -52,10 +53,10 @@ class FeedbackController extends Controller
         Gate::authorize('update', $feedback);
         $data = $request->validated();
         $analysis = $classifier->classify($data['comment'] ?? '', $data['rating']);
-        $feedback->update([
+        DB::transaction(fn () => $feedback->update([
             'rating' => $data['rating'], 'comment' => $data['comment'] ?? null,
             'ai_category' => $analysis['category'], 'ai_sentiment' => $analysis['sentiment'], 'ai_priority' => $analysis['priority'],
-        ]);
+        ]));
 
         return redirect()->route('trace.show', $feedback->oil_product_id)->with('success', 'Your review was updated.');
     }

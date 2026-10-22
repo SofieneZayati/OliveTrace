@@ -2,6 +2,7 @@
 @section('title', 'Mon OliveTrace')
 @section('content')
     <div class="mx-auto max-w-6xl">
+        <x-validation-errors class="mb-5" />
         <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
                 <p class="eyebrow mb-4 text-olive-600">Votre espace personnel</p>
@@ -37,7 +38,7 @@
                             <span class="text-xs text-stone-500">{{ $feedback->product->name ?? 'Produit #' . $feedback->oil_product_id }} · {{ $feedback->created_at->toDateString() }}</span>
                         </div>
                         @if($feedback->comment)<p class="mt-2 text-sm leading-6">{{ $feedback->comment }}</p>@endif
-                        @if($feedback->verified_purchase)
+                        @if($feedback->hasVerifiedPurchase())
                             <span class="mt-2 inline-flex items-center gap-1 text-xs text-olive-700 bg-olive-50 px-2 py-1 rounded-full">
                                 <x-icon name="shield" class="h-3 w-3" /> Achat vérifié
                             </span>
@@ -47,10 +48,12 @@
                             @if($feedback->hasVerifiedPurchase())
                                 <span class="text-xs text-olive-600">Achat vérifié ✓</span>
                             @else
-                                <form method="POST" action="{{ route('products.proof.upload', $feedback->oil_product_id) }}" class="inline">
+                                <form method="POST" action="{{ route('products.proof.upload', $feedback->oil_product_id) }}" enctype="multipart/form-data" class="space-y-3">
                                     @csrf
-                                    <input type="file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" class="sr-only" id="proof-{{ $feedback->id }}" onchange="this.form.submit()">
-                                    <button type="submit" class="btn-secondary text-sm">Ajouter preuve d'achat</button>
+                                    <input type="hidden" name="proof_type" value="receipt">
+                                    <label for="proof-{{ $feedback->id }}" class="block text-sm">Justificatif privé (JPEG/PNG/PDF, 5 Mo maximum)</label>
+                                    <input type="file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" id="proof-{{ $feedback->id }}" class="block max-w-full text-sm">
+                                    <button type="submit" class="btn-secondary text-sm">Soumettre pour vérification</button>
                                 </form>
                             @endif
                         </div>
@@ -94,9 +97,10 @@
             <x-card>
                 <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
                     <div><p class="eyebrow mb-2 text-olive-600">Notifications</p><h2 class="font-display text-2xl">Dernières alertes</h2></div>
+                    <a class="text-link" href="{{ route('my-trace.notifications') }}">Toutes les notifications</a>
                     @if($unread_notifications > 0)
                         <form method="POST" action="{{ route('my-trace.notifications.read-all') }}">
-                            @csrf
+                            @csrf @method('PATCH')
                             <button type="submit" class="btn-secondary text-sm">{{ $unread_notifications }} non lues — Tout marquer comme lu</button>
                         </form>
                     @endif
@@ -132,10 +136,10 @@
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <div>
                                 <p class="font-semibold">{{ $purchase->product->name ?? 'Produit #' . $purchase->oil_product_id }}</p>
-                                <p class="text-sm text-stone-500">Vérifié le {{ $purchase->verified_at->toDateString() }} · Type : {{ $purchase->proof_type }}</p>
+                                <p class="text-sm text-stone-500">{{ $purchase->approved_at ? 'Approuvé le '.$purchase->approved_at->toDateString() : 'En attente de vérification' }} · Type : {{ $purchase->proof_type }}</p>
                             </div>
                             @if($purchase->proof_path)
-                                <a href="{{ Storage::url($purchase->proof_path) }}" target="_blank" class="text-link text-sm">Voir la preuve</a>
+                                <a href="{{ route('products.proof.show', $purchase) }}" class="text-link text-sm">Voir la preuve privée</a>
                             @endif
                         </div>
                     </div>

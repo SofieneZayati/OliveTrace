@@ -6,7 +6,7 @@
             <div><p class="eyebrow mb-4 text-olive-600">Centre de notifications</p><h1 class="display-title text-4xl">Toutes vos alertes.</h1><p class="mt-4 text-sm text-stone-500">{{ $notifications->total() }} notification(s).</p></div>
             @if($notifications->where('read', false)->count() > 0)
                 <form method="POST" action="{{ route('my-trace.notifications.read-all') }}">
-                    @csrf
+                    @csrf @method('PATCH')
                     <button type="submit" class="btn-primary">Tout marquer comme lu</button>
                 </form>
             @endif

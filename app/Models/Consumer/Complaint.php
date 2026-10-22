@@ -23,6 +23,7 @@ class Complaint extends Model
     protected $fillable = [
         'oil_product_id', 'consumer_user_id', 'subject', 'description', 'evidence_photo', 'status',
         'admin_response', 'ai_category', 'ai_sentiment', 'ai_priority', 'ai_draft_reply', 'resolved_at',
+        'sla_deadline', 'reopen_count', 'admin_user_id',
     ];
 
     protected function casts(): array
@@ -33,7 +34,26 @@ class Complaint extends Model
             'ai_sentiment' => FeedbackSentiment::class,
             'ai_priority' => FeedbackPriority::class,
             'resolved_at' => 'datetime',
+            'sla_deadline' => 'datetime',
+            'reopen_count' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Complaint $complaint): void {
+            $complaint->sla_deadline ??= now()->addHours(48);
+        });
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->sla_deadline !== null && $this->sla_deadline->isPast() && ! $this->status->isClosed();
+    }
+
+    public function isSlaBreached(): bool
+    {
+        return $this->isOverdue();
     }
 
     public function consumer(): BelongsTo

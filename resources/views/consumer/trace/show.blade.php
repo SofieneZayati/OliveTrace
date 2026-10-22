@@ -37,6 +37,7 @@
                     <span class="role-badge shrink-0">{{ $bottle }}</span>
                 </div>
                 <h2 class="font-display mt-3 text-3xl sm:text-4xl">{{ $product->name ?? 'Olive oil product #'.$product->id }}</h2>
+                <a class="text-link mt-4 inline-block" href="{{ route('trace.share', $product->slug) }}">Share this product and QR code</a>
                 @if($product->description)
                     <p class="mt-4 max-w-2xl text-sm leading-7 text-stone-600">{{ $product->description }}</p>
                 @endif
@@ -144,6 +145,7 @@
                         <div class="border-t border-stone-100 py-4 first:border-0 first:pt-0">
                             <div class="flex flex-wrap items-center justify-between gap-2"><x-rating-stars :value="$item->rating" /><span class="text-xs text-stone-500">{{ $item->consumer?->name ?? 'Consumer' }} · {{ $item->created_at?->toDateString() }}</span></div>
                             @if($item->comment)<p class="mt-2 text-sm leading-6">{{ $item->comment }}</p>@endif
+                            @if($item->hasVerifiedPurchase())<p class="mt-2 text-xs font-semibold text-olive-700">Verified purchase · proof reviewed by admin</p>@endif
                         </div>
                     @empty
                         <p class="text-sm text-stone-500">No reviews yet. Be the first to share your tasting.</p>
@@ -157,6 +159,15 @@
                                     <form method="POST" action="{{ route('feedback.destroy', $myFeedback) }}" class="mt-3" onsubmit="return confirm('Delete your review?')">@csrf @method('DELETE')<button type="submit" class="text-sm text-red-700 underline">Delete my review</button></form>
                                 @endif
                                 <p class="mt-4 text-sm"><a class="text-link" href="{{ route('complaints.create') }}">Something wrong with this product? Submit a complaint →</a></p>
+                                <details class="mt-6 text-sm"><summary>Submit a private purchase proof</summary>
+                                    <form method="POST" action="{{ route('products.proof.upload', $product) }}" enctype="multipart/form-data" class="mt-4 space-y-3">
+                                        @csrf
+                                        <input type="hidden" name="proof_type" value="receipt">
+                                        <label for="purchase-proof" class="block">Receipt (JPEG/PNG/PDF, maximum 5 MB)</label>
+                                        <input id="purchase-proof" type="file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" class="block max-w-full">
+                                        <x-primary-button>Submit for admin review</x-primary-button>
+                                    </form>
+                                </details>
                             @endif
                         @else
                             <p class="text-sm text-stone-500"><a class="text-link" href="{{ route('login') }}">Log in</a> as a consumer to leave a review or submit a complaint about this product.</p>

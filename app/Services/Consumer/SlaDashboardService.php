@@ -2,6 +2,7 @@
 
 namespace App\Services\Consumer;
 
+use App\Enums\Consumer\ComplaintStatus;
 use App\Models\Consumer\Complaint;
 use App\Models\User;
 use Carbon\CarbonInterval;
@@ -18,7 +19,7 @@ class SlaDashboardService
         }
 
         $all = $query->get();
-        $resolved = $all->where('status', 'resolved');
+        $resolved = $all->filter(fn ($complaint) => $complaint->status === ComplaintStatus::Resolved);
         $overdue = $all->filter(fn ($c) => $c->isOverdue());
 
         $total = $all->count();
@@ -26,10 +27,10 @@ class SlaDashboardService
 
         return [
             'total_complaints' => $total,
-            'open_complaints' => $all->where('status', 'open')->count(),
-            'in_review_complaints' => $all->where('status', 'in_review')->count(),
+            'open_complaints' => $all->filter(fn ($complaint) => $complaint->status === ComplaintStatus::Open)->count(),
+            'in_review_complaints' => $all->filter(fn ($complaint) => $complaint->status === ComplaintStatus::InReview)->count(),
             'resolved_complaints' => $resolvedCount,
-            'rejected_complaints' => $all->where('status', 'rejected')->count(),
+            'rejected_complaints' => $all->filter(fn ($complaint) => $complaint->status === ComplaintStatus::Rejected)->count(),
             'overdue_complaints' => $overdue->count(),
             'reopened_complaints' => $all->where('reopen_count', '>', 0)->count(),
             'resolution_rate' => $total > 0 ? round(($resolvedCount / $total) * 100, 1) : 0,
@@ -73,7 +74,7 @@ class SlaDashboardService
         $times = $resolved
             ->filter(fn ($c) => $c->resolved_at && $c->created_at)
             ->map(fn ($c) => $c->created_at->diffInHours($c->resolved_at))
-            ->filter(fn ($h) => $h > 0);
+            ->filter(fn ($h) => $h >= 0);
 
         return $times->isNotEmpty() ? round($times->avg(), 1) : null;
     }
@@ -83,8 +84,8 @@ class SlaDashboardService
         $times = $resolved
             ->filter(fn ($c) => $c->resolved_at && $c->created_at)
             ->map(fn ($c) => $c->created_at->diffInHours($c->resolved_at))
-            ->filter(fn ($h) => $h > 0)
-            ->sort();
+            ->filter(fn ($h) => $h >= 0)
+            ->sort()->values();
 
         if ($times->isEmpty()) {
             return null;
@@ -112,7 +113,7 @@ class SlaDashboardService
 
     private function byPriority(Collection $all): array
     {
-        return $all->groupBy('ai_priority')
+        return $all->groupBy(fn ($complaint) => $complaint->ai_priority?->value ?? 'unclassified')
             ->map(fn ($group) => $group->count())
             ->sortKeys()
             ->toArray();
@@ -120,7 +121,7 @@ class SlaDashboardService
 
     private function byCategory(Collection $all): array
     {
-        return $all->groupBy('ai_category')
+        return $all->groupBy(fn ($complaint) => $complaint->ai_category?->value ?? 'unclassified')
             ->map(fn ($group) => $group->count())
             ->sortDesc()
             ->toArray();
@@ -128,14 +129,13 @@ class SlaDashboardService
 
     private function byAdmin(Collection $resolved): array
     {
-        // This would need a relationship to track which admin resolved
-        // For now, return placeholder
-        return [];
+        return $resolved->whereNotNull('admin_user_id')->groupBy('admin_user_id')
+            ->map(fn ($complaints) => $complaints->count())->all();
     }
 
     private function trend(?CarbonInterval $period): array
     {
-        $days = $period ? $period->days : 30;
+        $days = $period ? max(1, (int) $period->totalDays) : 30;
         $start = now()->subDays($days);
 
         $daily = Complaint::where('created_at', '>=', $start)
