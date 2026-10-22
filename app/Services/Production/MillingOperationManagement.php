@@ -109,7 +109,7 @@ class MillingOperationManagement
             $op->discrepancy_note = $data['discrepancy_note'] ?? null;
             $op->save();
 
-            $this->notifyAfterCommit(function () use ($op) {
+            $this->notifyAfterCommit(function () use ($op, $discrepancyRounded) {
                 $op->loadMissing('millRequest.harvest.farm.producerProfile.user');
                 $producer = $op->millRequest?->harvest?->farm?->producerProfile?->user;
                 if ($producer) {

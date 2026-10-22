@@ -14,17 +14,16 @@ use Illuminate\View\View;
 
 class MillingOperationController extends Controller
 {
-    public function __construct(private MillingOperationManagement $service)
-    {
-    }
+    public function __construct(private MillingOperationManagement $service) {}
 
     public function index(): View
     {
         Gate::authorize('viewAny', MillingOperation::class);
-        $user = auth()->user();
-        $millId = $user->mill?->id ?? $user->mill_id;
+        $mill = auth()->user()->mill;
+        abort_unless($mill, 403);
+
         $operations = MillingOperation::with(['millRequest.harvest.farm.producerProfile.user', 'millRequest.harvest', 'oilLot'])
-            ->when($millId, fn ($q) => $q->whereHas('millRequest', fn ($qq) => $qq->where('mill_id', $millId)))
+            ->whereHas('millRequest', fn ($query) => $query->where('mill_id', $mill->id))
             ->latest()
             ->paginate(15);
 
