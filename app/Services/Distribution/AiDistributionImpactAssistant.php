@@ -5,9 +5,13 @@ namespace App\Services\Distribution;
 use App\Contracts\DistributionImpactAssistant;
 use App\Enums\TransportType;
 use App\Models\Distribution\Shipment;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 class AiDistributionImpactAssistant implements DistributionImpactAssistant
 {
@@ -61,7 +65,7 @@ class AiDistributionImpactAssistant implements DistributionImpactAssistant
             }
 
             return new ImpactAdvice(trim($data['summary']), $ruleAdvice->alternative, 'ai');
-        } catch (\Throwable) {
+        } catch (Throwable) {
             Log::warning('Distribution impact AI request failed; rule-based advice was used.');
 
             return $this->fallback->analyze($shipment);
@@ -70,8 +74,30 @@ class AiDistributionImpactAssistant implements DistributionImpactAssistant
 
     private function gemini(string $model, string $key, string $input): string
     {
+        $timeout = (float) config('farm-assistant.timeout');
+        $deadline = microtime(true) + $timeout;
+        $delays = [1000, 2000];
+        $retry = 0;
+
         $response = Http::withHeaders(['x-goog-api-key' => $key])->acceptJson()
-            ->connectTimeout(5)->timeout(config('farm-assistant.timeout'))
+            ->connectTimeout(min(5, $timeout))->timeout($timeout)
+            ->retry($delays, when: function (Throwable $exception, PendingRequest $request) use ($deadline, $delays, &$retry): bool {
+                $transient = $exception instanceof ConnectionException
+                    || ($exception instanceof RequestException
+                        && in_array($exception->response->status(), [408, 429, 500, 502, 503, 504], true));
+                if (! $transient) {
+                    return false;
+                }
+
+                // Retries share the original time budget, including their backoff delays.
+                $remaining = $deadline - microtime(true) - ($delays[$retry++] ?? 0) / 1000;
+                if ($remaining <= 0) {
+                    return false;
+                }
+                $request->connectTimeout(min(5, $remaining))->timeout($remaining);
+
+                return true;
+            })
             ->post('https://generativelanguage.googleapis.com/v1beta/models/'.rawurlencode($model).':generateContent', [
                 'systemInstruction' => ['parts' => [['text' => self::INSTRUCTIONS]]],
                 'contents' => [['role' => 'user', 'parts' => [['text' => $input]]]],

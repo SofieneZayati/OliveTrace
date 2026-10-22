@@ -30,6 +30,19 @@ It uses `FARM_AI_PROVIDER`, `FARM_AI_MODEL` and the matching provider key.
 Gemini uses `GEMINI_API_KEY`; the lab continues to select its own `LAB_AI_MODEL`.
 Missing credentials or provider failures keep rule-based advice available.
 
+Gemini shipment advice retries temporary connection failures and HTTP 408, 429,
+500, 502, 503 and 504 responses, with waits of one and then two seconds. There
+are at most three attempts sharing the existing 30-second request budget. Other
+errors (including invalid credentials or malformed responses) are not retried.
+If Gemini remains unavailable, the result is clearly labelled as rule-based advice;
+it is never presented as a successful AI response.
+
+For a demonstration, sign in as `distributor@test.com`, open **Shipments**, select
+a shipment, and click **Analyze impact**. A successful Gemini response is labelled
+**AI suggestion, advisory only**. On another PC, keep your private `GEMINI_API_KEY`,
+set `OLIVETRACE_IMPACT_AI_ENABLED=true`, and run `php artisan config:clear` after
+updating `.env`. New checkouts have the flag enabled in `.env.example`.
+
 After pulling the unified main, run `composer install`, `php artisan optimize:clear`,
 `php artisan migrate`, `npm.cmd ci` and `npm.cmd run build`. Keep your own `.env`
 and existing database; no reseeding is needed. The new migration adds shipment

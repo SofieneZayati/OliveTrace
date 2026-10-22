@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use InvalidArgumentException;
 use Tests\TestCase;
 
@@ -24,6 +25,7 @@ class DistributionImpactTest extends TestCase
     {
         parent::setUp();
         Http::preventStrayRequests();
+        Sleep::fake();
     }
 
     public function test_co2_estimator_uses_each_transport_factor_and_rounds(): void
@@ -127,16 +129,106 @@ class DistributionImpactTest extends TestCase
             'farm-assistant.model' => 'gemini-3.1-flash-lite',
             'services.gemini.key' => 'test-key',
         ]);
-        Http::fake(['generativelanguage.googleapis.com/*' => Http::sequence()
-            ->push(['candidates' => [['content' => ['parts' => [['text' => 'not json']]]]]])
-            ->push(['error' => ['message' => 'private details']], 500)]);
+        $calls = 0;
+        Http::fake(['generativelanguage.googleapis.com/*' => function () use (&$calls) {
+            $calls++;
+            if ($calls === 1) {
+                return Http::response(['candidates' => [[
+                    'finishReason' => 'STOP',
+                    'content' => ['parts' => [['text' => 'not json']]],
+                ]]]);
+            }
+            if ($calls <= 4) {
+                return Http::response(['error' => ['message' => 'private details']], 500);
+            }
 
-        $this->assertSame('fallback', app(DistributionImpactAssistant::class)->analyze($shipment)->source);
-        $this->assertSame('fallback', app(DistributionImpactAssistant::class)->analyze($shipment)->source);
-        Http::fake(['generativelanguage.googleapis.com/*' => function () {
             throw new ConnectionException('simulated timeout');
         }]);
+
         $this->assertSame('fallback', app(DistributionImpactAssistant::class)->analyze($shipment)->source);
+        Http::assertSentCount(1);
+        $this->assertSame('fallback', app(DistributionImpactAssistant::class)->analyze($shipment)->source);
+        Http::assertSentCount(4);
+        $this->assertSame('fallback', app(DistributionImpactAssistant::class)->analyze($shipment)->source);
+        $this->assertSame(7, $calls);
+    }
+
+    public function test_gemini_recovers_after_temporary_overload_with_increasing_delays(): void
+    {
+        $shipment = $this->shipment();
+        $before = $shipment->getAttributes();
+        config([
+            'olivetrace-distribution.impact_ai_enabled' => true,
+            'farm-assistant.provider' => 'gemini',
+            'services.gemini.key' => 'test-key',
+        ]);
+        Http::fake(['generativelanguage.googleapis.com/*' => Http::sequence()
+            ->push(['error' => ['status' => 'UNAVAILABLE']], 503)
+            ->push(['error' => ['status' => 'UNAVAILABLE']], 503)
+            ->push(['candidates' => [[
+                'finishReason' => 'STOP',
+                'content' => ['parts' => [['text' => json_encode([
+                    'summary' => 'This shipment has a route-based transport estimate.',
+                    'alternative' => 'Consider ship where available.',
+                ])]]],
+            ]]])]);
+
+        $advice = app(DistributionImpactAssistant::class)->analyze($shipment);
+
+        $this->assertSame('ai', $advice->source);
+        $this->assertSame($before, $shipment->getAttributes());
+        Http::assertSentCount(3);
+        Sleep::assertSequence([Sleep::for(1)->second(), Sleep::for(2)->seconds()]);
+    }
+
+    public function test_gemini_stops_after_three_unavailable_responses_and_keeps_the_fallback(): void
+    {
+        $shipment = $this->shipment();
+        config([
+            'olivetrace-distribution.impact_ai_enabled' => true,
+            'farm-assistant.provider' => 'gemini',
+            'services.gemini.key' => 'test-key',
+        ]);
+        Http::fake(['generativelanguage.googleapis.com/*' => Http::response(['error' => ['status' => 'UNAVAILABLE']], 503)]);
+
+        $advice = app(DistributionImpactAssistant::class)->analyze($shipment);
+
+        $this->assertSame('fallback', $advice->source);
+        $this->assertNotEmpty($advice->summary);
+        $this->assertNotEmpty($advice->alternative);
+        Http::assertSentCount(3);
+        Sleep::assertSequence([Sleep::for(1)->second(), Sleep::for(2)->seconds()]);
+    }
+
+    public function test_gemini_does_not_retry_a_credentials_error(): void
+    {
+        $shipment = $this->shipment();
+        config([
+            'olivetrace-distribution.impact_ai_enabled' => true,
+            'farm-assistant.provider' => 'gemini',
+            'services.gemini.key' => 'test-key',
+        ]);
+        Http::fake(['generativelanguage.googleapis.com/*' => Http::response(['error' => ['status' => 'PERMISSION_DENIED']], 403)]);
+
+        $this->assertSame('fallback', app(DistributionImpactAssistant::class)->analyze($shipment)->source);
+        Http::assertSentCount(1);
+        Sleep::assertNeverSlept();
+    }
+
+    public function test_gemini_does_not_retry_when_the_backoff_exceeds_the_remaining_budget(): void
+    {
+        $shipment = $this->shipment();
+        config([
+            'olivetrace-distribution.impact_ai_enabled' => true,
+            'farm-assistant.provider' => 'gemini',
+            'farm-assistant.timeout' => 0.5,
+            'services.gemini.key' => 'test-key',
+        ]);
+        Http::fake(['generativelanguage.googleapis.com/*' => Http::response(['error' => ['status' => 'UNAVAILABLE']], 503)]);
+
+        $this->assertSame('fallback', app(DistributionImpactAssistant::class)->analyze($shipment)->source);
+        Http::assertSentCount(1);
+        Sleep::assertNeverSlept();
     }
 
     public function test_disabled_or_missing_ai_key_uses_fallback_without_http(): void
