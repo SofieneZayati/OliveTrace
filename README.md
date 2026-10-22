@@ -245,6 +245,9 @@ The full `migrate --seed` setup command is for a fresh development installation.
 
 ## Tests and checks
 
+For Aymen's integrated consumer search, dashboard, private complaint photos,
+Groq assistants and email setup, see [consumer features](docs/consumer-features.md).
+
 ```powershell
 php artisan test
 php vendor/bin/pint --test
