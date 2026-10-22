@@ -106,6 +106,8 @@ class PublicCatalogTest extends TestCase
             ->assertSee($delivered->name)
             ->assertSee('Delivered to Tunis')
             ->assertDontSee($pending->name);
+
+        $this->get(route('catalog.index'))->assertOk()->assertDontSee('Delivered to Sousse');
     }
 
     public function test_transport_co2_badge_is_shown_only_when_a_non_cancelled_estimate_exists(): void
@@ -215,7 +217,7 @@ class PublicCatalogTest extends TestCase
 
         $this->get(route('catalog.index'))
             ->assertOk()
-            ->assertSee('View traceability')
+            ->assertSee('Explore product story')
             ->assertSee('href="'.$product->traceUrl().'"', false);
     }
 
@@ -230,7 +232,7 @@ class PublicCatalogTest extends TestCase
 
         $this->get(route('catalog.index'))
             ->assertOk()
-            ->assertSee('View traceability')
+            ->assertSee('Explore product story')
             ->assertSee('href="'.route('trace.show', $product->slug).'"', false);
     }
 
@@ -269,7 +271,7 @@ class PublicCatalogTest extends TestCase
             }
         });
 
-        $this->get(route('catalog.index'))->assertOk()->assertSee('Verified');
+        $this->get(route('catalog.index'))->assertOk()->assertSee('Valid certificate');
 
         $this->app->instance(OilLotLookup::class, new class implements OilLotLookup
         {

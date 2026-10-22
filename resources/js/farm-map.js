@@ -54,7 +54,9 @@ export function farmMap(options) {
                     });
                     this.syncFields();
                 } else {
-                    this.status = points.length ? `${points.length} saved farm location${points.length === 1 ? '' : 's'}.` : 'No saved farm coordinates to display.';
+                    this.status = options.publicMap
+                        ? (points.length ? `${points.length} approximate origin region(s). Select a marker to explore products.` : 'No published origin regions in these results.')
+                        : (points.length ? `${points.length} saved farm location${points.length === 1 ? '' : 's'}.` : 'No saved farm coordinates to display.');
                 }
             });
         },
@@ -81,7 +83,7 @@ export function farmMap(options) {
                 }).setView(options.center, options.zoom);
                 L.tileLayer(options.tiles, { maxZoom: options.maxZoom, attribution: options.attribution })
                     .on('tileerror', () => {
-                        this.error = 'Some map tiles could not load. Your saved data is unchanged; coordinate entry and farm links remain available.';
+                        this.error = options.publicMap ? 'Some map tiles could not load. Use the region filter or product links below.' : 'Some map tiles could not load. Your saved data is unchanged; coordinate entry and farm links remain available.';
                     }).addTo(map);
                 if (options.picker) {
                     map.on('click', (event) => this.choose(event.latlng));
@@ -94,12 +96,12 @@ export function farmMap(options) {
                         const detail = document.createElement('p');
                         detail.textContent = `${point.region} · ${point.status}`;
                         const link = document.createElement('a');
-                        link.textContent = 'Open farm →';
+                        link.textContent = point.linkLabel ?? 'Open farm →';
                         // Routes are generated server-side; keep navigation on this application.
                         const url = new URL(point.url, window.location.origin);
                         if (url.origin === window.location.origin) link.href = url.href;
                         popup.append(title, detail, link);
-                        L.marker([point.lat, point.lng], { icon: this.icon(), title: point.name, alt: 'Farm location' })
+                        L.marker([point.lat, point.lng], { icon: this.icon(), title: point.name, alt: options.publicMap ? 'Approximate origin region' : 'Farm location' })
                             .addTo(map).bindPopup(popup);
                     });
                 }
@@ -119,7 +121,7 @@ export function farmMap(options) {
                 map = null;
                 selectedMarker = null;
                 this.loaded = false;
-                this.error = 'The interactive map could not load. You can still enter coordinates manually and use the farm pages. Try loading it again.';
+                this.error = options.publicMap ? 'The map could not load. Region filtering and product pages remain available.' : 'The interactive map could not load. You can still enter coordinates manually and use the farm pages. Try loading it again.';
             } finally {
                 this.loading = false;
             }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Distribution;
 
+use App\Support\ProductionOptions;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,6 +25,7 @@ class ListPublicCatalogRequest extends FormRequest
             'bottle_volume_ml' => in_array((string) $volume, ['250', '500', '750', '1000'], true) ? (string) $volume : null,
             'delivered' => $delivered === '1' ? '1' : null,
             'sort' => in_array($sort, ['newest', 'name', 'lowest_co2'], true) ? $sort : 'newest',
+            'region' => in_array($this->query('region'), ProductionOptions::GOVERNORATES, true) ? $this->query('region') : null,
         ]);
     }
 
@@ -34,6 +36,7 @@ class ListPublicCatalogRequest extends FormRequest
             'bottle_volume_ml' => ['nullable', Rule::in(['250', '500', '750', '1000'])],
             'delivered' => ['nullable', Rule::in(['1'])],
             'sort' => ['required', Rule::in(['newest', 'name', 'lowest_co2'])],
+            'region' => ['nullable', Rule::in(ProductionOptions::GOVERNORATES)],
         ];
     }
 }

@@ -31,13 +31,17 @@ class ConsumerTrace
         $oilLot = $this->oilLot($product);
         $harvest = $this->harvest($oilLot);
         $farm = $this->farm($harvest);
+        $origin = $this->origin($farm);
+        $originPoint = $origin ? app(PublicProductOrigins::class)->point($origin['governorate'], route('catalog.index', ['region' => $origin['governorate']])) : null;
 
         return [
             'product' => $product,
             'image_url' => $this->imageUrl($product),
-            'origin' => $this->origin($farm),
+            'origin' => $origin,
+            'origin_map' => $originPoint ? [$originPoint] : [],
             'harvest' => $harvest,
             'mill' => $this->mill($oilLot),
+            'milling' => $this->milling($oilLot),
             'oil_lot' => $oilLot,
             'verification' => $this->verification($oilLot),
             'shipments' => $this->shipments($product),
@@ -72,7 +76,8 @@ class ConsumerTrace
             return null;
         }
 
-        return DB::table($table)->where('id', $value)->first();
+        return DB::table($table)->where($column, $value)
+            ->when(Schema::hasColumn($table, 'deleted_at'), fn ($query) => $query->whereNull('deleted_at'))->first();
     }
 
     private function oilLot(OilProduct $product): ?object
@@ -86,8 +91,7 @@ class ConsumerTrace
 
     private function harvest(?object $oilLot): ?object
     {
-        $request = $oilLot && isset($oilLot->mill_request_id)
-            ? $this->tableRow('mill_requests', 'id', $oilLot->mill_request_id) : null;
+        $request = $this->millRequest($oilLot);
 
         return $request ? $this->tableRow('harvests', 'id', $request->harvest_id) : null;
     }
@@ -103,11 +107,7 @@ class ConsumerTrace
 
     private function mill(?object $oilLot): ?object
     {
-        if (! $oilLot || ! isset($oilLot->mill_request_id)) {
-            return null;
-        }
-
-        $request = $this->tableRow('mill_requests', 'id', $oilLot->mill_request_id);
+        $request = $this->millRequest($oilLot);
         if (! $request || ! isset($request->mill_id)) {
             return $request ? (object) ['external' => $request->external_mill_name ?? null, 'request' => $request] : null;
         }
@@ -115,6 +115,26 @@ class ConsumerTrace
         $mill = $this->tableRow('mills', 'id', $request->mill_id);
 
         return $mill ? (object) ['mill' => $mill, 'request' => $request] : (object) ['external' => null, 'request' => $request];
+    }
+
+    private function millRequest(?object $oilLot): ?object
+    {
+        $operation = ! empty($oilLot->milling_operation_id)
+            ? $this->tableRow('milling_operations', 'id', $oilLot->milling_operation_id) : null;
+
+        return $this->tableRow('mill_requests', 'id', $oilLot->mill_request_id ?? $operation?->mill_request_id);
+    }
+
+    private function milling(?object $oilLot): ?array
+    {
+        $operation = ! empty($oilLot->milling_operation_id)
+            ? $this->tableRow('milling_operations', 'id', $oilLot->milling_operation_id) : null;
+
+        // Only completed production facts are public; delivery/internal notes stay private.
+        return $operation && $operation->status === 'completed'
+            ? array_intersect_key((array) $operation, array_flip([
+                'received_quantity_kg', 'output_volume_l', 'extraction_rate', 'olive_condition', 'completed_at',
+            ])) : null;
     }
 
     private function origin(?Farm $farm): ?array
@@ -138,7 +158,7 @@ class ConsumerTrace
             : null;
 
         $expired = $certificate && isset($certificate->expiry_date) && Carbon::parse($certificate->expiry_date)->toDateString() < now()->toDateString();
-        $verified = $certificate && $request->status === 'approved' && ! $expired
+        $verified = $certificate && isset($certificate->issue_date, $certificate->expiry_date) && $request->status === 'approved' && ! $expired
             && Carbon::parse($certificate->issue_date)->toDateString() <= now()->toDateString()
             && in_array($certificate->status, ['active', 'valid', 'verified', 'certified'], true);
 
@@ -158,11 +178,14 @@ class ConsumerTrace
 
         foreach (['pdf_url', 'file_path', 'document_url', 'document_path'] as $column) {
             if (! empty($certificate->{$column})) {
-                return (string) $certificate->{$column};
+                $url = (string) $certificate->{$column};
+                if (preg_match('~^https?://~i', $url) || (str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, '\\'))) {
+                    return $url;
+                }
             }
         }
 
-        return null;
+        return ! empty($certificate->certificate_number) ? route('certificates.show', $certificate->certificate_number) : null;
     }
 
     /** @return list<object> */

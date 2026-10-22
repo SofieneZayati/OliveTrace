@@ -78,7 +78,7 @@ Add your own values to the private `.env` only:
 
 ```dotenv
 GROQ_API_KEY=
-CONSUMER_AI_MODEL=llama-3.3-70b-versatile
+CONSUMER_AI_MODEL=openai/gpt-oss-120b
 ```
 
 Then run `php artisan config:clear`. These settings are separate from
@@ -90,6 +90,49 @@ The reply assistant sends the product name, complaint subject/description and
 classification to Groq. It does not send the evidence photo or account contact
 fields. The summary sends up to 25 visible reviews with product names/ratings;
 hidden reviews are excluded. AI responses are displayed as escaped text.
+
+GPT-OSS requests reserve completion tokens for reasoning and the final answer;
+only the final answer is requested for display. Complaint drafts, review
+summaries and tone-specific review replies share this configuration. Drafts
+still require an administrator's review before saving a response.
+
+For Gmail SMTP, use your own account and app password in the private `.env`:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_FROM_ADDRESS=
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+The SMTP transport uses STARTTLS when offered by the server. Run
+`php artisan config:clear` after changing these values. Keep `MAIL_MAILER=log`
+on machines where messages should only be recorded locally. Never share the
+real `.env` through Git.
+
+## Public catalog and product story
+
+The catalog supports product/brand searches plus published farm, producer and
+olive-variety searches, and a governorate filter. Cards show review counts,
+certificate status and transport estimates separately; planned shipments are
+never labelled delivered. Open a card to explore the product story.
+
+The story has direct links to origin, production, laboratory verification,
+distribution and reviews, plus review and certificate actions at the top.
+Completed milling quantities/yield and laboratory measurements come from the
+existing module records. Internal milling/lab notes are not displayed.
+
+Public maps use approximate governorate reference points, **never farm GPS**.
+Only active farms, active producer profiles and active producer accounts with
+both publication flags enabled contribute origin metadata. Map pins cover the
+current catalog page and link to the region filter. Loading maps is optional;
+search and product details work without them. Regional reference data is
+derived from geoBoundaries/OpenStreetMap under ODbL 1.0; attribution is included
+in the map and `config/public-origin-regions.php`.
 
 ## Quick check
 

@@ -44,15 +44,15 @@ class TeamIntegrationTest extends TestCase
             'expiry_date' => now()->addYear(), 'status' => 'active',
         ]);
         $this->assertSame('verified', app(OilLotCertificationStatusProvider::class)->statusFor($product->oil_lot_id));
-        $this->get(route('catalog.index'))->assertOk()->assertSee('Verified');
-        $this->get(route('trace.show', $product->slug))->assertOk()->assertSee('Verified')->assertSee('CERT-INTEGRATION-001');
+        $this->get(route('catalog.index'))->assertOk()->assertSee('Valid certificate');
+        $this->get(route('trace.show', $product->slug))->assertOk()->assertSee('Valid certificate')->assertSee('CERT-INTEGRATION-001');
         $certificate->update(['expiry_date' => now()->subDay()]);
         $this->assertSame('expired', app(OilLotCertificationStatusProvider::class)->statusFor($product->oil_lot_id));
         $this->get(route('trace.show', $product->slug))->assertOk()->assertSee('Expired');
         $certificate->update(['expiry_date' => now()->addYear()]);
         $request->update(['status' => 'rejected']);
         $this->assertSame('rejected', app(OilLotCertificationStatusProvider::class)->statusFor($product->oil_lot_id));
-        $this->get(route('trace.show', $product->slug))->assertOk()->assertDontSee('Verified');
+        $this->get(route('trace.show', $product->slug))->assertOk()->assertDontSee('Valid certificate');
         $request->update(['status' => 'approved']);
         $certificate->delete();
         $this->assertSame('pending', app(OilLotCertificationStatusProvider::class)->statusFor($product->oil_lot_id));

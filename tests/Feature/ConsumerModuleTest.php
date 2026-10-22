@@ -206,7 +206,7 @@ class ConsumerModuleTest extends TestCase
         ]);
 
         $this->get('/trace/'.$product->slug)->assertOk()
-            ->assertSee('Verified')
+            ->assertSee('Valid certificate')
             ->assertSee('View certificate document')
             ->assertSee('https://example.com/certificates/CERT-2026-001.pdf', false);
     }

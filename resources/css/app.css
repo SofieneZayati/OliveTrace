@@ -58,6 +58,18 @@
     .btn-primary:disabled, .btn-secondary:disabled, .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .form-label { display: block; font-size: 0.8rem; font-weight: 600; color: #3b4939; }
     .surface-card { border: 1px solid #e2e5da; border-radius: 1rem; background: white; padding: clamp(1.25rem, 3vw, 2rem); box-shadow: 0 4px 24px #26392b03; }
+    .catalog-card { position: relative; transition: transform 180ms ease, box-shadow 180ms ease; }
+    .catalog-card:hover, .catalog-card:focus-within { transform: translateY(-3px); box-shadow: 0 12px 32px #26392b12; }
+    .catalog-card-link::after { content: ''; position: absolute; inset: 0; border-radius: 1rem; }
+    .trust-badge { display: inline-flex; align-items: center; border: 1px solid; border-radius: 999px; padding: 0.35rem 0.8rem; font-size: 0.75rem; font-weight: 600; }
+    .trust-verified { color: #155e63; background: #eef9f7; border-color: #b9dddb; }
+    .trust-expired { color: #9f3535; background: #fff3f1; border-color: #f1ccca; }
+    .trust-neutral { color: #756147; background: #faf6ec; border-color: #e8dcc1; }
+    .story-nav a { display: flex; align-items: center; border-radius: 0.65rem; padding: 0.65rem 0.85rem; font-size: 0.875rem; }
+    .story-nav a:hover { color: #586a3d; }
+    .story-section { scroll-margin-top: 2rem; }
+    .story-section summary { cursor: pointer; }
+    html { scroll-behavior: smooth; }
     .text-link { font-size: 0.875rem; font-weight: 600; color: #3b512d; text-underline-offset: 4px; }
     .text-link:hover { text-decoration: underline; }
     .hero-image { width: 100%; height: 100%; object-fit: cover; }

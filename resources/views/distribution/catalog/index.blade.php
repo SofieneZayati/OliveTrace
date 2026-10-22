@@ -9,9 +9,9 @@
 
     <section aria-label="Search and filter products">
         <x-card class="mb-8">
-            <form method="GET" action="{{ route('catalog.index') }}" class="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(12rem,2fr)_1fr_1.2fr_1fr_auto]">
+            <form method="GET" action="{{ route('catalog.index') }}" class="grid items-end gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 <div>
-                    <label for="search" class="form-label">Search name or brand</label>
+                    <label for="search" class="form-label">Product, farm or olive variety</label>
                     <input id="search" class="form-input mt-2 w-full" type="search" name="search" maxlength="120" value="{{ $filters['search'] ?? '' }}" placeholder="e.g. Chemlali">
                 </div>
                 <div>
@@ -38,6 +38,12 @@
                         <option value="lowest_co2" @selected(($filters['sort'] ?? '') === 'lowest_co2')>Lowest transport CO₂ first</option>
                     </select>
                 </div>
+                <div>
+                    <label for="region" class="form-label">Published origin region</label>
+                    <select id="region" name="region" class="mt-2 w-full"><option value="">All regions</option>
+                        @foreach(\App\Support\ProductionOptions::GOVERNORATES as $region)<option value="{{ $region }}" @selected(($filters['region'] ?? '') === $region)>{{ $region }}</option>@endforeach
+                    </select>
+                </div>
                 <div class="flex items-center gap-3">
                     <button class="btn-primary" type="submit">Apply</button>
                     <a class="text-link whitespace-nowrap" href="{{ route('catalog.index') }}">Reset</a>
@@ -45,6 +51,13 @@
             </form>
         </x-card>
     </section>
+
+    @if($originPoints)
+        <details class="surface-card mb-8">
+            <summary class="cursor-pointer font-semibold">Explore these origins on the map <span class="ml-2 text-sm font-normal text-stone-500">{{ count($originPoints) }} region(s) on this page</span></summary>
+            <x-farm-map :points="$originPoints" :public-map="true" />
+        </details>
+    @endif
 
     @if($products->isEmpty())
         <x-card class="py-12 text-center">
@@ -64,10 +77,10 @@
                     $product = $card['product'];
                     $verified = in_array($card['certificationStatus'], ['valid', 'verified', 'certified'], true);
                     $certificationLabel = $verified
-                        ? 'Verified'
-                        : (in_array($card['certificationStatus'], ['pending', 'not verified'], true) ? 'Certification pending' : 'Certification not available');
+                        ? 'Valid certificate'
+                        : ($card['certificationStatus'] === 'expired' ? 'Certificate expired' : (in_array($card['certificationStatus'], ['pending', 'not verified'], true) ? 'Certification pending' : 'Certification not available'));
                 @endphp
-                <article class="surface-card flex flex-col overflow-hidden p-0">
+                <article class="surface-card catalog-card flex flex-col overflow-hidden p-0">
                     <div class="aspect-[4/3] overflow-hidden bg-olive-50">
                         @if($card['imageUrl'])
                             <img src="{{ $card['imageUrl'] }}" alt="{{ $product->name }} olive oil bottle" loading="lazy" class="h-full w-full object-cover" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
@@ -92,16 +105,26 @@
                             <span class="role-badge shrink-0">{{ $product->bottle_volume_ml === 1000 ? '1 L' : $product->bottle_volume_ml.' ml' }}</span>
                         </div>
                         <h2 class="mt-2 line-clamp-2 font-display text-2xl leading-tight [overflow-wrap:anywhere]" title="{{ $product->name }}">{{ $product->name }}</h2>
+                        @if($card['rating'])
+                            <p class="mt-3 text-sm" aria-label="{{ number_format($card['rating']->average, 1) }} out of 5 from {{ $card['rating']->count }} ratings"><span class="text-gold" aria-hidden="true">★★★★★</span> <strong>{{ number_format($card['rating']->average, 1) }}</strong> ({{ $card['rating']->count }})</p>
+                        @else
+                            <p class="mt-3 text-sm text-stone-500">No reviews yet</p>
+                        @endif
+                        @if($product->origin_region)
+                            <p class="mt-4 text-sm font-semibold">{{ $product->origin_variety }} · {{ $product->origin_region }}</p>
+                            <p class="mt-1 text-xs leading-5 text-stone-500">{{ $product->origin_name }} · {{ $product->origin_producer }}<br>Producer-declared origin</p>
+                        @endif
+                        @if($product->description)<p class="mt-3 line-clamp-2 text-sm leading-6 text-stone-500">{{ \Illuminate\Support\Str::limit($product->description, 125) }}</p>@endif
                         <p class="mt-4 text-xs text-stone-500">Packaged {{ $product->packaging_date->format('d M Y') }}</p>
                         <p class="mt-3 text-sm leading-6 text-stone-600">
                             @if($card['lot'])
-                                {{ $card['lot']->grade }} · Tunisian origin · Lot {{ $card['lot']->lotCode }}
+                                {{ \App\Enums\OilQuality::tryFrom($card['lot']->grade)?->label() ?? 'Grade not specified' }} · Tunisian origin · Lot {{ $card['lot']->lotCode }}
                             @else
                                 Tunisian olive oil · Origin details not available
                             @endif
                         </p>
                         <div class="mt-4 flex flex-wrap gap-2">
-                            <span class="role-badge" @if($verified) aria-label="Certification verified" @else aria-label="{{ $certificationLabel }}" @endif>{{ $certificationLabel }}</span>
+                            <span class="trust-badge {{ $verified ? 'trust-verified' : ($card['certificationStatus'] === 'expired' ? 'trust-expired' : 'trust-neutral') }}" title="{{ $verified ? 'An active laboratory certificate is available for this oil lot.' : 'Certificate availability is separate from producer-declared origin.' }}">{{ $certificationLabel }}</span>
                             @if($card['deliveredDestination'])
                                 <span class="role-badge">Delivered to {{ $card['deliveredDestination'] }}</span>
                             @endif
@@ -113,16 +136,9 @@
                                 </span>
                             @endif
                         </div>
-                        @if($card['rating'])
-                            <p class="mt-4 text-sm text-stone-600" aria-label="{{ number_format($card['rating']->average, 1) }} out of 5 from {{ $card['rating']->count }} ratings">
-                                <span class="text-gold" aria-hidden="true">★★★★★</span>
-                                <span class="ml-1 font-semibold">{{ number_format($card['rating']->average, 1) }}</span>
-                                <span>({{ $card['rating']->count }})</span>
-                            </p>
-                        @endif
                         <div class="mt-auto pt-6">
                             @if($traceRouteAvailable)
-                                <a class="btn-primary w-full" href="{{ $product->traceUrl() }}">View traceability <x-icon name="arrow" /></a>
+                                <a class="btn-primary catalog-card-link w-full" href="{{ $product->traceUrl() }}" aria-label="Explore product story: {{ $product->name }}">Explore product story <x-icon name="arrow" /></a>
                             @else
                                 <button class="btn-secondary w-full cursor-not-allowed" type="button" disabled aria-disabled="true">Traceability page coming soon</button>
                             @endif
