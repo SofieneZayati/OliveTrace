@@ -8,15 +8,12 @@ use App\Http\Requests\Production\ConfirmDeliveryRequest;
 use App\Models\Production\MillingOperation;
 use App\Services\Production\MillingOperationManagement;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class MillingOperationController extends Controller
 {
-    public function __construct(private MillingOperationManagement $service)
-    {
-    }
+    public function __construct(private MillingOperationManagement $service) {}
 
     public function index(): View
     {

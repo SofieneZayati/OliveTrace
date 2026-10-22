@@ -70,7 +70,7 @@ class HarvestManagement
 
         $quantity = (float) $data['quantity_kg'];
 
-        return DB::transaction(function () use ($actor, $harvest, $data, $quantity) {
+        return DB::transaction(function () use ($harvest, $data, $quantity) {
             $record = Harvest::whereKey($harvest->id)->lockForUpdate()->firstOrFail();
             if ($record->status === HarvestStatus::Milled) {
                 throw ValidationException::withMessages(['harvest' => 'This harvest was already milled.']);
@@ -96,7 +96,7 @@ class HarvestManagement
             DB::afterCommit(function () use ($request) {
                 $request->loadMissing('mill', 'harvest.farm.producerProfile.user');
                 if ($request->mill && $request->mill->user) {
-                    $request->mill->user->notify(new \App\Notifications\MillingNotification([
+                    $request->mill->user->notify(new MillingNotification([
                         'type' => 'mill_request.created',
                         'title' => 'New mill request',
                         'message' => 'You received a new mill request.',

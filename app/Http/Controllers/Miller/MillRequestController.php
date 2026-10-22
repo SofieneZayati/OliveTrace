@@ -41,8 +41,7 @@ class MillRequestController extends Controller
         Request $request,
         MillRequest $mill_request,
         MillingOperationManagement $millingOperations
-    ): RedirectResponse
-    {
+    ): RedirectResponse {
         $this->authorize('update', $mill_request);
 
         $data = $request->validate([
