@@ -17,6 +17,7 @@ return new class extends Migration
     {
         Schema::table('oil_lots', function (Blueprint $table) {
             $table->dropForeign(['milling_operation_id']);
+            $table->dropUnique(['milling_operation_id']);
             $table->dropColumn('milling_operation_id');
         });
     }
