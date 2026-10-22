@@ -7,6 +7,10 @@ to consumer. The team is Sofiene, Mariem, Oussema, Hana and Aymen.
 Authentication, roles, common user management, layouts and infrastructure are
 shared work; they do not count as an individual student's module.
 
+For the validation handover, read [handover.pdf](handover.pdf). The professor's
+process diagram and pipeline are in [OliveTraceDevops.pdf](OliveTraceDevops.pdf).
+The [DevOps guide](docs/devops.md) covers Docker, CI, deployment and recovery.
+
 ## Included
 
 - Laravel 12, MySQL and Eloquent for all persistence.
