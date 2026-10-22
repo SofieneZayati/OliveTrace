@@ -11,6 +11,13 @@ For the validation handover, read [handover.pdf](handover.pdf). The professor's
 process diagram and pipeline are in [OliveTraceDevops.pdf](OliveTraceDevops.pdf).
 The [DevOps guide](docs/devops.md) covers Docker, CI, deployment and recovery.
 
+**Handover status, 22 October 2026:** the DevOps pipeline and local Docker
+deployment are verified. Hosted Railway deployment is still blocked by the
+[Railway platform incident](https://status.railway.com/incident/QH8L8B3E).
+No hosted URL is confirmed. Use the complete local application for the module
+demonstration; the handover lists the remaining Railway steps and setup for
+other PCs.
+
 ## Included
 
 - Laravel 12, MySQL and Eloquent for all persistence.

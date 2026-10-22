@@ -95,6 +95,28 @@ container environment's data. It does not share the Windows/XAMPP database.
 
 ## Railway deployment
 
+### Verified handover status - 22 October 2026
+
+The full DevOps PR passed [Project checks](https://github.com/SofieneZayati/OliveTrace/actions/runs/39722756555)
+and is merged into main. The local Docker application and MySQL were built,
+migrated and checked, including login and upload-volume persistence.
+SonarQube measures new code on main against the integrated pre-DevOps revision
+`284042c` (analysis `2f6a1b63-ae3e-453b-9333-c53787550d88`). This is a fixed
+initial baseline, not a baseline moved after every push. The gate thresholds
+remain unchanged: at least 80% new-code coverage and at most 3% new duplication.
+Overall project coverage is 68.0%, separate from new-code coverage.
+
+Hosted CD is **not yet verified**. Railway's New button returned
+"Deploys have been paused temporarily" during its
+[platform incident](https://status.railway.com/incident/QH8L8B3E).
+No hosted service, database or project secret was created/uploaded in this
+session. Recheck the platform before following the steps below. Do not claim
+a live URL until the deployment and its health checks succeed.
+
+The GitHub `SONAR_TOKEN` secret expires on 21 November 2026; the repository
+owner must renew it privately before expiry. Teammates do not need this token
+or either provider's CLI to run the project locally.
+
 Use only two services: the application and MySQL. Queue work stays synchronous;
 no separate worker, Redis or monitoring service is needed for this validation.
 
