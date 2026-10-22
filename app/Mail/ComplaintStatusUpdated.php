@@ -24,7 +24,7 @@ class ComplaintStatusUpdated extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'OliveTrace — Mise à jour de votre réclamation #' . $this->complaint->id,
+            subject: 'OliveTrace — Mise à jour de votre réclamation #'.$this->complaint->id,
         );
     }
 

@@ -6,16 +6,16 @@ use App\Enums\Consumer\ComplaintStatus;
 use App\Enums\Consumer\FeedbackStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Consumer\ComplaintModerationRequest;
+use App\Mail\ComplaintStatusUpdated;
 use App\Models\Consumer\Complaint;
 use App\Models\Consumer\Feedback;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
-use App\Mail\ComplaintStatusUpdated;
 use App\Services\Consumer\ComplaintReplyAssistant;
 use App\Services\Consumer\ReviewSummaryGenerator;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class ConsumerModerationController extends Controller
 {
@@ -64,13 +64,13 @@ class ConsumerModerationController extends Controller
             'resolved_at' => $status->isClosed() ? ($complaint->resolved_at ?? now()) : null,
         ]);
 
-        // Feature 6: Send email notification to the consumer.
+        // Notify on a changed decision/response, rather than every repeated save.
         try {
-            if ($complaint->consumer?->email) {
+            if ($complaint->wasChanged(['status', 'admin_response']) && $complaint->consumer?->email) {
                 Mail::to($complaint->consumer->email)->send(new ComplaintStatusUpdated($complaint, $status->value));
             }
         } catch (\Throwable $e) {
-            Log::warning('ComplaintStatusUpdated mail failed', ['complaint' => $complaint->id, 'error' => $e->getMessage()]);
+            Log::warning('ComplaintStatusUpdated mail failed', ['complaint' => $complaint->id, 'exception' => $e::class]);
         }
 
         return redirect()->route('admin.consumer.complaints.show', $complaint)->with('success', 'Complaint '.$status->label().' registered.');
@@ -79,6 +79,7 @@ class ConsumerModerationController extends Controller
     // Feature 1: Generate an AI draft reply for a complaint.
     public function generateAiReply(Complaint $complaint, ComplaintReplyAssistant $assistant)
     {
+        Gate::authorize('moderate', $complaint);
         $complaint->load('product');
         $draft = $assistant->generateDraft($complaint);
 

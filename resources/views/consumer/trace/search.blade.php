@@ -12,6 +12,7 @@
 
         {{-- Search form --}}
         <x-card class="mb-8">
+            <x-validation-errors class="mb-4" />
             <form method="GET" action="{{ route('trace.search.query') }}" class="flex flex-col items-center gap-4 sm:flex-row">
                 <div class="flex-1 w-full">
                     <x-text-input id="q" name="q" type="text" class="w-full text-center sm:text-left" :value="old('q')" placeholder="Code produit, slug ou numéro de lot…" required />
@@ -25,7 +26,7 @@
             <h2 class="font-display mb-4 text-2xl">📷 Scanner un QR code</h2>
             <p class="mb-4 text-sm text-stone-500">Autorisez l'accès à la caméra pour scanner le QR code de votre bouteille.</p>
 
-            <div x-data="qrScanner()" x-init="init()">
+            <div x-data="qrScanner()">
                 <div id="qr-reader" class="mx-auto mb-4 overflow-hidden rounded-xl" style="max-width: 400px;"></div>
 
                 <div class="flex flex-wrap items-center justify-center gap-3">
@@ -59,10 +60,16 @@
                 scanner: null,
 
                 init() {
-                    this.scanner = new Html5Qrcode('qr-reader');
+                    if (typeof Html5Qrcode !== 'undefined') {
+                        this.scanner = new Html5Qrcode('qr-reader');
+                    }
                 },
 
                 startScan() {
+                    if (!this.scanner) {
+                        this.error = 'Le scanner est indisponible. Utilisez la recherche manuelle.';
+                        return;
+                    }
                     this.error = null;
                     this.result = null;
                     this.scanning = true;
@@ -87,7 +94,7 @@
                             }
 
                             setTimeout(() => {
-                                window.location.href = '/trace/' + encodeURIComponent(slug);
+                                window.location.href = @js(route('trace.search.query')) + '?q=' + encodeURIComponent(slug);
                             }, 800);
                         },
                         () => {} // ignore scan failures

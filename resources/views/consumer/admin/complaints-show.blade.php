@@ -10,7 +10,7 @@
             @if($complaint->evidence_photo)
                 <div class="mt-5">
                     <p class="eyebrow mb-2 text-olive-600">Photo preuve</p>
-                    <img src="{{ Storage::disk('public')->url($complaint->evidence_photo) }}" alt="Evidence photo" class="max-h-64 rounded-xl border border-stone-200">
+                    <img src="{{ route('complaints.evidence', $complaint) }}" alt="Evidence photo" class="max-h-64 rounded-xl border border-stone-200">
                 </div>
             @endif
         </x-card>
@@ -23,6 +23,7 @@
         <x-card class="mb-6" x-data="{ loading: false, draft: null, error: null }">
             <p class="eyebrow mb-3 text-olive-600">AI Reply Assistant</p>
             <p class="mb-4 text-sm text-stone-500">Générez un brouillon de réponse professionnelle et empathique via l'IA. Vous pourrez le modifier avant de l'enregistrer.</p>
+            <p class="mb-4 text-xs text-stone-500">Le sujet, la description et le nom du produit sont transmis à Groq. Les photos et les coordonnées du consommateur ne sont pas envoyées.</p>
             <button
                 @click="loading = true; error = null; fetch('{{ route('admin.consumer.complaints.ai-reply', $complaint) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' } }).then(r => r.json()).then(data => { loading = false; if (data.error) { error = data.error; } else { draft = data.draft; document.getElementById('admin_response').value = data.draft; } }).catch(e => { loading = false; error = 'Erreur de connexion au service IA.'; })"
                 :disabled="loading"

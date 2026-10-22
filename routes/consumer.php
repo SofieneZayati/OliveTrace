@@ -4,6 +4,7 @@ use App\Http\Controllers\Consumer\Admin\ConsumerModerationController;
 use App\Http\Controllers\Consumer\ComplaintController;
 use App\Http\Controllers\Consumer\FeedbackController;
 use App\Http\Controllers\Consumer\TraceController;
+use App\Http\Controllers\Consumer\TraceSearchController;
 use Illuminate\Support\Facades\Route;
 
 // Module 5 (Aymen) — Consumer Traceability, Feedback & Complaints.
@@ -11,9 +12,11 @@ Route::get('/trace/{slug}', [TraceController::class, 'show'])->name('trace.show'
 Route::redirect('/my-complaints', '/complaints')->name('my-complaints');
 
 // Feature 4: Public QR scanner and trace search.
-Route::get('/trace', [\App\Http\Controllers\Consumer\TraceSearchController::class, 'index'])->name('trace.search');
-Route::get('/trace-search', [\App\Http\Controllers\Consumer\TraceSearchController::class, 'search'])->name('trace.search.query');
+Route::get('/trace', [TraceSearchController::class, 'index'])->name('trace.search');
+Route::get('/trace-search', [TraceSearchController::class, 'search'])->name('trace.search.query');
 
+Route::get('/complaints/{complaint}/evidence', [ComplaintController::class, 'evidence'])
+    ->middleware(['auth', 'active'])->whereNumber('complaint')->name('complaints.evidence');
 
 Route::middleware(['auth', 'active', 'role:consumer'])->group(function () {
     Route::post('/products/{product}/feedback', [FeedbackController::class, 'store'])->whereNumber('product')->name('feedback.store');
@@ -35,7 +38,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admi
     Route::patch('consumer/complaints/{complaint}', [ConsumerModerationController::class, 'complaintsUpdate'])->whereNumber('complaint')->name('consumer.complaints.update');
 
     // Feature 1: AI draft reply for complaints.
-    Route::post('consumer/complaints/{complaint}/ai-reply', [ConsumerModerationController::class, 'generateAiReply'])->whereNumber('complaint')->name('consumer.complaints.ai-reply');
+    Route::post('consumer/complaints/{complaint}/ai-reply', [ConsumerModerationController::class, 'generateAiReply'])->middleware('throttle:6,1')->whereNumber('complaint')->name('consumer.complaints.ai-reply');
     // Feature 2: AI review summary.
-    Route::post('consumer/feedback/summary', [ConsumerModerationController::class, 'generateSummary'])->name('consumer.feedback.summary');
+    Route::post('consumer/feedback/summary', [ConsumerModerationController::class, 'generateSummary'])->middleware('throttle:6,1')->name('consumer.feedback.summary');
 });

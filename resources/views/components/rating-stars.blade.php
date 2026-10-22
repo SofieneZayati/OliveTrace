@@ -4,5 +4,5 @@
     <span class="text-gold" aria-hidden="true">{{ str_repeat('★', $filled) }}</span><span class="text-stone-300" aria-hidden="true">{{ str_repeat('★', 5 - $filled) }}</span>
     <span class="ml-1 font-semibold">{{ number_format((float) $value, 1) }} / 5</span>
     @if($count !== null)<span class="text-stone-500">({{ $count }})</span>@endif
-    <span class="sr-only">{{ number_format((float) $value, 1) }} out of 5@if($count !== null) from {{ $count }} reviews@endif</span>
+    <span class="sr-only">{{ number_format((float) $value, 1).' out of 5'.($count !== null ? ' from '.$count.' reviews' : '') }}</span>
 </p>

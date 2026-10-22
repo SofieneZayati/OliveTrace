@@ -10,6 +10,7 @@ use App\Services\Consumer\FeedbackClassifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class ComplaintController extends Controller
 {
@@ -36,18 +37,25 @@ class ComplaintController extends Controller
         abort_unless($product->isPubliclyVisible(), 404);
         $analysis = $classifier->classify($data['subject'].' '.$data['description']);
 
-        // Feature 5: Handle evidence photo upload.
         $photoPath = null;
         if ($request->hasFile('evidence_photo')) {
-            $photoPath = $request->file('evidence_photo')->store('complaints', 'public');
+            $photoPath = $request->file('evidence_photo')->store('complaints', 'local');
+            abort_unless($photoPath, 500, 'The evidence photo could not be stored.');
         }
 
-        $complaint = Complaint::create([
-            'oil_product_id' => $data['oil_product_id'], 'consumer_user_id' => $request->user()->id,
-            'subject' => $data['subject'], 'description' => $data['description'], 'status' => 'open',
-            'evidence_photo' => $photoPath,
-            'ai_category' => $analysis['category'], 'ai_sentiment' => $analysis['sentiment'], 'ai_priority' => $analysis['priority'],
-        ]);
+        try {
+            $complaint = Complaint::create([
+                'oil_product_id' => $data['oil_product_id'], 'consumer_user_id' => $request->user()->id,
+                'subject' => $data['subject'], 'description' => $data['description'], 'status' => 'open',
+                'evidence_photo' => $photoPath,
+                'ai_category' => $analysis['category'], 'ai_sentiment' => $analysis['sentiment'], 'ai_priority' => $analysis['priority'],
+            ]);
+        } catch (\Throwable $exception) {
+            if ($photoPath) {
+                Storage::disk('local')->delete($photoPath);
+            }
+            throw $exception;
+        }
 
         return redirect()->route('complaints.show', $complaint)->with('success', 'Your complaint was submitted. You can follow its status here.');
     }
@@ -58,5 +66,16 @@ class ComplaintController extends Controller
         $complaint->load('product');
 
         return view('consumer.complaints.show', ['complaint' => $complaint]);
+    }
+
+    public function evidence(Complaint $complaint)
+    {
+        Gate::authorize('view', $complaint);
+        abort_unless($complaint->evidence_photo && Storage::disk('local')->exists($complaint->evidence_photo), 404);
+
+        return response()->file(Storage::disk('local')->path($complaint->evidence_photo), [
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 }

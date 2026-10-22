@@ -11,7 +11,7 @@
             @if($complaint->evidence_photo)
                 <div class="mt-5">
                     <p class="eyebrow mb-2 text-olive-600">Photo preuve jointe</p>
-                    <img src="{{ Storage::disk('public')->url($complaint->evidence_photo) }}" alt="Photo preuve" class="max-h-64 rounded-xl border border-stone-200">
+                    <img src="{{ route('complaints.evidence', $complaint) }}" alt="Photo preuve" class="max-h-64 rounded-xl border border-stone-200">
                 </div>
             @endif
             @if($complaint->admin_response)

@@ -181,15 +181,9 @@
         @endcan
         @if(auth()->user()->role === \App\Enums\Role::Consumer)
             {{-- Feature 3: Consumer Dashboard Widgets --}}
-            @php
-                $myReviews = collect();
-                $myComplaints = collect();
-                $topProducts = collect();
-            @endphp
             <x-card>
                 <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="star" /></div>
                 <h2 class="text-lg font-semibold">Mes avis</h2>
-                @php $myReviews = \App\Models\Consumer\Feedback::where('consumer_user_id', auth()->id())->with('product')->latest()->take(3)->get(); @endphp
                 @if($myReviews->isNotEmpty())
                     <div class="mt-3 space-y-2">
                         @foreach($myReviews as $review)
@@ -206,7 +200,6 @@
             <x-card>
                 <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="check" /></div>
                 <h2 class="text-lg font-semibold">Mes réclamations</h2>
-                @php $myComplaints = \App\Models\Consumer\Complaint::where('consumer_user_id', auth()->id())->with('product')->latest()->take(3)->get(); @endphp
                 @if($myComplaints->isNotEmpty())
                     <div class="mt-3 space-y-2">
                         @foreach($myComplaints as $c)
@@ -225,18 +218,10 @@
             <x-card>
                 <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="leaf" /></div>
                 <h2 class="text-lg font-semibold">Produits les mieux notés</h2>
-                @php
-                    $topProducts = \App\Models\Consumer\Feedback::query()->visible()
-                        ->selectRaw('oil_product_id, AVG(rating) as avg_rating, COUNT(*) as review_count')
-                        ->groupBy('oil_product_id')
-                        ->havingRaw('COUNT(*) >= 1')
-                        ->orderByDesc('avg_rating')
-                        ->take(3)->get();
-                @endphp
                 @if($topProducts->isNotEmpty())
                     <div class="mt-3 space-y-2">
                         @foreach($topProducts as $tp)
-                            @php $tpProduct = \App\Models\Distribution\OilProduct::find($tp->oil_product_id); @endphp
+                            @php $tpProduct = $tp->product; @endphp
                             @if($tpProduct)
                                 <a href="{{ route('trace.show', $tpProduct->slug ?? $tpProduct->id) }}" class="flex items-center justify-between gap-2 text-sm hover:text-olive-600">
                                     <span class="truncate">{{ $tpProduct->name }}</span>
