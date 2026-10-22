@@ -41,6 +41,7 @@ jobs:
           php-version: '8.4'
           extensions: mbstring, pdo_mysql, pdo_sqlite, xml, curl, zip, intl, gd
           coverage: pcov
+          ini-values: pcov.directory=${{ github.workspace }}
           tools: composer:v2
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
