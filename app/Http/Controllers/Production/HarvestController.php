@@ -78,6 +78,15 @@ class HarvestController extends Controller
             fn (MillRequest $pending) => in_array($pending->status, [MillRequestStatus::Pending, MillRequestStatus::Accepted], true)
         );
 
+        $histories = $record->statusHistories()->with('changer')->latest()->take(20)->get();
+        foreach ($record->millRequests as $mr) {
+            $histories = $histories->concat($mr->statusHistories()->with('changer')->get());
+        }
+        if ($activeRequest && $activeRequest->millingOperation) {
+            $histories = $histories->concat($activeRequest->millingOperation->statusHistories()->with('changer')->get());
+        }
+        $histories = $histories->sortByDesc('created_at')->values();
+
         return view('production.harvests.show', [
             'harvest' => $record,
             'admin' => $admin,
@@ -87,6 +96,7 @@ class HarvestController extends Controller
                 && $record->status !== HarvestStatus::Milled
                 && $activeRequest === null
                 && $request->user()->can('create', [MillRequest::class, $record]),
+            'histories' => $histories,
         ]);
     }
 

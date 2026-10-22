@@ -37,4 +37,7 @@ yarn-error.log
 /storage/proxies/
 opencode.txt
 
+# Local project notes, drafts, and generated documentation.
+*.md
+
 for_mariem.md

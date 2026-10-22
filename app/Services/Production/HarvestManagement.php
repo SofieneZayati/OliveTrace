@@ -10,6 +10,7 @@ use App\Models\Production\Farm;
 use App\Models\Production\Harvest;
 use App\Models\Production\MillRequest;
 use App\Models\User;
+use App\Notifications\MillingNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -66,27 +67,46 @@ class HarvestManagement
         if ($harvest->status === HarvestStatus::Milled) {
             throw ValidationException::withMessages(['harvest' => 'This harvest was already milled.']);
         }
-        if ($harvest->millRequests()->whereIn('status', [MillRequestStatus::Pending, MillRequestStatus::Accepted])->exists()) {
-            throw ValidationException::withMessages(['mill_id' => 'This harvest already has a mill request waiting for an answer.']);
-        }
+
         $quantity = (float) $data['quantity_kg'];
-        if ($harvest->quantity_kg !== null) {
-            if (round($harvest->requestedQuantity() + $quantity, 2) > round((float) $harvest->quantity_kg, 2)) {
-                throw ValidationException::withMessages(['quantity_kg' => 'Only '.$harvest->remainingQuantity().' kg are still available on this harvest.']);
+
+        return DB::transaction(function () use ($actor, $harvest, $data, $quantity) {
+            $record = Harvest::whereKey($harvest->id)->lockForUpdate()->firstOrFail();
+            if ($record->status === HarvestStatus::Milled) {
+                throw ValidationException::withMessages(['harvest' => 'This harvest was already milled.']);
             }
-        }
+            if ($record->quantity_kg !== null) {
+                $activeReserved = (float) $record->millRequests()->whereIn('status', MillRequestStatus::ACTIVE)->sum('quantity_kg');
+                if (round($activeReserved + $quantity, 2) > round((float) $record->quantity_kg, 2)) {
+                    $remaining = max(0, round((float) $record->quantity_kg - $activeReserved, 2));
+                    throw ValidationException::withMessages(['quantity_kg' => 'Only '.$remaining.' kg are still available on this harvest.']);
+                }
+            }
 
-        $request = new MillRequest;
-        $request->harvest()->associate($harvest);
-        $request->mill_id = $data['mill_id'] ?: null;
-        $request->external_mill_name = $data['mill_id'] ? null : ($data['external_mill_name'] ?: null);
-        $request->requested_date = $data['requested_date'];
-        $request->quantity_kg = number_format($quantity, 2, '.', '');
-        $request->message = $data['message'] ?: null;
-        $request->status = MillRequestStatus::Pending;
-        $request->save();
+            $request = new MillRequest;
+            $request->harvest()->associate($record);
+            $request->mill_id = $data['mill_id'] ?: null;
+            $request->external_mill_name = $data['mill_id'] ? null : ($data['external_mill_name'] ?: null);
+            $request->requested_date = $data['requested_date'];
+            $request->quantity_kg = number_format($quantity, 2, '.', '');
+            $request->message = $data['message'] ?: null;
+            $request->status = MillRequestStatus::Pending;
+            $request->save();
 
-        return $request;
+            DB::afterCommit(function () use ($request) {
+                $request->loadMissing('mill', 'harvest.farm.producerProfile.user');
+                if ($request->mill && $request->mill->user) {
+                    $request->mill->user->notify(new \App\Notifications\MillingNotification([
+                        'type' => 'mill_request.created',
+                        'title' => 'New mill request',
+                        'message' => 'You received a new mill request.',
+                        'url' => route('miller.milling-operations.index'),
+                    ]));
+                }
+            });
+
+            return $request;
+        });
     }
 
     public function cancelMillRequest(User $actor, MillRequest $request): void
@@ -94,6 +114,21 @@ class HarvestManagement
         Gate::forUser($actor)->authorize('cancel', $request);
         $request->status = MillRequestStatus::Cancelled;
         $request->save();
+
+        DB::afterCommit(function () use ($request) {
+            $request->loadMissing('mill.user', 'harvest.farm.producerProfile.user');
+            $target = $request->mill?->user ?? null;
+            if ($target) {
+                $target->notify(new MillingNotification([
+                    'type' => 'mill_request.cancelled',
+                    'title' => 'Mill request cancelled',
+                    'message' => 'A mill request was cancelled.',
+                    'url' => route('miller.milling-operations.index'),
+                ]));
+            } else {
+                // external mill - no user
+            }
+        });
     }
 
     private function selectableFarm(User $actor, int $farmId, ?int $currentFarmId = null): Farm

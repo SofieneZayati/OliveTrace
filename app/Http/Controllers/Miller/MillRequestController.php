@@ -6,6 +6,7 @@ use App\Enums\HarvestStatus;
 use App\Enums\MillRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Production\MillRequest;
+use App\Services\Production\MillingOperationManagement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -36,7 +37,11 @@ class MillRequestController extends Controller
         return view('miller.mill-requests.show', ['request' => $mill_request]);
     }
 
-    public function update(Request $request, MillRequest $mill_request): RedirectResponse
+    public function update(
+        Request $request,
+        MillRequest $mill_request,
+        MillingOperationManagement $millingOperations
+    ): RedirectResponse
     {
         $this->authorize('update', $mill_request);
 
@@ -61,6 +66,15 @@ class MillRequestController extends Controller
         }
 
         $mill_request->update($data);
+
+        if (
+            $data['status'] === MillRequestStatus::Accepted->value
+            && $oldStatus !== MillRequestStatus::Accepted
+            && $mill_request->mill_id
+            && ! $mill_request->millingOperation
+        ) {
+            $millingOperations->scheduleFromAcceptedRequest($request->user(), $mill_request);
+        }
 
         if ($data['status'] === MillRequestStatus::Completed->value && ! $mill_request->oilLot) {
             return redirect()->route('mill.oil-lots.create', $mill_request->id)

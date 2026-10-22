@@ -17,7 +17,7 @@ class MillRequest extends Model
 
     protected $fillable = [
         'harvest_id', 'mill_id', 'external_mill_name', 'requested_date', 'appointment_date',
-        'quantity_kg', 'status', 'message', 'response_message',
+        'quantity_kg', 'status', 'message', 'response_message', 'refusal_reason', 'responded_at',
     ];
 
     protected function casts(): array
@@ -25,6 +25,7 @@ class MillRequest extends Model
         return [
             'requested_date' => 'date',
             'appointment_date' => 'date',
+            'responded_at' => 'datetime',
             'quantity_kg' => 'decimal:2',
             'status' => MillRequestStatus::class,
         ];
@@ -53,5 +54,15 @@ class MillRequest extends Model
     public function oilLot(): HasOne
     {
         return $this->hasOne(OilLot::class);
+    }
+
+    public function millingOperation(): HasOne
+    {
+        return $this->hasOne(MillingOperation::class);
+    }
+
+    public function statusHistories()
+    {
+        return $this->morphMany(StatusHistory::class, 'trackable');
     }
 }

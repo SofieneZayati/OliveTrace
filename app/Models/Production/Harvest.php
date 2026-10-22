@@ -72,4 +72,9 @@ class Harvest extends Model
     {
         return $this->millingRequest?->status;
     }
+
+    public function statusHistories()
+    {
+        return $this->morphMany(StatusHistory::class, 'trackable');
+    }
 }

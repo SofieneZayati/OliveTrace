@@ -10,56 +10,58 @@
 </head>
 <body class="min-h-screen bg-cream font-sans antialiased lg:flex">
     <a href="#main-content" class="sr-only z-50 bg-white p-3 focus:not-sr-only focus:absolute">Skip to content</a>
-    <aside class="flex flex-col bg-olive-900 px-5 py-6 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:py-9">
+    <aside class="flex h-screen max-h-screen flex-col overflow-hidden bg-olive-900 px-5 py-6 lg:sticky lg:top-0 lg:w-64 lg:shrink-0 lg:py-9">
         <a href="{{ route('home') }}" class="px-2" aria-label="OliveTrace home"><x-brand :light="true" /></a>
         <p class="eyebrow mt-10 hidden px-4 text-olive-100/50 lg:block">Your workspace</p>
-        <nav aria-label="Main navigation" class="mt-5 flex flex-wrap gap-2 lg:flex-col lg:gap-1">
-            <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('dashboard') }}" class="sidebar-link" @if(request()->routeIs('dashboard', 'admin.dashboard')) aria-current="page" @endif><x-icon name="grid" />Dashboard</a>
-            @if(auth()->user()->role === \App\Enums\Role::Laboratory)
-                <a href="{{ route('lab.requests.index') }}" class="sidebar-link" @if(request()->routeIs('lab.*')) aria-current="page" @endif><x-icon name="shield" />View Certification Requests</a>
-            @endif
-            @can('access-admin')
-                <a href="{{ route('admin.users.index') }}" class="sidebar-link" @if(request()->routeIs('admin.users.*')) aria-current="page" @endif><x-icon name="users" />Users</a>
-            @endcan
-            @if(auth()->user()->role === \App\Enums\Role::Producer)
-                <a href="{{ route('producer.profile.show') }}" class="sidebar-link" @if(request()->routeIs('producer.profile.*')) aria-current="page" @endif><x-icon name="user" />Producer profile</a>
-                <a href="{{ route('producer.farms.index') }}" class="sidebar-link" @if(request()->routeIs('producer.farms.*')) aria-current="page" @endif><x-icon name="leaf" />My farms</a>
-                <a href="{{ route('producer.harvests.index') }}" class="sidebar-link" @if(request()->routeIs('producer.harvests.*')) aria-current="page" @endif><x-icon name="harvest" />My harvests</a>
-                <a href="{{ route('producer.oil-lots.index') }}" class="sidebar-link" @if(request()->routeIs('producer.oil-lots.*')) aria-current="page" @endif><x-icon name="drop" />My oil lots</a>
-                <a href="{{ route('certification.producer.requests.index') }}" class="sidebar-link" @if(request()->routeIs('certification.producer.*')) aria-current="page" @endif><x-icon name="shield" />My Certificate Requests</a>
-                <a href="{{ route('producer.products.index') }}" class="sidebar-link" @if(request()->routeIs('producer.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
-            @endif
-            @if(auth()->user()->role === \App\Enums\Role::Distributor)
-                <a href="{{ route('distributor.profile.show') }}" class="sidebar-link" @if(request()->routeIs('distributor.profile.*')) aria-current="page" @endif><x-icon name="user" />My profile</a>
-                <a href="{{ route('distributor.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('distributor.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
-            @endif
-            @can('access-admin')
-                <a href="{{ route('admin.producers.index') }}" class="sidebar-link" @if(request()->routeIs('admin.producers.*')) aria-current="page" @endif><x-icon name="users" />Producers</a>
-                <a href="{{ route('admin.farms.index') }}" class="sidebar-link" @if(request()->routeIs('admin.farms.*')) aria-current="page" @endif><x-icon name="leaf" />Farms</a>
-                <a href="{{ route('admin.harvests.index') }}" class="sidebar-link" @if(request()->routeIs('admin.harvests.*')) aria-current="page" @endif><x-icon name="harvest" />Harvests</a>
-                <a href="{{ route('admin.mills.index') }}" class="sidebar-link" @if(request()->routeIs('admin.mills.*')) aria-current="page" @endif><x-icon name="drop" />Mills</a>
-                <a href="{{ route('admin.products.index') }}" class="sidebar-link" @if(request()->routeIs('admin.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
-                <a href="{{ route('admin.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('admin.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
-                <a href="{{ route('admin.consumer.feedback.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.feedback.*')) aria-current="page" @endif><x-icon name="chat" />Reviews</a>
-                <a href="{{ route('admin.consumer.complaints.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.complaints.*')) aria-current="page" @endif><x-icon name="flag" />Complaints</a>
-            @endcan
-            @if(auth()->user()->role === \App\Enums\Role::Miller)
-                <a href="{{ route('mill.show') }}" class="sidebar-link" @if(request()->routeIs('mill.*')) aria-current="page" @endif><x-icon name="drop" />My mill</a>
-                <a href="{{ route('mill.mill-requests.index') }}" class="sidebar-link" @if(request()->routeIs('mill.mill-requests.*')) aria-current="page" @endif><x-icon name="list" />Mill requests</a>
-            @endif
+
+        <nav aria-label="Main navigation" class="sidebar-scrollbar mt-5 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+            <div class="flex flex-col gap-1.5">
+                <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('dashboard') }}" class="sidebar-link" @if(request()->routeIs('dashboard', 'admin.dashboard')) aria-current="page" @endif><x-icon name="grid" />Dashboard</a>
+                @if(auth()->user()->role === \App\Enums\Role::Laboratory)
+                    <a href="{{ route('lab.requests.index') }}" class="sidebar-link" @if(request()->routeIs('lab.*')) aria-current="page" @endif><x-icon name="shield" />View Certification Requests</a>
+                @endif
+                @can('access-admin')
+                    <a href="{{ route('admin.users.index') }}" class="sidebar-link" @if(request()->routeIs('admin.users.*')) aria-current="page" @endif><x-icon name="users" />Users</a>
+                @endcan
+                @if(auth()->user()->role === \App\Enums\Role::Producer)
+                    <a href="{{ route('producer.profile.show') }}" class="sidebar-link" @if(request()->routeIs('producer.profile.*')) aria-current="page" @endif><x-icon name="user" />Producer profile</a>
+                    <a href="{{ route('producer.farms.index') }}" class="sidebar-link" @if(request()->routeIs('producer.farms.*')) aria-current="page" @endif><x-icon name="leaf" />My farms</a>
+                    <a href="{{ route('producer.harvests.index') }}" class="sidebar-link" @if(request()->routeIs('producer.harvests.*')) aria-current="page" @endif><x-icon name="harvest" />My harvests</a>
+                    <a href="{{ route('producer.oil-lots.index') }}" class="sidebar-link" @if(request()->routeIs('producer.oil-lots.*')) aria-current="page" @endif><x-icon name="drop" />My oil lots</a>
+                    <a href="{{ route('producer.milling-operations.index') }}" class="sidebar-link" @if(request()->routeIs('producer.milling-operations.*')) aria-current="page" @endif><x-icon name="list" />Milling operations</a>
+                    <a href="{{ route('certification.producer.requests.index') }}" class="sidebar-link" @if(request()->routeIs('certification.producer.*')) aria-current="page" @endif><x-icon name="shield" />My Certificate Requests</a>
+                    <a href="{{ route('producer.products.index') }}" class="sidebar-link" @if(request()->routeIs('producer.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
+                @endif
+                @if(auth()->user()->role === \App\Enums\Role::Distributor)
+                    <a href="{{ route('distributor.profile.show') }}" class="sidebar-link" @if(request()->routeIs('distributor.profile.*')) aria-current="page" @endif><x-icon name="user" />My profile</a>
+                    <a href="{{ route('distributor.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('distributor.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
+                @endif
+                @can('access-admin')
+                    <a href="{{ route('admin.producers.index') }}" class="sidebar-link" @if(request()->routeIs('admin.producers.*')) aria-current="page" @endif><x-icon name="users" />Producers</a>
+                    <a href="{{ route('admin.farms.index') }}" class="sidebar-link" @if(request()->routeIs('admin.farms.*')) aria-current="page" @endif><x-icon name="leaf" />Farms</a>
+                    <a href="{{ route('admin.harvests.index') }}" class="sidebar-link" @if(request()->routeIs('admin.harvests.*')) aria-current="page" @endif><x-icon name="harvest" />Harvests</a>
+                    <a href="{{ route('admin.mills.index') }}" class="sidebar-link" @if(request()->routeIs('admin.mills.*')) aria-current="page" @endif><x-icon name="drop" />Mills</a>
+                    <a href="{{ route('admin.products.index') }}" class="sidebar-link" @if(request()->routeIs('admin.products.*')) aria-current="page" @endif><x-icon name="leaf" />Products</a>
+                    <a href="{{ route('admin.shipments.index') }}" class="sidebar-link" @if(request()->routeIs('admin.shipments.*')) aria-current="page" @endif><x-icon name="arrow" />Shipments</a>
+                    <a href="{{ route('admin.consumer.feedback.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.feedback.*')) aria-current="page" @endif><x-icon name="chat" />Reviews</a>
+                    <a href="{{ route('admin.consumer.complaints.index') }}" class="sidebar-link" @if(request()->routeIs('admin.consumer.complaints.*')) aria-current="page" @endif><x-icon name="flag" />Complaints</a>
+                @endcan
+                @if(auth()->user()->role === \App\Enums\Role::Miller)
+                    <a href="{{ route('mill.show') }}" class="sidebar-link" @if(request()->routeIs('mill.*')) aria-current="page" @endif><x-icon name="drop" />My mill</a>
+                    <a href="{{ route('mill.mill-requests.index') }}" class="sidebar-link" @if(request()->routeIs('mill.mill-requests.*')) aria-current="page" @endif><x-icon name="list" />Mill requests</a>
+                    <a href="{{ route('miller.milling-operations.index') }}" class="sidebar-link" @if(request()->routeIs('miller.milling-operations.*')) aria-current="page" @endif><x-icon name="list" />Milling operations</a>
+                @endif
+                <a href="{{ route('notifications.index') }}" class="sidebar-link" @if(request()->routeIs('notifications.*')) aria-current="page" @endif><x-icon name="bell" />Notifications @if(auth()->user()->unreadNotifications()->count())<span class="ml-auto rounded-full bg-cream px-2 py-0.5 text-xs font-semibold text-olive-900">{{ auth()->user()->unreadNotifications()->count() }}</span>@endif</a>
+            </div>
+        </nav>
+
+        <div class="mt-auto shrink-0 border-t border-white/10 pt-4">
             <a href="{{ route('profile.edit') }}" class="sidebar-link" @if(request()->routeIs('profile.*')) aria-current="page" @endif><x-icon name="user" />Profile</a>
-            <form method="POST" action="{{ route('logout') }}" class="lg:mt-4">
+            <form method="POST" action="{{ route('logout') }}" class="mt-1">
                 @csrf
                 <button type="submit" class="sidebar-link w-full"><x-icon name="logout" />Logout</button>
             </form>
-        </nav>
-        <div class="mt-auto hidden pt-10 lg:block">
-            <div class="rounded-xl border border-white/10 p-4">
-                <x-icon name="leaf" class="mb-3 h-7 w-7 text-olive-100/70" />
-                <p class="font-display text-lg text-cream">Growing together.</p>
-                <p class="mt-2 text-xs leading-5 text-olive-100/60">One shared foundation for the OliveTrace community.</p>
-            </div>
-            <div class="mt-6 flex items-center gap-3 border-t border-white/10 px-2 pt-5">
+            <div class="mt-4 flex items-center gap-3 border-t border-white/10 px-2 pt-4">
                 <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 font-semibold text-cream">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
                 <div class="min-w-0"><p class="truncate text-sm text-cream">{{ auth()->user()->name }}</p><p class="mt-1 text-xs text-olive-100/60">{{ auth()->user()->role->label() }} account</p></div>
             </div>

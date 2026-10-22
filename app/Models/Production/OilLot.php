@@ -18,7 +18,7 @@ class OilLot extends Model
     use HasFactory;
 
     protected $fillable = [
-        'mill_request_id', 'producer_user_id', 'lot_number', 'liters', 'quality_grade', 'production_date', 'notes',
+        'mill_request_id', 'milling_operation_id', 'producer_user_id', 'lot_number', 'liters', 'quality_grade', 'production_date', 'notes',
     ];
 
     protected function casts(): array
@@ -34,6 +34,11 @@ class OilLot extends Model
     public function millRequest(): BelongsTo
     {
         return $this->belongsTo(MillRequest::class);
+    }
+
+    public function millingOperation(): BelongsTo
+    {
+        return $this->belongsTo(MillingOperation::class);
     }
 
     /** The harvest the olives came from (milling module). */

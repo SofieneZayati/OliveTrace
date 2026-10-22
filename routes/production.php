@@ -6,7 +6,9 @@ use App\Http\Controllers\Production\FarmAssistantController;
 use App\Http\Controllers\Production\FarmController;
 use App\Http\Controllers\Production\FarmMapController;
 use App\Http\Controllers\Production\HarvestController;
+use App\Http\Controllers\Production\Miller\MillingOperationController as MillerMillingOperationController;
 use App\Http\Controllers\Production\MillRequestController;
+use App\Http\Controllers\Production\MillingOperationController as ProducerMillingOperationController;
 use App\Http\Controllers\Production\OilLotController;
 use App\Http\Controllers\Production\OriginController;
 use App\Http\Controllers\Production\ProducerProfileController;
@@ -37,10 +39,22 @@ Route::prefix('producer')->name('producer.')->middleware(['auth', 'active', 'rol
     Route::patch('requests/{mill_request}/cancel', [MillRequestController::class, 'cancel'])->whereNumber('mill_request')->name('requests.cancel');
     Route::get('oil-lots', [OilLotController::class, 'index'])->name('oil-lots.index');
     Route::get('oil-lots/{oil_lot}', [OilLotController::class, 'show'])->whereNumber('oil_lot')->name('oil-lots.show');
+    Route::get('milling-operations', [ProducerMillingOperationController::class, 'index'])->name('milling-operations.index');
+    Route::get('milling-operations/{millingOperation}', [ProducerMillingOperationController::class, 'show'])->whereNumber('millingOperation')->name('milling-operations.show');
+    Route::post('milling-operations/{millingOperation}/confirm-delivery', [ProducerMillingOperationController::class, 'confirmDelivery'])->whereNumber('millingOperation')->name('milling-operations.confirm-delivery');
+    Route::post('milling-operations/{millingOperation}/acknowledge', [ProducerMillingOperationController::class, 'acknowledge'])->whereNumber('millingOperation')->name('milling-operations.acknowledge');
 });
 
 Route::get('/producer-logos/{profile}', [ProducerProfileController::class, 'logo'])
     ->middleware(['auth', 'active', 'role:producer,admin'])->whereNumber('profile')->name('producer.logo');
+
+Route::prefix('miller')->name('miller.')->middleware(['auth', 'active', 'role:miller'])->group(function () {
+    Route::get('milling-operations', [MillerMillingOperationController::class, 'index'])->name('milling-operations.index');
+    Route::get('milling-operations/{millingOperation}', [MillerMillingOperationController::class, 'show'])->whereNumber('millingOperation')->name('milling-operations.show');
+    Route::post('milling-operations/{millingOperation}/confirm-reception', [MillerMillingOperationController::class, 'confirmReception'])->whereNumber('millingOperation')->name('milling-operations.confirm-reception');
+    Route::post('milling-operations/{millingOperation}/start', [MillerMillingOperationController::class, 'start'])->whereNumber('millingOperation')->name('milling-operations.start');
+    Route::post('milling-operations/{millingOperation}/complete', [MillerMillingOperationController::class, 'complete'])->whereNumber('millingOperation')->name('milling-operations.complete');
+});
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admin', 'can:access-admin'])->group(function () {
     Route::get('producers', [ProducerProfileController::class, 'index'])->name('producers.index');
