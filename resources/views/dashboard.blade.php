@@ -41,6 +41,13 @@
                 <p class="mt-4 text-sm leading-7 text-olive-100/80">Keep your huilerie details accurate: region, extraction
                     method and hourly capacity.</p>
                 <a href="{{ route('mill.show') }}" class="btn-secondary mt-6">Manage my mill <x-icon name="arrow" /></a>
+            @elseif(auth()->user()->role === \App\Enums\Role::Consumer)
+                <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Bienvenue, consommateur engagé.</h2>
+                <p class="mt-4 text-sm leading-7 text-olive-100/80">Tracez vos bouteilles, partagez vos avis et suivez vos réclamations.</p>
+                <div class="flex flex-wrap gap-4 mt-6">
+                    <a href="{{ route('trace.search') }}" class="btn-secondary">🔍 Tracer un produit <x-icon name="arrow" /></a>
+                    <a href="{{ route('complaints.index') }}" class="btn-secondary">📋 Mes réclamations <x-icon name="arrow" /></a>
+                </div>
             @else
                 <h2 id="workspace-heading" class="font-display text-3xl sm:text-4xl">Your workspace is taking root.</h2>
                 <p class="mt-4 text-sm leading-7 text-olive-100/80">The business modules will appear here.</p>
@@ -75,7 +82,9 @@
                         <a class="text-link" href="{{ route(auth()->user()->isAdmin() ? 'admin.dashboard' : 'dashboard') }}">Reset</a>
                     </div>
                 </form>
-                @php($hasShipments = array_sum($metrics['status_counts']) > 0)
+                @php
+                    $hasShipments = array_sum($metrics['status_counts']) > 0;
+                @endphp
                 @if(! $hasShipments)
                     <p class="mb-6 rounded-xl bg-olive-50 p-4 text-sm text-stone-600">No shipments in this period.</p>
                 @endif
@@ -90,7 +99,9 @@
                         <h3 class="font-display text-2xl">Shipment status</h3>
                         <div class="mt-4 space-y-3">
                             @foreach(['planned' => 'Planned', 'in_transit' => 'In transit', 'delivered' => 'Delivered'] as $status => $label)
-                                @php($count = $metrics['status_counts'][$status] ?? 0)
+                                @php
+    $count = $metrics['status_counts'][$status] ?? 0;
+@endphp
                                 <div>
                                     <div class="flex justify-between text-sm"><span>{{ $label }}</span><strong>{{ $count }}</strong></div>
                                     <div class="mt-1 h-2 rounded-full bg-olive-100"><div class="h-2 rounded-full bg-olive-600" style="width: {{ $hasShipments ? ($count / array_sum($metrics['status_counts'])) * 100 : 0 }}%" role="img" aria-label="{{ $label }}: {{ $count }}"></div></div>
@@ -168,5 +179,82 @@
                         class="h-1.5 w-1.5 rounded-full bg-olive-500"></span>Account active</p>
             </x-card>
         @endcan
+        @if(auth()->user()->role === \App\Enums\Role::Consumer)
+            {{-- Feature 3: Consumer Dashboard Widgets --}}
+            @php
+                $myReviews = collect();
+                $myComplaints = collect();
+                $topProducts = collect();
+            @endphp
+            <x-card>
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="star" /></div>
+                <h2 class="text-lg font-semibold">Mes avis</h2>
+                @php $myReviews = \App\Models\Consumer\Feedback::where('consumer_user_id', auth()->id())->with('product')->latest()->take(3)->get(); @endphp
+                @if($myReviews->isNotEmpty())
+                    <div class="mt-3 space-y-2">
+                        @foreach($myReviews as $review)
+                            <div class="flex items-center justify-between gap-2 text-sm">
+                                <span class="truncate">{{ $review->product?->name ?? 'Produit #'.$review->oil_product_id }}</span>
+                                <span class="shrink-0 font-semibold text-gold">{{ str_repeat('★', $review->rating) }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="mt-2 text-sm text-stone-500">Aucun avis publié. Tracez un produit pour laisser votre premier avis.</p>
+                @endif
+            </x-card>
+            <x-card>
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="check" /></div>
+                <h2 class="text-lg font-semibold">Mes réclamations</h2>
+                @php $myComplaints = \App\Models\Consumer\Complaint::where('consumer_user_id', auth()->id())->with('product')->latest()->take(3)->get(); @endphp
+                @if($myComplaints->isNotEmpty())
+                    <div class="mt-3 space-y-2">
+                        @foreach($myComplaints as $c)
+                            @php $dot = ['open' => 'bg-gold', 'in_review' => 'bg-olive-500', 'resolved' => 'bg-olive-800', 'rejected' => 'bg-stone-300'][$c->status->value] ?? 'bg-stone-300'; @endphp
+                            <a href="{{ route('complaints.show', $c) }}" class="flex items-center justify-between gap-2 text-sm hover:text-olive-600">
+                                <span class="flex items-center gap-2 truncate"><span class="h-2 w-2 rounded-full {{ $dot }}"></span>{{ $c->subject }}</span>
+                                <span class="role-badge shrink-0">{{ $c->status->label() }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                    <a class="text-link mt-4 inline-flex items-center gap-2" href="{{ route('complaints.index') }}">Voir toutes <x-icon name="arrow" class="h-4 w-4" /></a>
+                @else
+                    <p class="mt-2 text-sm text-stone-500">Aucune réclamation. C'est bon signe !</p>
+                @endif
+            </x-card>
+            <x-card>
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="leaf" /></div>
+                <h2 class="text-lg font-semibold">Produits les mieux notés</h2>
+                @php
+                    $topProducts = \App\Models\Consumer\Feedback::query()->visible()
+                        ->selectRaw('oil_product_id, AVG(rating) as avg_rating, COUNT(*) as review_count')
+                        ->groupBy('oil_product_id')
+                        ->havingRaw('COUNT(*) >= 1')
+                        ->orderByDesc('avg_rating')
+                        ->take(3)->get();
+                @endphp
+                @if($topProducts->isNotEmpty())
+                    <div class="mt-3 space-y-2">
+                        @foreach($topProducts as $tp)
+                            @php $tpProduct = \App\Models\Distribution\OilProduct::find($tp->oil_product_id); @endphp
+                            @if($tpProduct)
+                                <a href="{{ route('trace.show', $tpProduct->slug ?? $tpProduct->id) }}" class="flex items-center justify-between gap-2 text-sm hover:text-olive-600">
+                                    <span class="truncate">{{ $tpProduct->name }}</span>
+                                    <span class="shrink-0 font-semibold text-gold">{{ round($tp->avg_rating, 1) }} ★ <span class="font-normal text-stone-500">({{ $tp->review_count }})</span></span>
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+                @else
+                    <p class="mt-2 text-sm text-stone-500">Pas encore assez d'avis pour un classement.</p>
+                @endif
+            </x-card>
+            <x-card>
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-olive-50 text-olive-700"><x-icon name="drop" /></div>
+                <h2 class="text-lg font-semibold">Tracer un produit</h2>
+                <p class="mt-2 text-sm text-stone-500">Scannez le QR code ou entrez le code produit pour vérifier la traçabilité.</p>
+                <a href="{{ route('trace.search') }}" class="text-link mt-4 inline-flex items-center gap-2">🔍 Ouvrir le scanner <x-icon name="arrow" class="h-4 w-4" /></a>
+            </x-card>
+        @endif
     </div>
 @endsection

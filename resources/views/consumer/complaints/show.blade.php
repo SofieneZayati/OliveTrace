@@ -8,6 +8,12 @@
             @php $dot = ['open' => 'bg-gold', 'in_review' => 'bg-olive-500', 'resolved' => 'bg-olive-800', 'rejected' => 'bg-stone-300'][$complaint->status->value] ?? 'bg-stone-300'; @endphp
             <div class="flex flex-wrap items-center justify-between gap-3"><p class="flex items-center gap-2"><span class="h-2 w-2 rounded-full {{ $dot }}"></span><span class="role-badge">{{ $complaint->status->label() }}</span></p><span class="text-xs text-stone-500">{{ $complaint->created_at?->toDateString() }}</span></div>
             <p class="mt-5 text-sm leading-7">{{ $complaint->description }}</p>
+            @if($complaint->evidence_photo)
+                <div class="mt-5">
+                    <p class="eyebrow mb-2 text-olive-600">Photo preuve jointe</p>
+                    <img src="{{ Storage::disk('public')->url($complaint->evidence_photo) }}" alt="Photo preuve" class="max-h-64 rounded-xl border border-stone-200">
+                </div>
+            @endif
             @if($complaint->admin_response)
                 <div class="mt-6 rounded-xl bg-olive-50 p-5"><p class="eyebrow mb-2 text-olive-600">Team response</p><p class="text-sm leading-7">{{ $complaint->admin_response }}</p></div>
             @else

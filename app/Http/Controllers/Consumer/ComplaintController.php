@@ -36,9 +36,16 @@ class ComplaintController extends Controller
         abort_unless($product->isPubliclyVisible(), 404);
         $analysis = $classifier->classify($data['subject'].' '.$data['description']);
 
+        // Feature 5: Handle evidence photo upload.
+        $photoPath = null;
+        if ($request->hasFile('evidence_photo')) {
+            $photoPath = $request->file('evidence_photo')->store('complaints', 'public');
+        }
+
         $complaint = Complaint::create([
             'oil_product_id' => $data['oil_product_id'], 'consumer_user_id' => $request->user()->id,
             'subject' => $data['subject'], 'description' => $data['description'], 'status' => 'open',
+            'evidence_photo' => $photoPath,
             'ai_category' => $analysis['category'], 'ai_sentiment' => $analysis['sentiment'], 'ai_priority' => $analysis['priority'],
         ]);
 

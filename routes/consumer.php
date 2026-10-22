@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/trace/{slug}', [TraceController::class, 'show'])->name('trace.show');
 Route::redirect('/my-complaints', '/complaints')->name('my-complaints');
 
+// Feature 4: Public QR scanner and trace search.
+Route::get('/trace', [\App\Http\Controllers\Consumer\TraceSearchController::class, 'index'])->name('trace.search');
+Route::get('/trace-search', [\App\Http\Controllers\Consumer\TraceSearchController::class, 'search'])->name('trace.search.query');
+
+
 Route::middleware(['auth', 'active', 'role:consumer'])->group(function () {
     Route::post('/products/{product}/feedback', [FeedbackController::class, 'store'])->whereNumber('product')->name('feedback.store');
     Route::get('/feedback/{feedback}/edit', [FeedbackController::class, 'edit'])->whereNumber('feedback')->name('feedback.edit');
@@ -28,4 +33,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:admi
     Route::get('consumer/complaints', [ConsumerModerationController::class, 'complaintsIndex'])->name('consumer.complaints.index');
     Route::get('consumer/complaints/{complaint}', [ConsumerModerationController::class, 'complaintsShow'])->whereNumber('complaint')->name('consumer.complaints.show');
     Route::patch('consumer/complaints/{complaint}', [ConsumerModerationController::class, 'complaintsUpdate'])->whereNumber('complaint')->name('consumer.complaints.update');
+
+    // Feature 1: AI draft reply for complaints.
+    Route::post('consumer/complaints/{complaint}/ai-reply', [ConsumerModerationController::class, 'generateAiReply'])->whereNumber('complaint')->name('consumer.complaints.ai-reply');
+    // Feature 2: AI review summary.
+    Route::post('consumer/feedback/summary', [ConsumerModerationController::class, 'generateSummary'])->name('consumer.feedback.summary');
 });

@@ -21,8 +21,8 @@ class Complaint extends Model
     protected $attributes = ['status' => 'open'];
 
     protected $fillable = [
-        'oil_product_id', 'consumer_user_id', 'subject', 'description', 'status',
-        'admin_response', 'ai_category', 'ai_sentiment', 'ai_priority', 'resolved_at',
+        'oil_product_id', 'consumer_user_id', 'subject', 'description', 'evidence_photo', 'status',
+        'admin_response', 'ai_category', 'ai_sentiment', 'ai_priority', 'ai_draft_reply', 'resolved_at',
     ];
 
     protected function casts(): array
