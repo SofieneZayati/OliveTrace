@@ -67,7 +67,7 @@ MSG;
                     ['role' => 'user', 'content' => $userMessage],
                 ],
                 'temperature' => 0.7,
-                'max_tokens' => 300,
+                ...GroqGenerationOptions::forModel(300),
             ]);
 
             if ($response->successful()) {

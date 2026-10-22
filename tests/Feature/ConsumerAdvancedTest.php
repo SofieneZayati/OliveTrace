@@ -143,7 +143,7 @@ class ConsumerAdvancedTest extends TestCase
 
     public function test_ai_draft_is_saved_for_review_without_sending_or_changing_the_decision(): void
     {
-        config(['services.groq.api_key' => 'consumer-test-key']);
+        config(['services.groq.api_key' => 'consumer-test-key', 'services.groq.model' => 'openai/gpt-oss-120b']);
         Http::fake(['api.groq.com/*' => Http::response(['choices' => [['message' => ['content' => 'Please review this draft.']]]])]);
         $complaint = Complaint::factory()->create(['description' => 'Packaging damaged', 'evidence_photo' => 'complaints/private.jpg']);
 
@@ -158,7 +158,11 @@ class ConsumerAdvancedTest extends TestCase
             $payload = json_encode($request->data());
 
             return $request->url() === 'https://api.groq.com/openai/v1/chat/completions'
-                && $request['model'] === 'test-model'
+                && $request['model'] === 'openai/gpt-oss-120b'
+                && $request['max_completion_tokens'] >= 1536
+                && $request['reasoning_effort'] === 'low'
+                && $request['include_reasoning'] === false
+                && ! isset($request['max_tokens'])
                 && str_contains($payload, 'Packaging damaged')
                 && ! str_contains($payload, $complaint->consumer->email)
                 && ! str_contains($payload, 'complaints/private.jpg');
